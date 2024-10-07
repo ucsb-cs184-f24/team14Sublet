@@ -2,11 +2,11 @@
 
 ## Attendance
 
-- Amy Wang
-- Allen Qui
-- Jason Vu
-- Haibo Yang
-- Jonathan Herring
+- Amy Wang [x]
+- Allen Qui [x]
+- Jason Vu [x]
+- Haibo Yang [x]
+- Jonathan Herring [x]
 
 ## Agenda
 
@@ -16,6 +16,8 @@
 4. Schedule future meeting
 
 ## Discussion Summary
+
+Basic team norms were discussed, most of which are common sense rules. We will be going with the subleaser-subletter connection app, specifically made for those seeking housing in Isla Vista. We finalized the role assignments in this meeting as well.
 
 ### 1. SCRUM Role Assignments
 
