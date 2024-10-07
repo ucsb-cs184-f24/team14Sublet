@@ -3,7 +3,7 @@
 ## Attendance
 
 - Amy Wang [x]
-- Allen Qui [x]
+- Allen Qiu [x]
 - Jason Vu [x]
 - Haibo Yang [x]
 - Jonathan Herring [x]
@@ -22,7 +22,7 @@ Basic team norms were discussed, most of which are common sense rules. We will b
 ### 1. SCRUM Role Assignments
 
 - **Product Owner**: Amy Wang
-- **Scrum Master**: Allen Qui
+- **Scrum Master**: Allen Qiu
 - **Scribe**: Jonathan Herring
 
 ### 2. Team Norms
