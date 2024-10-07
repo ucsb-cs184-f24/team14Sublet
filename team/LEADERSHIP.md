@@ -6,4 +6,4 @@ Scrum Master: Allen Qiu
 
 Scribe: Jonathan Herring
 
-Other Members: Jason Vu, Haibo Yang
+Other Members: Jason Vu, Haibo Yang, Collin Q
