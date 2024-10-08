@@ -1,4 +1,4 @@
-Amy Wang	Allen Qiu	Haibo Yang	Jonathan Herring	Jason Vu
+## Prior Experience and Learning Goals over the Quarter
 
 Allen Qiu
 3rd Year, React experience
@@ -13,4 +13,7 @@ Haibo Yang
 1st Year Masters, Android, React experience
 
 Jason Vu
-5th Year, React experience
+4th Year, React experience
+
+Collin Q
+4th Year, React experience
