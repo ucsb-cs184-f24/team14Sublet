@@ -7,18 +7,42 @@
 - Jason Vu [x]
 - Haibo Yang [x]
 - Jonathan Herring [x]
+- Collin Qian [x]
 
 ## Agenda
 
-1. Decide tech stack
-2. Add to and solidify team norms
-3. Decide on when to meet next and expectations for next meeting
+1. Daily standup
+2. Decide tech stack
+3. Discuss problem scenario
+4. Add to and solidify team norms
+5. Decide on when to meet next and expectations for next meeting
 
 ## Discussion Summary
 
-### 1. Tech Stack
+### 1. Standup
 
-### 2. Updated Team Norms
+| Team Member | Status                                                       |
+| ----------- | ------------------------------------------------------------ |
+| Allen       | React Native and Android Studio set up                       |
+| Amy         | Has Expo Go set up                                           |
+| Haibo       | Set up with Android Studio, needs to get React Native set up |
+| Jason       | Needs to set up React Native and Android Studio set up       |
+| Jonathan    | Still needs to install React Native                          |
+| Collin      | Just joined the team                                         |
+
+### 2. Tech Stack
+
+- We will be using Expo for the frontend
+- We're undecided on the backend
+
+### 3. Problem Scenario
+
+- When subletting, it's common to have an inbox flooded with bots and scam messages. As a subleaser, many experience the problem of having to scroll through residences that either aren't relevant to them or are no longer available. With our Tinder-like app, subleasers will be able to swipe right on residences they are interested in, and subletters will be able to respond to messages they receieve for the properties they post.
+- To combat scamming, we'll verify the email used to sign up for the account ends in .edu
+- We'll implement an algorithm that recommends similar housing to users based on right-swipes
+- 1 app - one section for subletters, one for subleasers
+
+### 4. Updated team norms
 
 - Arrive at meetings on time and be prepared.
 - Document progress and maintain clear communication.
@@ -29,5 +53,6 @@
 ## Next Steps
 
 - **Action Items**:
-  - Prepare for next meeting on
+  - Set up next meeting time
+  - Set up development environments
   - Complete homework
