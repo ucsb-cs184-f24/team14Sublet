@@ -24,20 +24,27 @@
 
 | Team Member | Status                                                           |
 | ----------- | ---------------------------------------------------------------- |
-| Allen       |                                                                  |
-| Amy         |                                                                  |
-| Haibo       |                                                                  |
-| Jason       |                                                                  |
+| Allen       | Did the download, need to do homework                            |
+| Amy         | Have everything set up, need to do homework, no problems         |
+| Haibo       | Finished homework                                                |
+| Jason       | Fully set up, ready to do anything                               |
 | Jonathan    | Emulator setup; need to complete homework; no current roadblocks |
-| Collin      |                                                                  |
+| Collin      | Setup, haven't done homework yet                                 |
 
 ### 2. MVP Discussion
+
+Decided on app name, h0melette.
+
+Tech Stack:
+  - Frontend: React
+  - Backend: Firebase
+  - Language: Typescript
 
 ### 3. Refining Problem Scenario
 
 ## Next Steps
 
 - **Action Items**:
-  - Attend tomorrow's spring planning meeting (10/10) at [insert time] PM
+  - Attend tomorrow's spring planning meeting (10/10) at 6 PM
   - Set up development environments
   - Complete homework
