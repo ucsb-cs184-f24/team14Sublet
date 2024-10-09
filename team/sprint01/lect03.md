@@ -1,5 +1,7 @@
 # Lect03 Meeting Notes - 10/07/2024
 
+## Type of Meeting: Daily Scrum
+
 ## Attendance
 
 - Amy Wang [x]
@@ -20,6 +22,8 @@
 ## Discussion Summary
 
 ### 1. Standup
+
+Our team decided on using Expo to create the frontend of our app. We also discussed the problem scenario and decided that we should build one app that can be used for both subleasers and subletters.
 
 | Team Member | Status                                                       |
 | ----------- | ------------------------------------------------------------ |

@@ -1,5 +1,7 @@
 # Lect04 Meeting Notes - 10/09/2024
 
+## Type of Meeting: Daily Scrum
+
 ## Attendance
 
 - Amy Wang [x]
@@ -20,14 +22,14 @@
 
 ### 1. Standup
 
-| Team Member | Status |
-| ----------- | ------ |
-| Allen       |        |
-| Amy         |        |
-| Haibo       |        |
-| Jason       |        |
-| Jonathan    |        |
-| Collin      |        |
+| Team Member | Status                                                |
+| ----------- | ----------------------------------------------------- |
+| Allen       |                                                       |
+| Amy         |                                                       |
+| Haibo       |                                                       |
+| Jason       |                                                       |
+| Jonathan    | Emulator setup, need to complete homework, no holdups |
+| Collin      |                                                       |
 
 ### 2. MVP Discussion
 

@@ -1,5 +1,7 @@
 # Sec01 Meeting Notes - 10/04/2024
 
+## Type of Meeting: Daily Scrum
+
 ## Attendance
 
 - Amy Wang [x]
