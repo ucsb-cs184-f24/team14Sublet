@@ -4,8 +4,8 @@
 
 ## Attendance
 
-- Amy Wang [x]
 - Allen Qiu [x]
+- Amy Wang [x]
 - Jason Vu [x]
 - Haibo Yang [x]
 - Jonathan Herring [x]

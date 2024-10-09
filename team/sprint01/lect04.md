@@ -4,8 +4,8 @@
 
 ## Attendance
 
-- Amy Wang [x]
 - Allen Qiu [x]
+- Amy Wang [x]
 - Jason Vu [x]
 - Haibo Yang [x]
 - Jonathan Herring [x]
@@ -22,14 +22,14 @@
 
 ### 1. Standup
 
-| Team Member | Status                                                |
-| ----------- | ----------------------------------------------------- |
-| Allen       |                                                       |
-| Amy         |                                                       |
-| Haibo       |                                                       |
-| Jason       |                                                       |
-| Jonathan    | Emulator setup, need to complete homework, no holdups |
-| Collin      |                                                       |
+| Team Member | Status                                                           |
+| ----------- | ---------------------------------------------------------------- |
+| Allen       |                                                                  |
+| Amy         |                                                                  |
+| Haibo       |                                                                  |
+| Jason       |                                                                  |
+| Jonathan    | Emulator setup; need to complete homework; no current roadblocks |
+| Collin      |                                                                  |
 
 ### 2. MVP Discussion
 
@@ -38,6 +38,6 @@
 ## Next Steps
 
 - **Action Items**:
-  - Attend tomorrow's meeting (10/10) at PM
+  - Attend tomorrow's spring planning meeting (10/10) at [insert time] PM
   - Set up development environments
   - Complete homework
