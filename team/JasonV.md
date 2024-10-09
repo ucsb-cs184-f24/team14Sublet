@@ -1,0 +1,1 @@
+Hello, my name is Jason Vu, and I'm a 4th year computer science student. I have some React experience working in another class, but I don't have any app development experience.
