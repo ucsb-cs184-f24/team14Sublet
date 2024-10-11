@@ -11,11 +11,11 @@
 
 ## Sec02 Resource Liked/Posted
 
-| Name             | Link                                         |
-| ---------------- | -------------------------------------------- |
-| Allen Qiu        |                                              |
-| Jonathan Herring | [Official Expo Docs](https://docs.expo.dev/) |
-| Amy Wang         | [React Native APIs](https://reactnative.dev/docs/accessibilityinfo)  |
-| Haibo Yang       |  [Learning React Native Book](https://github.com/hyungmok/books/blob/master/Learning%20React%20Native.pdf) |
-| Collin Qian      |                                              |
-| Jason Vu         | [Creating First Expo App](https://www.youtube.com/watch?v=m1-bc53EGh8)                                             |
+| Name             | Link                                                                                                      |
+| ---------------- | --------------------------------------------------------------------------------------------------------- |
+| Allen Qiu        | [Google Firebase Setup](https://www.youtube.com/watch?v=HY3O_wrvDsI)                                      |
+| Jonathan Herring | [Official Expo Docs](https://docs.expo.dev/)                                                              |
+| Amy Wang         | [React Native APIs](https://reactnative.dev/docs/accessibilityinfo)                                       |
+| Haibo Yang       | [Learning React Native Book](https://github.com/hyungmok/books/blob/master/Learning%20React%20Native.pdf) |
+| Collin Qian      |                                                                                                           |
+| Jason Vu         | [Creating First Expo App](https://www.youtube.com/watch?v=m1-bc53EGh8)                                    |
