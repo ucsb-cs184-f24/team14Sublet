@@ -18,4 +18,4 @@
 | Amy Wang         | [React Native APIs](https://reactnative.dev/docs/accessibilityinfo)  |
 | Haibo Yang       |  [Learning React Native Book](https://github.com/hyungmok/books/blob/master/Learning%20React%20Native.pdf) |
 | Collin Qian      |                                              |
-| Jason Vu         |                                              |
+| Jason Vu         | [Creating First Expo App](https://www.youtube.com/watch?v=m1-bc53EGh8)                                             |
