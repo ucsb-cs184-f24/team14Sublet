@@ -16,6 +16,6 @@
 | Allen Qiu        |                                              |
 | Jonathan Herring | [Official Expo Docs](https://docs.expo.dev/) |
 | Amy Wang         |                                              |
-| Haibo Yang       |                                              |
+| Haibo Yang       |  [Learning React Native Book](https://github.com/hyungmok/books/blob/master/Learning%20React%20Native.pdf) |
 | Collin Qian      |                                              |
 | Jason Vu         |                                              |
