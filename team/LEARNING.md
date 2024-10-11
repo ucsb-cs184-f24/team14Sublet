@@ -9,7 +9,7 @@
 | Jason Vu         | 4th Year         | React experience                   |
 | Collin Qian      | 4th Year         | React experience                   |
 
-## Sec02 Resource Liked/Posted
+## Resource Liked/Posted (Sec02)
 
 | Name             | Link                                         |
 | ---------------- | -------------------------------------------- |
@@ -19,3 +19,16 @@
 | Haibo Yang       |                                              |
 | Collin Qian      |                                              |
 | Jason Vu         |                                              |
+
+## Benefits and Challenges of Expo (Sec02) - 10-11-2024
+
+### Benefits
+
+- **Smooth Development Process**: Expo has many libraries available for easier development and features such as hot reloading
+- **Cross-Platform**: We don't need separate codebases for iOS and Android
+- **Easy to Learn**: It's similar to React (it has components) and Next (file-based routing)
+- **Lots of Resources**: Expo is very popular among the React Native community, so there is an ample amount of resources to learn it
+
+### Challenges
+
+- **Extra Testing Required**: We have to make sure our software works on a wide range of devices
