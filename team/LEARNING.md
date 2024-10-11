@@ -11,6 +11,7 @@ Amy Wang
 
 Haibo Yang
 1st Year Masters, Android, React experience
+https://github.com/hyungmok/books/blob/master/Learning%20React%20Native.pdf
 
 Jason Vu
 4th Year, React experience
