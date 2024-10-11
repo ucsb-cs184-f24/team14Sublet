@@ -17,3 +17,8 @@ Scrum Master: Allen Qiu
 Scribe: Collin Qian
 Members: Amy Wang, Jason Vu, Haibo Yang,Jonathan Herring
 
+## 10/10/2024
+
+Scrum Master: Allen Qiu
+Scribe: Collin Qian
+Members: Amy Wang, Jason Vu, Haibo Yang,Jonathan Herring
