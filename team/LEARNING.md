@@ -11,14 +11,14 @@
 
 ## Resource Liked/Posted (Sec02)
 
-| Name             | Link                                         |
-| ---------------- | -------------------------------------------- |
-| Allen Qiu        |                                              |
-| Jonathan Herring | [Official Expo Docs](https://docs.expo.dev/) |
-| Amy Wang         |                                              |
-| Haibo Yang       |                                              |
-| Collin Qian      |                                              |
-| Jason Vu         |                                              |
+| Name             | Link                                                                                                      |
+| ---------------- | --------------------------------------------------------------------------------------------------------- |
+| Allen Qiu        | [Google Firebase Setup](https://www.youtube.com/watch?v=HY3O_wrvDsI)                                      |
+| Jonathan Herring | [Official Expo Docs](https://docs.expo.dev/)                                                              |
+| Amy Wang         | [React Native APIs](https://reactnative.dev/docs/accessibilityinfo)                                       |
+| Haibo Yang       | [Learning React Native Book](https://github.com/hyungmok/books/blob/master/Learning%20React%20Native.pdf) |
+| Collin Qian      |                                                                                                           |
+| Jason Vu         | [Creating First Expo App](https://www.youtube.com/watch?v=m1-bc53EGh8)                                    |
 
 ## Benefits and Challenges of Expo (Sec02) - 10-11-2024
 
@@ -32,11 +32,3 @@
 ### Challenges
 
 - **Extra Testing Required**: We have to make sure our software works on a wide range of devices
-  | Name | Link |
-  | ---------------- | --------------------------------------------------------------------------------------------------------- |
-  | Allen Qiu | [Google Firebase Setup](https://www.youtube.com/watch?v=HY3O_wrvDsI) |
-  | Jonathan Herring | [Official Expo Docs](https://docs.expo.dev/) |
-  | Amy Wang | [React Native APIs](https://reactnative.dev/docs/accessibilityinfo) |
-  | Haibo Yang | [Learning React Native Book](https://github.com/hyungmok/books/blob/master/Learning%20React%20Native.pdf) |
-  | Collin Qian | |
-  | Jason Vu | [Creating First Expo App](https://www.youtube.com/watch?v=m1-bc53EGh8) |
