@@ -29,7 +29,7 @@ Scrum Master: Allen Qiu
 Scribe: Jason Vu
 Members: Amy Wang, Haibo Yang, Jonathan Herring
 
-## 10/14/2024
+## Lecture 5, 10/14/2024
 
 Scrum Master: Jason Vu
 Scribe: Amy Wang
