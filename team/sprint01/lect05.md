@@ -13,11 +13,11 @@
 
 ### Standup
 
-| Team Member | Status |
-| ----------- | ------ |
-| Allen       |        |
-| Amy         |        |
-| Haibo       |        |
-| Jason       |        |
-| Jonathan    |        |
-| Collin      |        |
+| Team Member | Status                          |
+| ----------- | ------------------------------- |
+| Allen       | Ready to develop, no challenges |
+| Amy         | Ready to develop, no challenges |
+| Haibo       | Ready to develop, no challenges |
+| Jason       | Ready to develop, no challenges |
+| Jonathan    | Ready to develop, no challenges |
+| Collin      | Ready to develop, no challenges |
