@@ -1,4 +1,4 @@
-# Lect04 Meeting Notes - 10/14/2024
+# Lect05 Meeting Notes - 10/14/2024
 
 ## Type of Meeting: Daily Scrum
 
