@@ -17,7 +17,7 @@
 | Jonathan Herring | [Official Expo Docs](https://docs.expo.dev/)                                                              |
 | Amy Wang         | [React Native APIs](https://reactnative.dev/docs/accessibilityinfo)                                       |
 | Haibo Yang       | [Learning React Native Book](https://github.com/hyungmok/books/blob/master/Learning%20React%20Native.pdf) |
-| Collin Qian      | [React Native Tutorial](https://www.youtube.com/watch?v=0-S5a0eXPoc)                                      |
+| Collin Qian      |                                                                                                           |
 | Jason Vu         | [Creating First Expo App](https://www.youtube.com/watch?v=m1-bc53EGh8)                                    |
 
 ## Benefits and Challenges of Expo (Sec02) - 10-11-2024
@@ -32,3 +32,4 @@
 ### Challenges
 
 - **Extra Testing Required**: We have to make sure our software works on a wide range of devices
+- **Performance Overhead**: There can be a performance overhead due to the abstraction layer provided by Expo.
