@@ -30,7 +30,3 @@ As a user, I want to be able to create an account and log in
 - [ ] Verify email ends in .edu #11 (Jonathan)
 - [ ] Develop UI for login #15 (Collin, Haibo)
 - [ ] Develop UI for sign in #16 (Collin, Jonathan)
-
-As a subletter, the application should send me more leases that are similar the ones that I like
-- [ ] Map all listings to an embedding plane #13 (Amy)
-- [ ] Develop similarity matching algorithm #14 (unassigned)
