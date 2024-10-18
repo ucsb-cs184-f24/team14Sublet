@@ -24,13 +24,13 @@
 
 ## User Stories
 
-Account Creation: As a user, I want to be able to create an account and log in
-- [ ] #9
-- [ ] #10
-- [ ] #11
-- [ ] #15
-- [ ] #16
+As a user, I want to be able to create an account and log in
+- [ ] Set up Firebase project #9 (Allen)
+- [ ] Implement email sign-up #10 (Jason)
+- [ ] Verify email ends in .edu #11 (Jonathan)
+- [ ] Develop UI for login #15 (Collin, Haibo)
+- [ ] Develop UI for sign in #16 (Collin, Jonathan)
 
 As a subletter, the application should send me more leases that are similar the ones that I like
-- [ ] #13
-- [ ] #14
+- [ ] Map all listings to an embedding plane #13 (Amy)
+- [ ] Develop similarity matching algorithm #14 (unassigned)
