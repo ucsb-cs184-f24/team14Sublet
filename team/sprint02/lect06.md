@@ -25,8 +25,8 @@
 ## User Stories
 
 As a user, I want to be able to create an account and log in
-- [ ] Set up Firebase project #9 (Allen)
-- [ ] Implement email sign-up #10 (Jason)
+- [ ] Set up Firebase project #9 (Allen, Amy)
+- [ ] Implement email sign-up #10 (Jason, Amy)
 - [ ] Verify email ends in .edu #11 (Jonathan)
 - [ ] Develop UI for login #15 (Collin, Haibo)
 - [ ] Develop UI for sign in #16 (Collin, Jonathan)
