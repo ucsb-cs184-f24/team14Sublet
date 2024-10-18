@@ -42,6 +42,9 @@
 ## Retro Assessment (for retro leader)
 
 * A brief description of what retro outline or process you used.
+  - I asked 4 questions: what went well, what could've been better, what we will do differently, and then action items.
 * A brief assessment of how it went.
+  - I think it went fine! We didn't have that much done in this past sprint so it was hard to make any real changes, other than the change to get more stuff done.
 * What advice would you give to the next person leading a retro
   based on what you learned today?
+  - Next retro will be different hoping we are pushing lots of code and making lots of contributions!
