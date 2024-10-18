@@ -43,6 +43,7 @@ Members: Collin Qian, Allen Qiu, Haibo Yang, Jonathan Herring
 
 ## Lecture 7, 10/16/2024
 
-Scrum Master: Collin Qian
+Retro Leader: Collin Qian
+Scrum Master: TBA
 Scribe: TBA
 Members: Allen Qiu, Haibo Yang, Jonathan Herring, Jason Vu, Amy Wang
