@@ -1,1 +1,0 @@
-I'm Collin Qian, a fourth-year undergraduate student. I have software experience in full-stack development and machine learning, and I've worked most with C++, Python, and Javascript. I'm looking forward to working with everyone!

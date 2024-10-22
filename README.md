@@ -1,45 +1,50 @@
-# Homelet
+# Welcome to your Expo app 👋
 
-A mobile app designed to connect subleasers with subletters in Isla Vista
+This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
-# Tech Stack
+## Get started
 
-## Frontend:
+1. Install dependencies
 
-- React-Native (w/ EXPO framework)
+   ```bash
+   npm install
+   ```
 
-## Backend
+2. Start the app
 
-- Firebase
+   ```bash
+    npx expo start
+   ```
 
-# App Planning
+In the output, you'll find options to open the app in a
 
-# User Stories
+- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
+- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
+- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
+- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
-## As a subletter:
-- As a subletter, the application should send me more leases that are similar the ones that I like
-- As a subletter, I would like to show interest or disinterest in specific leases
-- As a subletter, I want to talk to the subleaser about the leases I like
-- As a subletter, I want to be able to narrow down my search by filtering criteria (e.g., rent, room type, proximity to campus)
+You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
-## As a subleaser:
-- As a subleaser, I want to post my leases
-- As a subleaser, I want to track my posted leasers
+## Get a fresh project
 
-## As a user:
-- As a user, I want to be able to create an account and log in
+When you're ready, run:
 
-## As an admin:
-- As an admin, I want to browse and manage the data of customer, property, and transaction
+```bash
+npm run reset-project
+```
 
-# Project Team
+This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
 
-## Frontend
-- Jonathan Herring - @jonathan-herring
-- Collin Qian - @CollinQ
-- Haibo Yang - @YoungHypo
+## Learn more
 
-## Backend
-- Allen Qiu - @aqiu04
-- Amy Wang - @awaang
-- Jason Vu - @Firoc
+To learn more about developing your project with Expo, look at the following resources:
+
+- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
+- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+
+## Join the community
+
+Join our community of developers creating universal apps.
+
+- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
+- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
