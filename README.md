@@ -1,6 +1,4 @@
-# Welcome to your Expo app 👋
-
-**This is HomeWork2 from Haibo Yang**
+# This is HomeWork2 from Haibo Yang 👋
 
 ## Platform
 Development: React Native; 
