@@ -48,10 +48,9 @@ Scrum Master: TBA
 Scribe: Amy Wang
 Members: Allen Qiu, Haibo Yang, Jonathan Herring, Jason Vu, Amy Wang
 
-
 ## Lecture 7, 10/21/2024
 
 Retro Leader: Collin Qian
-Scrum Master: TBA
-Scribe: TBA
-Members: Allen Qiu, Haibo Yang, Jonathan Herring, Jason Vu, Amy Wang
+Scrum Master: Haibo Yang
+Scribe: Allen Qiu
+Members: Jonathan Herring, Jason Vu, Amy Wang
