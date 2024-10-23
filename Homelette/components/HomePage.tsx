@@ -21,7 +21,6 @@ export function HomePage({ user }: HomePageProps) {
     <View style={styles.container}>
       <ThemedText style={styles.title}>Homelette Home Page</ThemedText>
       <ThemedText style={styles.userInfo}>User ID: {user.uid}</ThemedText>
-      <ThemedText style={styles.userInfo}>Name: {user.displayName || 'N/A'}</ThemedText>
       <ThemedText style={styles.userInfo}>Email: {user.email}</ThemedText>
       <TouchableOpacity style={styles.button} onPress={handleSignOut}>
         <ThemedText style={styles.buttonText}>Sign Out</ThemedText>
