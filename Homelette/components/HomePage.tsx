@@ -1,22 +1,28 @@
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { ThemedText } from './ThemedText';
-import { signOut } from 'firebase/auth';
+import { signOut, User } from 'firebase/auth';
 import { auth } from '@/config/firebase';
 
-export function HomePage() {
+interface HomePageProps {
+  user: User;
+}
 
-    const handleSignOut = async () => {
-        try {
-            await signOut(auth);
-        } catch (error) {
-            console.error('Sign Out Error:', error);
-        }
+export function HomePage({ user }: HomePageProps) {
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error('Sign Out Error:', error);
     }
+  }
 
   return (
     <View style={styles.container}>
       <ThemedText style={styles.title}>Homelette Home Page</ThemedText>
+      <ThemedText style={styles.userInfo}>User ID: {user.uid}</ThemedText>
+      <ThemedText style={styles.userInfo}>Name: {user.displayName || 'N/A'}</ThemedText>
+      <ThemedText style={styles.userInfo}>Email: {user.email}</ThemedText>
       <TouchableOpacity style={styles.button} onPress={handleSignOut}>
         <ThemedText style={styles.buttonText}>Sign Out</ThemedText>
       </TouchableOpacity>
@@ -36,10 +42,15 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 20,
   },
+  userInfo: {
+    fontSize: 16,
+    marginBottom: 10,
+  },
   button: {
-    backgroundColor: '#4285F4', // Google blue
+    backgroundColor: '#4285F4',
     padding: 10,
     borderRadius: 5,
+    marginTop: 20,
   },
   buttonText: {
     color: 'white',

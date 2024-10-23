@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "227281162992",
+    "project_id": "team14-sublet-1034a",
+    "storage_bucket": "team14-sublet-1034a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:227281162992:android:22e6b31ea1488d4557a835",
+        "android_client_info": {
+          "package_name": "com.homelette.androidapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "227281162992-1st5bbovd65kf7fmr2t795nfglcr8if4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.homelette.androidapp",
+            "certificate_hash": "91ea2c06f93fbc9ded5221b1ccaef52eebf83502"
+          }
+        },
+        {
+          "client_id": "227281162992-5hn0nfn8l8q7dr7c12p8q9la23tmeotm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC_1sUwaM0FrFU9H8tDEYajAt1dJq6p4es"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "227281162992-5hn0nfn8l8q7dr7c12p8q9la23tmeotm.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "227281162992-b0svq5ia2qsc7qh7i3jugs56u9sd4f33.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.homelette.app"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

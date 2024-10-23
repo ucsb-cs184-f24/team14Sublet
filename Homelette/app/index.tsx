@@ -18,7 +18,7 @@ export default function Index() {
   }, []);
 
   if (user) {
-    return <HomePage />;
+    return <HomePage user={user} />;
   }
 
   return <WelcomePage />;
