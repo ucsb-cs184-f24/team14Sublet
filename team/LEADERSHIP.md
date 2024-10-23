@@ -54,3 +54,10 @@ Retro Leader: Collin Qian
 Scrum Master: Haibo Yang
 Scribe: Allen Qiu
 Members: Jonathan Herring, Jason Vu, Amy Wang
+
+## Lecture 8, 10/23/2024
+
+Retro Leader: Collin Qian
+Scrum Master: Haibo Yang
+Scribe: Allen Qiu
+Members: Jonathan Herring, Amy Wang
