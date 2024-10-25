@@ -22,7 +22,7 @@
 * Time distribution in class
 * Implement code reviews on PRs (have 2 people review)
 
-## Action item
+## Action item (experiment)
 
 * a goal: identify something the team wants to get better at
   - quicker meetings 
@@ -48,3 +48,9 @@
 * What advice would you give to the next person leading a retro
   based on what you learned today?
   - Next retro will be different hoping we are pushing lots of code and making lots of contributions!
+
+# Retro Experiment Outcome
+
+* We limited our standups to 5 minutes and decided to do the standups at the end of class so that we could get more work done. This was successful since we didn't spend 10-15 minutes on our standup as we sometimes tend to do. 
+* We created our deadlines for the issues and completed them.
+* We are making more issues for the next sprint to complete for the following week. 
