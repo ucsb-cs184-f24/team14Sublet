@@ -1,24 +1,54 @@
-import React from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import { ThemedText } from './ThemedText';
-import { signInWithGoogle } from '@/config/firebase'; // We'll create this function
+import { signIn, signUp } from '@/config/firebase';
 
 export function WelcomePage() {
-  const handleGoogleSignIn = async () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLogin, setIsLogin] = useState(true);
+
+  const handleAuth = async () => {
     try {
-      await signInWithGoogle();
-      // Handle successful sign-in (e.g., navigate to home screen)
+      if (isLogin) {
+        await signIn(email, password);
+      } else {
+        await signUp(email, password);
+      }
+      // Handle successful auth (navigation is handled in app/index.tsx)
     } catch (error) {
-      console.error('Google Sign-In Error:', error);
-      // Handle sign-in error (e.g., show error message)
+      console.error('Authentication Error:', error);
+      // Handle auth error (e.g., show error message)
     }
   };
 
   return (
     <View style={styles.container}>
       <ThemedText style={styles.title}>Welcome to Homelette</ThemedText>
-      <TouchableOpacity style={styles.button} onPress={handleGoogleSignIn}>
-        <ThemedText style={styles.buttonText}>Sign in with Google</ThemedText>
+      <TextInput
+        style={styles.input}
+        placeholder="Email"
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Password"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+      />
+      <TouchableOpacity style={styles.button} onPress={handleAuth}>
+        <ThemedText style={styles.buttonText}>
+          {isLogin ? 'Login' : 'Sign Up'}
+        </ThemedText>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
+        <ThemedText style={styles.switchText}>
+          {isLogin ? 'Need an account? Sign Up' : 'Already have an account? Login'}
+        </ThemedText>
       </TouchableOpacity>
     </View>
   );
@@ -36,13 +66,28 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 20,
   },
+  input: {
+    width: '100%',
+    height: 40,
+    borderColor: 'gray',
+    borderWidth: 1,
+    borderRadius: 5,
+    marginBottom: 10,
+    paddingHorizontal: 10,
+  },
   button: {
-    backgroundColor: '#4285F4', // Google blue
+    backgroundColor: '#4285F4',
     padding: 10,
     borderRadius: 5,
+    width: '100%',
+    alignItems: 'center',
   },
   buttonText: {
     color: 'white',
     fontSize: 16,
+  },
+  switchText: {
+    marginTop: 15,
+    color: '#4285F4',
   },
 });
