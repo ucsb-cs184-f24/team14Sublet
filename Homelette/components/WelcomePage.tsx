@@ -15,14 +15,11 @@ export function WelcomePage() {
   const [isLogin, setIsLogin] = useState(true);
   const [error, setError] = useState("");
 
-  // Define the regex pattern for .edu emails
   const eduEmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}\.edu$/i;
 
   const handleAuth = async () => {
-    // Reset error message
     setError("");
 
-    // Validate the email against the .edu regex
     if (!eduEmailRegex.test(email)) {
       setError("Please enter a valid .edu email address.");
       return;
@@ -34,13 +31,11 @@ export function WelcomePage() {
       } else {
         await signUp(email, password);
       }
-      // Handle successful auth (navigation is handled in app/index.tsx)
     } catch (error) {
       console.error("Authentication Error:", error);
       setError(
         "Authentication failed. Please check your credentials and try again.",
       );
-      // Optionally, you can parse the error to provide more specific messages
     }
   };
 
