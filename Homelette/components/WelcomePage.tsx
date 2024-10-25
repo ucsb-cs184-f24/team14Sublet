@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import { ThemedText } from './ThemedText';
-import { signIn, signUp } from '@/config/firebase';
+import { signIn, signUp, signInWithGoogle } from '@/config/firebase';
 
 export function WelcomePage() {
   const [email, setEmail] = useState('');
@@ -21,6 +21,14 @@ export function WelcomePage() {
       // Handle auth error (e.g., show error message)
     }
   };
+
+  const onGooglePress = async () => {
+    try {
+      await signInWithGoogle();
+    } catch (error) {
+      console.error('Google Auth Error:', error);
+    }
+  }
 
   return (
     <View style={styles.container}>
@@ -48,6 +56,12 @@ export function WelcomePage() {
       <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
         <ThemedText style={styles.switchText}>
           {isLogin ? 'Need an account? Sign Up' : 'Already have an account? Login'}
+        </ThemedText>
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={ onGooglePress }>
+        <ThemedText style={styles.switchText}>
+          Sign in with Google
         </ThemedText>
       </TouchableOpacity>
     </View>
