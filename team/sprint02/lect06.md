@@ -1,4 +1,4 @@
-# Lect05 Meeting Notes - 10/16/2024
+# Lect06 Meeting Notes - 10/16/2024
 
 ## Type of Meeting: Sprint Planning
 
@@ -13,18 +13,19 @@
 
 ## Standup
 
-| Team Member | Status                                                                                |
-| ----------- | ------------------------------------------------------------------------------------- |
+| Team Member | Status                                                      |
+| ----------- | ----------------------------------------------------------- |
 | Allen       | Need to do HW2 and will setup Firebase account, No blockers |
 | Amy         | Need to do HW2 and will setup Firebase account, No blockers |
 | Haibo       | Work on creating an account and login frontend, No blockers |
-| Jason       | Work on User email and HW2, No blockers |
-| Jonathan    | Install NPM and work on frontend, No blockers |
-| Collin      | Need to do HW2 and work on frontend for login, No blockers |
+| Jason       | Work on User email and HW2, No blockers                     |
+| Jonathan    | Install NPM and work on frontend, No blockers               |
+| Collin      | Need to do HW2 and work on frontend for login, No blockers  |
 
 ## User Stories
 
 As a user, I want to be able to create an account and log in
+
 - [ ] Set up Firebase project #9 (Allen, Amy)
 - [ ] Implement email sign-up #10 (Jason, Amy)
 - [ ] Verify email ends in .edu #11 (Jonathan)
