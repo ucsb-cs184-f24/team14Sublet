@@ -1,21 +1,10 @@
-import React, { useEffect, useState } from "react";
-import { Text, View } from "react-native";
+import React from "react";
 import { WelcomePage } from "@/components/WelcomePage";
 import { HomePage } from "@/components/HomePage";
-import { auth } from "@/config/firebase";
-import { onAuthStateChanged, User } from "firebase/auth";
-
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Index() {
-  const [user, setUser] = useState<User | null>(null);
-
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-    });
-    return () => unsubscribe();
-  }, []);
+  const { user } = useAuth();
 
   if (user) {
     return <HomePage user={user} />;
