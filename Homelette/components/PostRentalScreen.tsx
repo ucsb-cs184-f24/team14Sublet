@@ -1,69 +1,31 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import { launchImageLibrary } from 'react-native-image-picker';
-import * as ImagePicker from 'expo-image-picker'; 
-import 
 
 export default function PostRentalScreen() {
-    const [area, setArea] = useState('');
-    const [model, setModel] = useState('');
+    const [address, setAddress] = useState('');
+    const [zipCode, setZipCode] = useState('');
+    const [bathrooms, setBathrooms] = useState('');
+    const [bedrooms, setBedrooms] = useState('');
+    const [type, setType] = useState('');
     const [price, setPrice] = useState('');
     const [description, setDescription] = useState('');
-    const [image, setImage] = useState(null);
-
-    const pickImage = async () => {
-        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (permissionResult.granted === false) {
-        alert('Permission to access camera roll is required!');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+    
+    const handleSubmit = () => {
+        if (!address || !bathrooms || !bedrooms || !type || !price || !description || !zipCode) {
+            alert('Please fill in all the required fields.');
         return;
-        }
-        let result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: true,
-            aspect: [4, 3],
-            quality: 1,
-        });
-
-        if (!result.cancelled) {
-            setImage(result.assets[0].uri);
-            uploadImage(result.assets[0].uri);
-        }
-    };
-
-    const uploadImage = async (uri) => {
-        let filename = uri.split('/').pop();
-        let match = /\.(\w+)$/.exec(filename);
-        let type = match ? `image/${match[1]}` : `image`;
-
-        const base64Image = await FileSystem.readAsStringAsync(uri, {
-            encoding: FileSystem.EncodingType.Base64,
-        });
-
-        console.log('Base64 image:', base64Image);
-    }
-  const handleImagePick = async () => {
-    const result = await launchImageLibrary({
-      mediaType: 'photo',
-      quality: 0.8,
-    });
-
-    if (!result.didCancel && result.assets && result.assets.length > 0) {
-      setImageUri(result.assets[0].uri);
-    }
-  };
-
-  const handleSubmit = () => {
-    if (!area || !model || !price) {
-      alert('Please fill in all the required fields.');
-      return;
     }
     
     const rentalData = {
-      area,
-      model,
-      price,
-      description,
-      imageUri,
+        address,
+        zipCode,
+        bathrooms,
+        bedrooms,
+        type,
+        price,
+        description
     };
 
     console.log('Rental data submitted:', rentalData);
@@ -72,46 +34,77 @@ export default function PostRentalScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Post Your Rental Information</Text>
+        <Text style={styles.header}>Post Your Rental Information</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="House Area (sq. ft)"
-        keyboardType="numeric"
-        value={area}
-        onChangeText={setArea}
-      />
+        <View>
+            <TextInput
+                style={styles.input}
+                placeholder="Address"
+                value={address}
+                onChangeText={setAddress}
+            />
+            <TextInput
+                style={styles.input}
+                placeholder="Zip Code"
+                value={zipCode}
+                onChangeText={setZipCode}
+            />
+        </View>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Model (e.g., 2BHK, 3BHK)"
-        value={model}
-        onChangeText={setModel}
-      />
+        <View>
+            <TextInput
+                style={styles.input}
+                placeholder="Number of Bedrooms"
+                keyboardType="numeric"
+                value={bedrooms}
+                onChangeText={setBedrooms}
+            />
+            <TextInput
+                style={styles.input}
+                placeholder="Number of Bathrooms"
+                keyboardType="numeric"
+                value={bathrooms}
+                onChangeText={setBathrooms}
+            />
+        </View>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Price per Month ($)"
-        keyboardType="numeric"
-        value={price}
-        onChangeText={setPrice}
-      />
+        <TextInput
+            style={styles.input}
+            placeholder="Type (e.g., Apartment, House)"
+            value={type}
+            onChangeText={setType}
+        />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Additional Description"
-        multiline
-        value={description}
-        onChangeText={setDescription}
-      />
+        <TextInput
+            style={styles.input}
+            placeholder="Price per Month ($)"
+            keyboardType="numeric"
+            value={price}
+            onChangeText={setPrice}
+        />
 
-      <TouchableOpacity onPress={handleImagePick} style={styles.imageButton}>
-        <Text style={styles.imageButtonText}>Pick Image</Text>
-      </TouchableOpacity>
+        <View>
+            <TextInput
+                style={styles.input}
+                placeholder="Start Date"
+                value={startDate}
+                onChangeText={setStartDate}
+            />
+            <TextInput
+                style={styles.input}
+                placeholder="End Date"
+                value={endDate}
+                onChangeText={setEndDate}
+            />
+        </View>
 
-      {imageUri && (
-        <Image source={{ uri: imageUri }} style={styles.image} />
-      )}
+        <TextInput
+            style={styles.input}
+            placeholder="Additional Description"
+            multiline
+            value={description}
+            onChangeText={setDescription}
+        />
 
       <TouchableOpacity onPress={handleSubmit} style={styles.button}>
         <Text style={styles.buttonText}>Submit</Text>
