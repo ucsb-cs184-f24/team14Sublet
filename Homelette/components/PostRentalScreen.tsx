@@ -2,14 +2,45 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import * as ImagePicker from 'expo-image-picker'; 
+import 
 
 export default function PostRentalScreen() {
-  const [area, setArea] = useState('');
-  const [model, setModel] = useState('');
-  const [price, setPrice] = useState('');
-  const [description, setDescription] = useState('');
-  const [imageUri, setImageUri] = useState(null);
+    const [area, setArea] = useState('');
+    const [model, setModel] = useState('');
+    const [price, setPrice] = useState('');
+    const [description, setDescription] = useState('');
+    const [image, setImage] = useState(null);
 
+    const pickImage = async () => {
+        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (permissionResult.granted === false) {
+        alert('Permission to access camera roll is required!');
+        return;
+        }
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 1,
+        });
+
+        if (!result.cancelled) {
+            setImage(result.assets[0].uri);
+            uploadImage(result.assets[0].uri);
+        }
+    };
+
+    const uploadImage = async (uri) => {
+        let filename = uri.split('/').pop();
+        let match = /\.(\w+)$/.exec(filename);
+        let type = match ? `image/${match[1]}` : `image`;
+
+        const base64Image = await FileSystem.readAsStringAsync(uri, {
+            encoding: FileSystem.EncodingType.Base64,
+        });
+
+        console.log('Base64 image:', base64Image);
+    }
   const handleImagePick = async () => {
     const result = await launchImageLibrary({
       mediaType: 'photo',
