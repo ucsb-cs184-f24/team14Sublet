@@ -15,7 +15,7 @@ export function WelcomePage() {
   const [isLogin, setIsLogin] = useState(true);
   const [error, setError] = useState("");
 
-  const eduEmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}\.edu$/i;
+  const eduEmailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[eE][dD][uU]$/;
 
   const handleAuth = async () => {
     setError("");
