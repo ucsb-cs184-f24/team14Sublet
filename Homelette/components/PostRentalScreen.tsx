@@ -34,7 +34,7 @@ export default function PostRentalScreen() {
 
   return (
     <View style={styles.container}>
-        <Text style={styles.header}>Post Your Rental Information</Text>
+        <Text style={styles.header}>Post Your Lease</Text>
 
         <View>
             <TextInput
