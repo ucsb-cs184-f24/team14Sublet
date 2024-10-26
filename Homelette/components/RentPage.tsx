@@ -3,14 +3,10 @@ import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { ThemedText } from './ThemedText';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/config/firebase';
+import PostRentalScreen from './PostRentalScreen';
 
 export function RentPage() {
-
-  return (
-    <View style={styles.container}>
-      <ThemedText style={styles.title}>Rent Page</ThemedText>
-    </View>
-  );
+  return <PostRentalScreen />;
 }
 
 const styles = StyleSheet.create({
