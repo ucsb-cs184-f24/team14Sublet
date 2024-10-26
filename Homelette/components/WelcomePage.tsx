@@ -7,7 +7,7 @@ import {
   Text,
 } from "react-native";
 import { ThemedText } from "./ThemedText";
-import { signIn, signUp, signInWithGoogle } from '@/config/firebase';
+import { signIn, signUp, signInWithGoogle } from "@/config/firebase";
 
 export function WelcomePage() {
   const [email, setEmail] = useState("");
@@ -15,7 +15,7 @@ export function WelcomePage() {
   const [isLogin, setIsLogin] = useState(true);
   const [error, setError] = useState("");
 
-  const eduEmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}\.edu$/i;
+  const eduEmailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[eE][dD][uU]$/;
 
   const handleAuth = async () => {
     setError("");
@@ -43,9 +43,9 @@ export function WelcomePage() {
     try {
       await signInWithGoogle();
     } catch (error) {
-      console.error('Google Auth Error:', error);
+      console.error("Google Auth Error:", error);
     }
-  }
+  };
 
   return (
     <View style={styles.container}>
@@ -80,10 +80,8 @@ export function WelcomePage() {
         </ThemedText>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={ onGooglePress }>
-        <ThemedText style={styles.switchText}>
-          Sign in with Google
-        </ThemedText>
+      <TouchableOpacity onPress={onGooglePress}>
+        <ThemedText style={styles.switchText}>Sign in with Google</ThemedText>
       </TouchableOpacity>
     </View>
   );
