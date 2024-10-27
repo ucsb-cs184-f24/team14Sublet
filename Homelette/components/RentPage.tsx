@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, FlatList } from "react-native";
+import { StyleSheet, FlatList, View } from "react-native";
 import {
   Card,
   Title,
@@ -7,6 +7,7 @@ import {
   Text,
   Provider as PaperProvider,
   DefaultTheme,
+  IconButton,
 } from "react-native-paper";
 
 // Mock data for properties
@@ -60,23 +61,34 @@ const PropertyCard = ({ item }) => (
   <Card style={styles.card} elevation={2}>
     <Card.Cover source={item.image} style={styles.cardImage} />
     <Card.Content>
-      <Title style={styles.rent}>${item.rent}/mo</Title>
-
-      <Paragraph style={styles.propertyDetails}>
-        <Text style={styles.boldText}>{item.bedCount}</Text> bed |{" "}
-        <Text style={styles.boldText}>{item.bathCount}</Text> ba |{" "}
-        <Text style={styles.boldText}>{item.area}</Text> sqft
-      </Paragraph>
-      <Paragraph style={styles.term}>
-        Term: {new Date(item.startDate).toLocaleDateString()} -{" "}
-        {new Date(item.endDate).toLocaleDateString()}
-      </Paragraph>
-      <Paragraph style={styles.address}>{item.address}</Paragraph>
+      <View style={styles.contentContainer}>
+        <View style={styles.propertyDetailsContainer}>
+          <Title style={styles.rent}>${item.rent}/mo</Title>
+          <Paragraph style={styles.propertyDetails}>
+            <Text style={styles.boldText}>{item.bedCount}</Text> bed |{" "}
+            <Text style={styles.boldText}>{item.bathCount}</Text> ba |{" "}
+            <Text style={styles.boldText}>{item.area}</Text> sqft
+          </Paragraph>
+          <Paragraph style={styles.term}>
+            Term: {new Date(item.startDate).toLocaleDateString()} -{" "}
+            {new Date(item.endDate).toLocaleDateString()}
+          </Paragraph>
+          <Paragraph style={styles.address}>{item.address}</Paragraph>
+        </View>
+        <IconButton
+          icon="message"
+          size={30}
+          iconColor="white"
+          style={styles.messageIcon}
+          onPress={() => {
+            console.log("Message button pressed");
+          }}
+        />
+      </View>
     </Card.Content>
   </Card>
 );
 
-// Main RentPage component
 export function RentPage() {
   return (
     <PaperProvider theme={theme}>
@@ -108,9 +120,20 @@ const styles = StyleSheet.create({
   boldText: {
     fontWeight: "600",
   },
-  cardImage: {
-    height: 400,
+  imageContainer: {
+    position: "relative",
   },
+  cardImage: {
+    height: 200,
+  },
+  // messageIcon: {
+  //   position: "absolute",
+  //   bottom: -90,
+  //   right: 25,
+  //   backgroundColor: "lightblue",
+  //   borderRadius: 25,
+  //   elevation: 4,
+  // },
   rent: {
     fontSize: 20,
     color: "black",
@@ -128,5 +151,21 @@ const styles = StyleSheet.create({
   },
   address: {
     fontSize: 14,
+  },
+  contentContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    // justifyContent: "space-between", // Optional: if you want the icon on the far right
+  },
+  propertyDetailsContainer: {
+    flex: 1,
+  },
+  messageIcon: {
+    backgroundColor: "lightblue",
+    borderRadius: 25,
+    elevation: 4,
+    // Remove absolute positioning
+    // Optionally adjust margin or padding if needed
+    marginLeft: 10,
   },
 });
