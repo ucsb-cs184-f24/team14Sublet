@@ -155,7 +155,6 @@ const styles = StyleSheet.create({
   contentContainer: {
     flexDirection: "row",
     alignItems: "center",
-    // justifyContent: "space-between", // Optional: if you want the icon on the far right
   },
   propertyDetailsContainer: {
     flex: 1,
@@ -164,8 +163,6 @@ const styles = StyleSheet.create({
     backgroundColor: "lightblue",
     borderRadius: 25,
     elevation: 4,
-    // Remove absolute positioning
-    // Optionally adjust margin or padding if needed
     marginLeft: 10,
   },
 });
