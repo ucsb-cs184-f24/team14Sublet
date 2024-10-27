@@ -1,66 +1,132 @@
-import React from 'react';
-import { View, StyleSheet, FlatList } from 'react-native';
-import { ThemedText } from './ThemedText';
-import { ThemedView } from './ThemedView';
+import React from "react";
+import { StyleSheet, FlatList } from "react-native";
+import {
+  Card,
+  Title,
+  Paragraph,
+  Text,
+  Provider as PaperProvider,
+  DefaultTheme,
+} from "react-native-paper";
 
-// Mock data for leases
+// Mock data for properties
 const leases = [
-  { id: '1', property: '123 Main St', rent: 1200, startDate: '2023-09-01', endDate: '2024-08-31' },
-  { id: '2', property: '456 Elm St', rent: 1500, startDate: '2023-10-01', endDate: '2024-09-30' },
-  { id: '3', property: '789 Oak Ave', rent: 1100, startDate: '2023-11-01', endDate: '2024-10-31' },
-  // Add more mock data as needed
+  {
+    id: "1",
+    address: "123 Main St",
+    rent: 1200,
+    startDate: "2023-09-04",
+    endDate: "2024-08-31",
+    image: require("../assets/images/mock_property_images/123-Main-St.jpg"),
+    bedCount: 3,
+    bathCount: 2,
+    area: 900,
+  },
+  {
+    id: "2",
+    address: "456 Elm St",
+    rent: 1500,
+    startDate: "2023-10-01",
+    endDate: "2024-09-30",
+    image: require("../assets/images/mock_property_images/456-Elm-St.jpg"),
+    bedCount: 4,
+    bathCount: 3,
+    area: 1400,
+  },
+  {
+    id: "3",
+    address: "789 Oak Ave",
+    rent: 1100,
+    startDate: "2023-11-01",
+    endDate: "2024-10-31",
+    image: require("../assets/images/mock_property_images/789-Oak-Ave.jpg"),
+    bedCount: 2,
+    bathCount: 1,
+    area: 900,
+  },
 ];
 
-// Lease item component
-const LeaseItem = ({ item }) => (
-  <ThemedView style={styles.leaseItem}>
-    <ThemedText style={styles.propertyName}>{item.property}</ThemedText>
-    <ThemedText>Rent: ${item.rent}/month</ThemedText>
-    <ThemedText>Start Date: {item.startDate}</ThemedText>
-    <ThemedText>End Date: {item.endDate}</ThemedText>
-  </ThemedView>
+// Custom theme for React Native Paper
+const theme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: "#006aff",
+    accent: "#03dac4",
+  },
+};
+
+const PropertyCard = ({ item }) => (
+  <Card style={styles.card} elevation={2}>
+    <Card.Cover source={item.image} style={styles.cardImage} />
+    <Card.Content>
+      <Title style={styles.rent}>${item.rent}/mo</Title>
+
+      <Paragraph style={styles.propertyDetails}>
+        <Text style={styles.boldText}>{item.bedCount}</Text> bed |{" "}
+        <Text style={styles.boldText}>{item.bathCount}</Text> ba |{" "}
+        <Text style={styles.boldText}>{item.area}</Text> sqft
+      </Paragraph>
+      <Paragraph style={styles.term}>
+        Term: {new Date(item.startDate).toLocaleDateString()} -{" "}
+        {new Date(item.endDate).toLocaleDateString()}
+      </Paragraph>
+      <Paragraph style={styles.address}>{item.address}</Paragraph>
+    </Card.Content>
+  </Card>
 );
 
+// Main RentPage component
 export function RentPage() {
   return (
-    <View style={styles.container}>
-      <ThemedText style={styles.title}>Your Leases</ThemedText>
+    <PaperProvider theme={theme}>
       <FlatList
+        style={styles.container}
         data={leases}
-        renderItem={({ item }) => <LeaseItem item={item} />}
-        keyExtractor={item => item.id}
+        renderItem={({ item }) => <PropertyCard item={item} />}
+        keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContainer}
       />
-    </View>
+    </PaperProvider>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
+    padding: 10,
+    backgroundColor: "#f6f6f6",
   },
   listContainer: {
     paddingBottom: 20,
   },
-  leaseItem: {
-    padding: 15,
-    borderRadius: 10,
+  card: {
     marginBottom: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderRadius: 10,
+    overflow: "hidden",
   },
-  propertyName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 5,
+  boldText: {
+    fontWeight: "600",
+  },
+  cardImage: {
+    height: 400,
+  },
+  rent: {
+    fontSize: 20,
+    color: "black",
+    fontWeight: "700",
+    marginVertical: 5,
+  },
+  propertyDetails: {
+    fontSize: 16,
+    color: "#444",
+    marginTop: 5,
+  },
+  term: {
+    fontSize: 14,
+    color: "#444",
+  },
+  address: {
+    fontSize: 14,
   },
 });
