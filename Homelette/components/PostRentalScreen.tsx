@@ -8,8 +8,8 @@ import * as ImagePicker from 'expo-image-picker';
 export default function PostRentalScreen() {
     const [address, setAddress] = useState('');
     const [aptNumber, setAptNumber] = useState('');
-    const [bathrooms, setBathrooms] = useState('');
-    const [bedrooms, setBedrooms] = useState('');
+    const [bathCount, setBathCount] = useState('');
+    const [bedCount, setBedCount] = useState('');
     const [type, setType] = useState('');
     const [price, setPrice] = useState('');
     const [description, setDescription] = useState('');
@@ -19,7 +19,7 @@ export default function PostRentalScreen() {
     const [area, setArea] = useState(null);
     
     const handleSubmit = () => {
-        if (!address || !bathrooms || !bedrooms || !type || !price || !description || !area || !startDate || !endDate) {
+        if (!address || !bathCount || !bedCount || !type || !price || !description || !area || !startDate || !endDate) {
             alert('Please fill in all the required fields.');
         return;
     }
@@ -27,8 +27,8 @@ export default function PostRentalScreen() {
     const rentalData = {
         address,
         area,
-        bathrooms,
-        bedrooms,
+        bathCount,
+        bedCount,
         type,
         price,
         description
@@ -133,15 +133,15 @@ export default function PostRentalScreen() {
                 style={styles.input}
                 placeholder="Number of Bedrooms"
                 keyboardType="numeric"
-                value={bedrooms}
-                onChangeText={setBedrooms}
+                value={bedCount}
+                onChangeText={setBedCount}
             />
             <TextInput
                 style={styles.input}
                 placeholder="Number of Bathrooms"
                 keyboardType="numeric"
-                value={bathrooms}
-                onChangeText={setBathrooms}
+                value={bathCount}
+                onChangeText={setBathCount}
             />
         </View>
 
