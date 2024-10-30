@@ -12,6 +12,8 @@ import { signIn, signUp } from "@/config/firebase";
 export function WelcomePage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [isLogin, setIsLogin] = useState(true);
   const [error, setError] = useState("");
 
@@ -25,11 +27,21 @@ export function WelcomePage() {
       return;
     }
 
+    if (!isLogin) {
+      if (!firstName.trim() || !lastName.trim()) {
+        setError("Please enter your first and last names.");
+        return;
+      }
+    }
+
     try {
       if (isLogin) {
         await signIn(email, password);
       } else {
-        await signUp(email, password);
+        await signUp(email, password, firstName, lastName);
+        // // Optionally, reset the first and last name fields after successful sign-up
+        // setFirstName("");
+        // setLastName("");
       }
     } catch (error) {
       console.error("Authentication Error:", error);
@@ -42,6 +54,28 @@ export function WelcomePage() {
   return (
     <View style={styles.container}>
       <ThemedText style={styles.title}>Welcome to Homelette</ThemedText>
+
+      {!isLogin && (
+        <>
+          <TextInput
+            style={styles.input}
+            placeholder="First Name"
+            value={firstName}
+            onChangeText={setFirstName}
+            autoCapitalize="words"
+            autoCorrect={false}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Last Name"
+            value={lastName}
+            onChangeText={setLastName}
+            autoCapitalize="words"
+            autoCorrect={false}
+          />
+        </>
+      )}
+
       <TextInput
         style={styles.input}
         placeholder="Email"
