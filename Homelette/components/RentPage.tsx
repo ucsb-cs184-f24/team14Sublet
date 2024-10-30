@@ -110,7 +110,21 @@ export function RentPage() {
   }, []);
 
   // Displays while waiting for fetch
-  if (loading) return <View></View>; // Placeholder!
+  if (loading) {
+    return (
+      <PaperProvider theme={theme}>
+        <Card style={styles.card} elevation={2}>
+          <Card.Content>
+            <View style={styles.contentContainer}>
+              <View style={styles.propertyDetailsContainer}>
+                <Title style={styles.rent}>Loading...</Title>
+              </View>
+            </View>
+          </Card.Content>
+        </Card>
+      </PaperProvider>
+    );
+  }
 
   return (
     <PaperProvider theme={theme}>
