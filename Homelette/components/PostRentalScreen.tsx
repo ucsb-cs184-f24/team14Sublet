@@ -13,6 +13,7 @@ export default function PostRentalScreen() {
   const [bathCount, setBathCount] = useState('');
   const [bedCount, setBedCount] = useState('');
   const [price, setPrice] = useState('');
+  const [type, setType] = useState('');
   const [description, setDescription] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -33,6 +34,7 @@ export default function PostRentalScreen() {
         bathCount,
         bedCount,
         price,
+        type,
         startDate,
         endDate,
         description
@@ -189,13 +191,22 @@ const confirmIOSDate = (key) => {
             />
         </View>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Price per Month ($)"
-          keyboardType="numeric"
-          value={price}
-          onChangeText={setPrice}
-        />
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <TextInput
+            style={[styles.input, styles.subinput]}
+            placeholder="Price per Month ($)"
+            keyboardType="numeric"
+            value={price}
+            onChangeText={setPrice}
+          />
+          <TextInput
+            style={[styles.input, styles.subinput]}
+            placeholder="Type"
+            value={type}
+            onChangeText={setType}
+          />
+        </View>
+
 
         <View>  
           { showStartPicker && (
