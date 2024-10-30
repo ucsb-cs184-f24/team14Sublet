@@ -1,6 +1,7 @@
 import { Stack, Tabs } from "expo-router";
 import { PaperProvider } from 'react-native-paper';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import Octicons from '@expo/vector-icons/Octicons';
 import { useAuth } from "@/hooks/useAuth";
 
 export default function RootLayout() {
@@ -10,6 +11,15 @@ export default function RootLayout() {
     <PaperProvider>
       {user ? (
         <Tabs>
+          <Tabs.Screen
+            name="post"
+            options={{
+              title: 'Post',
+              tabBarIcon: ({ color, size }) => (
+                <Octicons name="diff-added" size={size} color={color} />
+              ),
+            }}
+          />
           <Tabs.Screen
             name="index"
             options={{
