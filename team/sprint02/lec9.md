@@ -6,7 +6,7 @@
 
 - Allen Qiu [x]
 - Amy Wang [x]
-- Jason Vu [ ]
+- Jason Vu [x]
 - Haibo Yang [x]
 - Jonathan Herring [x]
 - Collin Qian [x]

@@ -1,4 +1,4 @@
-# Lect08 Meeting Notes - 10/30/2024
+# Lect10 Meeting Notes - 10/30/2024
 
 ## Type of Meeting: Stand Up
 
