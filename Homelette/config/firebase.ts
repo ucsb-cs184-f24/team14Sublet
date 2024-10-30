@@ -2,7 +2,8 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
-import { getFirestore, doc, getDoc } from "firebase/firestore";
+import { getFirestore, doc, getDoc, collection, getDocs } from "firebase/firestore";
+import { getStorage, ref, getDownloadURL } from "firebase/storage";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -21,7 +22,7 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-
+const storage = getStorage();
 
 export const auth = getAuth(app);
 
@@ -43,15 +44,55 @@ export const signIn = async (email: string, password: string) => {
   }
 };
 
-export async function getLeases() {
+export async function getListings() {
+  try {
+    let result = [];
+    let data = [];
+    // Example code block modified from official Firebase docs
+    const querySnapshot = await getDocs(collection(db, "listings"));
+    querySnapshot.forEach((document) => {
+      data.push(document.data());
+    });
+
+    let index = 0;
+    for(document of data) {
+      listing = document;
+      let propertyRef = doc(db, "properties", listing['property_id']);
+      console.log(listing['property_id'])
+      let propertySnap = await (getDoc(propertyRef));
+      let property = propertySnap.data()
+        
+      let imageRef = ref(storage, property['image_url']);
+      let imageUrl = await getDownloadURL(imageRef);
+
+      result.push({
+        id: index,
+        property: property['address']['street_address'],
+        rent: listing['price'],
+        startDate: listing['start_date'],
+        endDate: listing['end_date'],
+        image: imageUrl,
+        bedCount: property['bedrooms'],
+        bathCount: property['bathrooms'],
+        area: property['area']
+      });
+
+      index++;
+    }
+
+    return result;
+  } catch(error) {
+    throw error;
+  }
+}
+
+export async function getInterestedLeases() {
   try {
     uid = auth.currentUser?.uid;
-    // console.log(uid);
     const docRef = doc(db, "users", uid);
     const docSnap = await getDoc(docRef);
-    // console.log(docRef);
 
-    let leases = []
+    let result = []
 
     if (docSnap.exists()) {
       listings = docSnap.data()['interested_listing_ids'];
@@ -66,14 +107,16 @@ export async function getLeases() {
         let propertySnap = await (getDoc(propertyRef));
         let property = propertySnap.data()
         
+        let imageRef = ref(storage, property['image_url']);
+        let imageUrl = await getDownloadURL(imageRef);
 
-        leases.push({
+        result.push({
           id: i,
           property: property['address']['street_address'],
           rent: listing['price'],
           startDate: listing['start_date'],
           endDate: listing['end_date'],
-          image: property['image_url'],
+          image: imageUrl,
           bedCount: property['bedrooms'],
           bathCount: property['bathrooms'],
           area: property['area']
@@ -83,8 +126,8 @@ export async function getLeases() {
     else {
       console.log("NOT FOUND");
     }
-    console.log(leases);
-    return leases;
+    console.log(result);
+    return result;
   } catch (error) {
     throw error;
   }

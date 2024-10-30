@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { StyleSheet, FlatList, View } from "react-native";
-import { getLeases } from "@/config/firebase";
+import { getListings } from "@/config/firebase";
 import {
   Card,
   Title,
@@ -97,7 +97,7 @@ export function RentPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const result = await getLeases();
+        const result = await getListings();
         setData(result);
       } catch (error) {
         console.error("Error fetching data:", error);
