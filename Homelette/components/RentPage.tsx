@@ -9,6 +9,7 @@ import {
   DefaultTheme,
   IconButton,
 } from "react-native-paper";
+import { ImageUploader } from './ImageUploader';
 
 // Mock data for properties
 const leases = [
@@ -92,6 +93,7 @@ const PropertyCard = ({ item }) => (
 export function RentPage() {
   return (
     <PaperProvider theme={theme}>
+      <ImageUploader />
       <FlatList
         style={styles.container}
         data={leases}
