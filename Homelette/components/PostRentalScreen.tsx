@@ -74,6 +74,14 @@ export default function PostRentalScreen() {
 
         await addDoc(collection(db,"listings"), newListing);
 
+        /*
+        db.collection("users").doc(auth.currentUser?.uid).update({
+            listing_ids.push(propertyId)
+        }).then(function(){
+          console.log("added property to listing ids")
+        });
+        */
+
         console.log("Property and listing added");
       } catch (error) {
         console.error("Error adding documents: ", error);
