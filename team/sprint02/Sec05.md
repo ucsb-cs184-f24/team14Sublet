@@ -22,4 +22,5 @@
 | Haibo       | finish hw3, no blockers                                 |
 | Jason       | work on backend for rental scrren and user signing to put image onto db |
 | Jonathan    | work on hw3, check app for polishing                                 |
-| Collin      | finish profile page, prepare for next stage |
+| Collin      | finish profile page, preparing for next stage |
+
