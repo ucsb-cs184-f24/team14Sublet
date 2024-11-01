@@ -3,7 +3,7 @@ import { View, Text, TextInput, Button, StyleSheet, Image, TouchableOpacity, Pre
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { addDoc, collection } from 'firebase/firestore';
+import { addDoc, collection, doc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import firestore from '@react-native-firebase/firestore';
 import {auth, db, storage} from '@/config/firebase';
 import {ref, uploadBytes, getDownloadURL} from 'firebase/storage';
@@ -80,6 +80,15 @@ export default function PostRentalScreen() {
         }).then(function(){
           console.log("added property to listing ids")
         });
+        */
+       
+        /*
+        
+        await updateDoc(TODO..., {
+          listing_ids: arrayUnion(propertyID)
+        
+        });
+
         */
 
         console.log("Property and listing added");
