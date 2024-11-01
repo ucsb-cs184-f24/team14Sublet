@@ -44,6 +44,8 @@ export const signUp = async (
       email: email,
       first: firstName,
       last: lastName,
+      interested_listing_ids: [],
+      listing_ids: [],
       join_date: new Date(),
     };
 

@@ -1,7 +1,11 @@
 import React from 'react';
+import { useState, useEffect } from 'react';
 import { View, StyleSheet, Image } from 'react-native';
 import { Card, Title, Paragraph, Button } from 'react-native-paper';
 import { ThemedText } from './ThemedText';
+import { firestore } from '../config/firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { useAuth } from '@/hooks/useAuth';
 
 // Mock user profile data
 const mockUserProfile = {
@@ -18,6 +22,27 @@ const mockUserProfile = {
 };
 
 export function ProfilePage() {
+
+    const { user } = useAuth();
+    const [userData, setUserData] = useState<any>(null);
+
+    useEffect(() => {const fetchUserData = async () => {
+        if (user) {
+          const userDocRef = doc(firestore, 'users', user.uid);
+          const userDocSnap = await getDoc(userDocRef);
+          if (userDocSnap.exists()) {
+            const userData = userDocSnap.data();
+            setUserData(userData);
+            console.log(userData);
+          } else {
+            console.log('No such document!');
+          }
+        }
+      };
+  
+      fetchUserData();
+    }, [user]);
+
   return (
     <View style={styles.container}>
       <Card style={styles.profileCard}>
@@ -27,7 +52,7 @@ export function ProfilePage() {
             style={styles.profileImage}
           />
           <View style={styles.headerInfo}>
-            <Title>{`${mockUserProfile.firstName} ${mockUserProfile.lastName}`}</Title>
+            <Title>{`${userData?.first} ${userData?.last}`}</Title>
             <Paragraph>{mockUserProfile.school}</Paragraph>
           </View>
         </View>
@@ -35,8 +60,12 @@ export function ProfilePage() {
         <Card.Content>
           <View style={styles.statsContainer}>
             <View style={styles.statItem}>
-              <ThemedText type="title">{mockUserProfile.listings}</ThemedText>
+              <ThemedText type="title">{userData?.listing_ids?.length}</ThemedText>
               <ThemedText>Listings</ThemedText>
+            </View>
+            <View style={styles.statItem}>
+              <ThemedText type="title">{userData?.interested_listing_ids?.length}</ThemedText>
+              <ThemedText>Interested In</ThemedText>
             </View>
             <View style={styles.statItem}>
               <ThemedText type="title">{mockUserProfile.reviews}</ThemedText>
@@ -61,11 +90,13 @@ export function ProfilePage() {
             </View>
             <View style={styles.detailItem}>
               <ThemedText type="defaultSemiBold">Email:</ThemedText>
-              <ThemedText>{mockUserProfile.email}</ThemedText>
+              <ThemedText>{userData?.email}</ThemedText>
             </View>
             <View style={styles.detailItem}>
               <ThemedText type="defaultSemiBold">Member Since:</ThemedText>
-              <ThemedText>{mockUserProfile.joinDate}</ThemedText>
+              <ThemedText>
+                {userData?.join_date?.toDate().toLocaleDateString()}
+              </ThemedText>
             </View>
           </View>
         </Card.Content>
