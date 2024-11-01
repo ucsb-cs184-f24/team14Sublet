@@ -2,12 +2,17 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { getFirestore, doc, getDoc, collection, getDocs, addDoc } from "firebase/firestore";
+import { getStorage, ref, getDownloadURL } from "firebase/storage";
+import firestore from '@react-native-firebase/firestore';
+// import {formatData} from './components/PostRentalScreen';
+
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
+export const firebaseConfig = {
   apiKey: "AIzaSyCJ_DV2YTIJm_oA-ITdy1I4kQAHRaB5fsk",
   authDomain: "team14-sublet-1034a.firebaseapp.com",
   projectId: "team14-sublet-1034a",
@@ -19,8 +24,10 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-
+export const db = getFirestore(app);
+export const storage = getStorage();
 export const auth = getAuth(app);
+
 
 export const signUp = async (email: string, password: string) => {
   try {
@@ -39,3 +46,5 @@ export const signIn = async (email: string, password: string) => {
     throw error;
   }
 };
+
+

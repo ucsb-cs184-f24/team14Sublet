@@ -1,8 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Image, TouchableOpacity, Pressable, Platform } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, Image, TouchableOpacity, Pressable, Platform, Alert } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { addDoc, collection } from 'firebase/firestore';
+import firestore from '@react-native-firebase/firestore';
+import {auth, db, storage} from '@/config/firebase';
+import {ref, uploadBytes, getDownloadURL} from 'firebase/storage';
+
 
 // haiboyang@umail.ucsb.edu
 
@@ -13,6 +18,7 @@ export default function PostRentalScreen() {
   const [bathCount, setBathCount] = useState('');
   const [bedCount, setBedCount] = useState('');
   const [price, setPrice] = useState('');
+  const [type, setType] = useState('');
   const [description, setDescription] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -27,20 +33,58 @@ export default function PostRentalScreen() {
         alert('Please fill in all the required fields.');
         return;
     }
-    const rentalData = {
-        address,
-        area,
-        bathCount,
-        bedCount,
-        price,
-        startDate,
-        endDate,
-        description
+    
+    const propertyData = {
+      address: address, // this needs to be changed later
+      area: area,
+      bathrooms: bathCount,
+      bedrooms: bedCount,
+      image_url: image,
+      owner_id: auth.currentUser?.uid,
+      type: type
+
+    }
+
+    const listingData = {
+      author_id: auth.currentUser?.uid,
+      end_date: "end",
+      end_date_TEST: endDate,
+      interested_users_ids: [],
+
+      price: price,
+      start_date: "start",
+      start_date_TEST: startDate,
     };
 
-    console.log('Rental data submitted:', rentalData);
-    alert('Rental information submitted!');
-  };
+    
+    const addPropertyAndListing = async (propertyData, listingData) => {
+      try {
+        // first property data
+        const propertyRef = await addDoc(collection(db, "properties"), {
+          ...propertyData
+        });
+        // get the generated id
+        const propertyId = propertyRef.id;
+
+        // now listing document
+        const newListing = {
+          ...listingData, 
+          property_id: propertyId
+        };
+
+        await addDoc(collection(db,"listings"), newListing);
+
+        console.log("Property and listing added");
+      } catch (error) {
+        console.error("Error adding documents: ", error);
+      }
+
+      };
+
+      addPropertyAndListing(propertyData, listingData);
+    };
+
+    
 
   const toggleDatePicker = (key) => {
     if (key === 'start') {
@@ -94,7 +138,8 @@ const confirmIOSDate = (key) => {
       });
       if (!result.cancelled) {
         console.log(result.assets[0].url);
-        await saveImage(result.assets[0].uri);
+        const imageUri = results.assets[0].uri;
+        await saveImage(imageUri);
         return;
       }
     }
@@ -114,7 +159,8 @@ const confirmIOSDate = (key) => {
       });
       if (!result.cancelled) {
         console.log(result.assets[0].url);
-        await saveImage(result.assets[0].uri);
+        const imageUri = results.assets[0].uri;
+        await saveImage(imageUri);
         return;
       }
     }
@@ -131,6 +177,29 @@ const confirmIOSDate = (key) => {
       console.log(error);
     }
   };
+
+  /* // need to test, but can start with this stuff maybe
+  const saveImageToFirebase = async (imageUri) => {
+      try {
+          // Convert URI to Blob
+          const response = await fetch(imageUri);
+          const blob = await response.blob();
+
+          // Create a storage reference
+          const storageRef = ref(storage, `images/${auth.currentUser?.uid}_${Date.now()}`);
+
+          // Upload the blob to Firebase Storage
+          await uploadBytes(storageRef, blob);
+
+          // Get the download URL and set it to the state
+          const downloadURL = await getDownloadURL(storageRef);
+          setImage(downloadURL); // Set downloadURL as the image URL
+      } catch (error) {
+          console.error("Error uploading image: ", error);
+      }
+};
+
+  */
 
 
   return (
@@ -189,13 +258,22 @@ const confirmIOSDate = (key) => {
             />
         </View>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Price per Month ($)"
-          keyboardType="numeric"
-          value={price}
-          onChangeText={setPrice}
-        />
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <TextInput
+            style={[styles.input, styles.subinput]}
+            placeholder="Price per Month ($)"
+            keyboardType="numeric"
+            value={price}
+            onChangeText={setPrice}
+          />
+          <TextInput
+            style={[styles.input, styles.subinput]}
+            placeholder="Type"
+            value={type}
+            onChangeText={setType}
+          />
+        </View>
+
 
         <View>  
           { showStartPicker && (
