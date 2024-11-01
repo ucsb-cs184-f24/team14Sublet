@@ -21,10 +21,10 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 const storage = getStorage();
 
 export const auth = getAuth(app);
+export const firestore = getFirestore(app);
 
 export const signUp = async (email: string, password: string) => {
   try {
@@ -49,7 +49,7 @@ export async function getListings() {
     let result = [];
     let data = [];
     // Example code block modified from official Firebase docs
-    const querySnapshot = await getDocs(collection(db, "listings"));
+    const querySnapshot = await getDocs(collection(firestore, "listings"));
     querySnapshot.forEach((document) => {
       data.push(document.data());
     });
@@ -57,7 +57,7 @@ export async function getListings() {
     let index = 0;
     for(document of data) {
       listing = document;
-      let propertyRef = doc(db, "properties", listing['property_id']);
+      let propertyRef = doc(firestore, "properties", listing['property_id']);
       console.log(listing['property_id'])
       let propertySnap = await (getDoc(propertyRef));
       let property = propertySnap.data()
@@ -89,7 +89,7 @@ export async function getListings() {
 export async function getInterestedLeases() {
   try {
     uid = auth.currentUser?.uid;
-    const docRef = doc(db, "users", uid);
+    const docRef = doc(firestore, "users", uid);
     const docSnap = await getDoc(docRef);
 
     let result = []
@@ -98,11 +98,11 @@ export async function getInterestedLeases() {
       listings = docSnap.data()['interested_listing_ids'];
       console.log(listings);
       for (i in listings) {
-        let listingRef = doc(db, "listings", listings[i]);
+        let listingRef = doc(firestore, "listings", listings[i]);
         let listingSnap = await (getDoc(listingRef));
         let listing = listingSnap.data();
 
-        let propertyRef = doc(db, "properties", listing['property_id']);
+        let propertyRef = doc(firestore, "properties", listing['property_id']);
         console.log(listing['property_id'])
         let propertySnap = await (getDoc(propertyRef));
         let property = propertySnap.data()
