@@ -1,4 +1,4 @@
-# Lect08 Meeting Notes - 10/28/2024
+# Lect09 Meeting Notes - 10/28/2024
 
 ## Type of Meeting: Stand Up
 
@@ -6,7 +6,7 @@
 
 - Allen Qiu [x]
 - Amy Wang [x]
-- Jason Vu [ ]
+- Jason Vu [x]
 - Haibo Yang [x]
 - Jonathan Herring [x]
 - Collin Qian [x]
