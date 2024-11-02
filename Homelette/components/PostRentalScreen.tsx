@@ -22,78 +22,79 @@ export default function PostRentalScreen() {
   const [description, setDescription] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [image, setImage] = useState(null);
+  const [image, setImage] = useState('');
 
   const [date, setDate] = useState(new Date());
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
     
-  const handleSubmit = () => {
-    if (!address || !bathCount || !bedCount || !price || !description || !area || !startDate || !endDate) {
+  const handleSubmit = async () => {
+    try {
+      if (!address || !bathCount || !bedCount || !price || !description || !area || !startDate || !endDate) {
         alert('Please fill in all the required fields.');
         return;
-    }
-    
-    const propertyData = {
-      address: address, // this needs to be changed later
-      area: area,
-      bathrooms: bathCount,
-      bedrooms: bedCount,
-      image_url: image,
-      owner_id: auth.currentUser?.uid,
-      type: type
+      }
 
-    }
+      // wait for image data to be saved to firebase
+      const newImageUri = await saveImageToFirebase();
+      console.log("ImageUri from Firebase: ", newImageUri);
 
-    const listingData = {
-      author_id: auth.currentUser?.uid,
-      end_date: "end",
-      end_date_TEST: endDate,
-      interested_users_ids: [],
+      await addPropertyAndListing(newImageUri);
 
-      price: price,
-      start_date: "start",
-      start_date_TEST: startDate,
-    };
-
-    
-    const addPropertyAndListing = async (propertyData, listingData) => {
-      try {
-        // first property data
-        const propertyRef = await addDoc(collection(db, "properties"), {
-          ...propertyData
-        });
-        // get the generated id
-        const propertyId = propertyRef.id;
-
-        // now listing document
-        const newListing = {
-          ...listingData, 
-          property_id: propertyId
-        };
-
-        await addDoc(collection(db,"listings"), newListing);
-
-        const userRef = doc(db, "users", auth.currentUser?.uid);
-        await updateDoc(userRef, {
-          listing_ids: arrayUnion(propertyId),
-        });
-
-        Alert.alert(
-          "Success",
-          "Your property is submitted",
-          [{ text: "OK", onPress: () => console.log("OK Pressed") }] 
-        );
-
-
-        console.log("Property and listing added; user's listing_ids updated");
       } catch (error) {
         console.error("Error adding documents: ", error);
-        Alert.alert(
-          "Error",
-          "There was an error submitting your property. Please try again.",
-          [{ text: "OK", onPress: () => console.log("OK Pressed") }]
-        );
+    }
+  };
+
+  const addPropertyAndListing = async (newImageUri) => {
+    try {
+      const propertyData = {
+        address: address, // this needs to be changed later
+        area: area,
+        bathrooms: bathCount,
+        bedrooms: bedCount,
+        image_url: newImageUri,
+        owner_id: auth.currentUser?.uid,
+        type: type
+      };
+      const listingData = {
+        author_id: auth.currentUser?.uid,
+        end_date: "end",
+        end_date_TEST: endDate,
+        interested_users_ids: [],
+  
+        price: price,
+        start_date: "start",
+        start_date_TEST: startDate,
+      };
+      // first property data
+      const propertyRef = await addDoc(collection(db, "properties"), {
+        ...propertyData
+      });
+      // get the generated id
+      const propertyId = propertyRef.id;
+
+      // now listing document
+      const newListing = {
+        ...listingData,
+        property_id: propertyId
+      };
+
+      await addDoc(collection(db,"listings"), newListing);
+      const userRef = doc(db, "users", auth.currentUser?.uid);
+      await updateDoc(userRef, {
+        listing_ids: arrayUnion(propertyId),
+      });
+
+      Alert.alert(
+        "Success",
+        "Your property is submitted",
+        [{ text: "OK", onPress: () => console.log("OK Pressed") }] 
+      );
+
+        console.log("Property and listing added");
+      } catch (error) {
+        console.error("Error adding documents: ", error);
       }
 
       };
@@ -134,14 +135,14 @@ export default function PostRentalScreen() {
     return `${month}-${day}-${year}`;
   };
 
-const confirmIOSDate = (key) => {
+  const confirmIOSDate = (key) => {
     if (key === 'start') {
         setStartDate(formatDate(date));
     } else {
         setEndDate(formatDate(date));
     }
     toggleDatePicker(key);
-};
+  };
 
 
   const handleImageUpload = async() => {
@@ -151,11 +152,10 @@ const confirmIOSDate = (key) => {
         cameraType: ImagePicker.CameraType.Front,
         allowsEditing: true,
         aspect: [4, 3],
-        quality: 1,
+        quality: 0.5,
       });
       if (!result.cancelled) {
-        console.log(result.assets[0].url);
-        const imageUri = results.assets[0].uri;
+        imageUri = result.assets[0].uri;
         await saveImage(imageUri);
         return;
       }
@@ -172,11 +172,10 @@ const confirmIOSDate = (key) => {
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [4, 3],
-        quality: 1,
+        quality: 0.5,
       });
       if (!result.cancelled) {
-        console.log(result.assets[0].url);
-        const imageUri = results.assets[0].uri;
+        imageUri = result.assets[0].uri;
         await saveImage(imageUri);
         return;
       }
@@ -195,28 +194,26 @@ const confirmIOSDate = (key) => {
     }
   };
 
-  /* // need to test, but can start with this stuff maybe
-  const saveImageToFirebase = async (imageUri) => {
+  // need to test, but can start with this stuff maybe
+  const saveImageToFirebase = async () => {
       try {
           // Convert URI to Blob
-          const response = await fetch(imageUri);
+          const response = await fetch(image);
           const blob = await response.blob();
 
           // Create a storage reference
-          const storageRef = ref(storage, `images/${auth.currentUser?.uid}_${Date.now()}`);
+          const storageRef = ref(storage, `images/${Date.now()}.jpg`);
 
           // Upload the blob to Firebase Storage
           await uploadBytes(storageRef, blob);
 
           // Get the download URL and set it to the state
           const downloadURL = await getDownloadURL(storageRef);
-          setImage(downloadURL); // Set downloadURL as the image URL
+          return downloadURL;
       } catch (error) {
           console.error("Error uploading image: ", error);
       }
-};
-
-  */
+  };
 
 
   return (
@@ -412,8 +409,8 @@ const styles = StyleSheet.create({
   },
   imageButton: {
     padding: 10,
-    width: 120,
-    height: 120,
+    width: 165,
+    height: 125,
     borderWidth: 2,
     alignItems: "center",
     marginTop: 20,
@@ -432,8 +429,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   image: {
-    width: 115,
-    height: 115,
+    width: 160,
+    height: 120,
     marginTop: -10,
   },
   button: {
