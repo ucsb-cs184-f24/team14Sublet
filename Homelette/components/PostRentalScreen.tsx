@@ -5,7 +5,7 @@ import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { addDoc, collection, doc, arrayUnion, arrayRemove, updateDoc } from 'firebase/firestore';
 import firestore from '@react-native-firebase/firestore';
-import {auth, db, storage} from '@/config/firebase';
+import {auth, firestore, storage} from '@/config/firebase';
 import {ref, uploadBytes, getDownloadURL} from 'firebase/storage';
 
 
@@ -68,7 +68,7 @@ export default function PostRentalScreen() {
         start_date_TEST: startDate,
       };
       // first property data
-      const propertyRef = await addDoc(collection(db, "properties"), {
+      const propertyRef = await addDoc(collection(firestore, "properties"), {
         ...propertyData
       });
       // get the generated id
@@ -80,9 +80,9 @@ export default function PostRentalScreen() {
         property_id: propertyId
       };
 
-      await addDoc(collection(db,"listings"), newListing);
+      await addDoc(collection(firestore,"listings"), newListing);
 
-      const userRef = doc(db, "users", auth.currentUser?.uid);
+      const userRef = doc(firestore, "users", auth.currentUser?.uid);
       await updateDoc(userRef, {
         listing_ids: arrayUnion(propertyId),
       });
