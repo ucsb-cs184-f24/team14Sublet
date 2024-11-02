@@ -5,7 +5,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
 } from "firebase/auth";
-import { doc, getFirestore, setDoc } from "firebase/firestore";
+import { doc, getFirestore, setDoc, updateDoc } from "firebase/firestore";
 import { create } from "react-test-renderer";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -63,6 +63,22 @@ export const signIn = async (email: string, password: string) => {
       password,
     );
     return userCredential.user;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const updateUserProfile = async (
+  userId: string,
+  updates: {
+    first?: string;
+    last?: string;
+    phone?: number;
+  }
+) => {
+  try {
+    const userRef = doc(firestore, "users", userId);
+    await updateDoc(userRef, updates);
   } catch (error) {
     throw error;
   }
