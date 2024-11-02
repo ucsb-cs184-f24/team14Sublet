@@ -3,7 +3,6 @@ import { getAnalytics } from "firebase/analytics";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { getFirestore, doc, getDoc, collection, setDoc, getDocs, addDoc } from "firebase/firestore";
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
-import firestore from '@react-native-firebase/firestore';
 import { create } from "react-test-renderer";
 // import {formatData} from './components/PostRentalScreen';
 
