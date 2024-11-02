@@ -65,12 +65,12 @@ export default function PostRentalScreen() {
       };
       const listingData = {
         author_id: auth.currentUser?.uid,
-        end_date: "end",
+        end_date: endDate,
         end_date_TEST: endDate,
         interested_users_ids: [],
   
         price: price,
-        start_date: "start",
+        start_date: startDate,
         start_date_TEST: startDate,
       };
       // first property data
