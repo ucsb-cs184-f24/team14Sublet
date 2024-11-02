@@ -68,23 +68,23 @@ export const signIn = async (email: string, password: string) => {
   }
 };
 
-async function fetchStorage(path: string) {
-  if(path == null) {
-    return undefined;
-  }
+// async function fetchStorage(path: string) {
+//   if(path == null) {
+//     return undefined;
+//   }
 
-  let dataRef = ref(storage, path);
-  let result = undefined;
-  try {
-    result = await getDownloadURL(dataRef);
-  }
-  catch(error) {
-    console.log(`Error fetching data from ${path}: ${error}`);
-    result = undefined;
-  }
+//   let dataRef = ref(storage, path);
+//   let result = undefined;
+//   try {
+//     result = await getDownloadURL(dataRef);
+//   }
+//   catch(error) {
+//     console.log(`Error fetching data from ${path}: ${error}`);
+//     result = undefined;
+//   }
 
-  return result;
-}
+//   return result;
+// }
 
 export async function getListings() {
   try {
@@ -115,7 +115,8 @@ export async function getListings() {
         continue;
       }
       
-      let imageUrl = await fetchStorage(property['image_url']);
+      // let imageUrl = await fetchStorage(property['image_url']);
+      let imageUrl = property['image_url'];
       let propertyAddress = "";
       if(typeof(property['address']) === 'object' && property['address']['street_address'] != null) {
         propertyAddress = property['address']['street_address'];
@@ -173,8 +174,8 @@ export async function getInterestedLeases() {
           continue;
         }
         
-        let image = await fetchStorage(property['image_url']);
-        let propertyAddress = "";
+        // let imageUrl = await fetchStorage(property['image_url']);
+        let imageUrl = property['image_url'];
         if(typeof(property['address']) === 'object' && property['address']['street_address'] != null) {
           propertyAddress = property['address']['street_address'];
         }
