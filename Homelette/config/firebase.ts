@@ -68,6 +68,24 @@ export const signIn = async (email: string, password: string) => {
   }
 };
 
+async function fetchStorage(path: string) {
+  if(path == null) {
+    return undefined;
+  }
+
+  let dataRef = ref(storage, path);
+  let result = undefined;
+  try {
+    result = await getDownloadURL(dataRef);
+  }
+  catch(error) {
+    console.log(`Error fetching data from ${path}: ${error}`);
+    result = undefined;
+  }
+
+  return result;
+}
+
 export async function getListings() {
   try {
     let result = [];
@@ -81,17 +99,31 @@ export async function getListings() {
     let index = 0;
     for(document of data) {
       listing = document;
+
+      // Skip empty listings
+      if(listing == null || Object.entries(listing).length === 0) {
+        continue;
+      }
+
       let propertyRef = doc(firestore, "properties", listing['property_id']);
       console.log(listing['property_id'])
       let propertySnap = await (getDoc(propertyRef));
       let property = propertySnap.data()
-        
-      let imageRef = ref(storage, property['image_url']);
-      let imageUrl = await getDownloadURL(imageRef);
+
+      // Skip empty properties
+      if(property == null || Object.entries(property).length === 0) {
+        continue;
+      }
+      
+      let imageUrl = await fetchStorage(property['image_url']);
+      let propertyAddress = "";
+      if(typeof(property['address']) === 'object' && property['address']['street_address'] != null) {
+        propertyAddress = property['address']['street_address'];
+      }
 
       result.push({
         id: index,
-        property: property['address']['street_address'],
+        property: propertyAddress,
         rent: listing['price'],
         startDate: listing['start_date'],
         endDate: listing['end_date'],
@@ -126,17 +158,30 @@ export async function getInterestedLeases() {
         let listingSnap = await (getDoc(listingRef));
         let listing = listingSnap.data();
 
+        // Skip empty listings
+        if(listing == null || Object.entries(listing).length === 0) {
+          continue;
+        }
+
         let propertyRef = doc(firestore, "properties", listing['property_id']);
         console.log(listing['property_id'])
         let propertySnap = await (getDoc(propertyRef));
         let property = propertySnap.data()
+
+        // Skip empty properties
+        if(property == null || Object.entries(property).length === 0) {
+          continue;
+        }
         
-        let imageRef = ref(storage, property['image_url']);
-        let imageUrl = await getDownloadURL(imageRef);
+        let image = await fetchStorage(property['image_url']);
+        let propertyAddress = "";
+        if(typeof(property['address']) === 'object' && property['address']['street_address'] != null) {
+          propertyAddress = property['address']['street_address'];
+        }
 
         result.push({
           id: i,
-          property: property['address']['street_address'],
+          property: propertyAddress,
           rent: listing['price'],
           startDate: listing['start_date'],
           endDate: listing['end_date'],
