@@ -81,6 +81,7 @@ export default function PostRentalScreen() {
       };
 
       await addDoc(collection(db,"listings"), newListing);
+
       const userRef = doc(db, "users", auth.currentUser?.uid);
       await updateDoc(userRef, {
         listing_ids: arrayUnion(propertyId),
@@ -92,17 +93,18 @@ export default function PostRentalScreen() {
         [{ text: "OK", onPress: () => console.log("OK Pressed") }] 
       );
 
-        console.log("Property and listing added");
-      } catch (error) {
-        console.error("Error adding documents: ", error);
-      }
 
-      };
-
-      addPropertyAndListing(propertyData, listingData);
-    };
-
-    
+      console.log("Property and listing added; user's listing_ids updated");
+    } catch (error) {
+      console.error("Error adding documents: ", error);
+      Alert.alert(
+        "Error",
+        "There was an error submitting your property. Please try again.",
+        [{ text: "OK", onPress: () => console.log("OK Pressed") }]
+      );
+    }
+  }
+  
 
   const toggleDatePicker = (key) => {
     if (key === 'start') {
