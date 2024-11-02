@@ -1,5 +1,7 @@
 import React from "react";
 import { StyleSheet, FlatList, View } from "react-native";
+import Swiper from "react-native-deck-swiper";
+import { firestore, auth } from "./firebaseConfig";
 import {
   Card,
   Title,
@@ -92,17 +94,23 @@ const PropertyCard = ({ item }) => (
 export function RentPage() {
   return (
     <PaperProvider theme={theme}>
-      <FlatList
-        style={styles.container}
-        data={leases}
-        renderItem={({ item }) => <PropertyCard item={item} />}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContainer}
-      />
+      <View style={styles.container}>
+        <Swiper
+          cards={leases}
+          renderCard={(item) => <PropertyCard item={item} />}
+          onSwipedLeft={() => console.log("Swiped Left")}
+          onSwipedRight={() => console.log("Swiped Right")}
+          // have to code this, on swipe right
+          // the interested_property_id is added to the user
+          // also the interested_user_id should get added to here
+          cardIndex={0}
+          backgroundColor={"#f6f6f6"}
+          stackSize={3}
+        />
+      </View>
     </PaperProvider>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
