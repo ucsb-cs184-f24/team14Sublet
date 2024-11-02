@@ -4,12 +4,8 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { addDoc, collection, doc, arrayUnion, arrayRemove, updateDoc } from 'firebase/firestore';
-import firestore from '@react-native-firebase/firestore';
 import {auth, firestore, storage} from '@/config/firebase';
 import {ref, uploadBytes, getDownloadURL} from 'firebase/storage';
-
-
-// haiboyang@umail.ucsb.edu
 
 export default function PostRentalScreen() {
   const [address, setAddress] = useState('');
