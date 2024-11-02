@@ -65,3 +65,9 @@ Members: Jonathan Herring, Amy Wang, Collin Qian
 Scrum Master: Haibo Yang
 Scribe: Allen Qiu
 Members: Jonathan Herring, Amy Wang, Jason Vu, Collin Qian
+
+## Lecture 9, 10/28/2024
+
+Scrum Master: Jonathan Herring
+Scribe: Haibo Yang
+Members: Allen Qiu, Amy Wang, Jason Vu, Collin Qian
