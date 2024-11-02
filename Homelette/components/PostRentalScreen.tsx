@@ -8,7 +8,10 @@ import {auth, firestore, storage} from '@/config/firebase';
 import {ref, uploadBytes, getDownloadURL} from 'firebase/storage';
 
 export default function PostRentalScreen() {
-  const [address, setAddress] = useState('');
+  const [streetAddress, setStreetAddress] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
+  const [zip, setZip] = useState('');
   const [aptNumber, setAptNumber] = useState('');
   const [area, setArea] = useState('');
   const [bathCount, setBathCount] = useState('');
@@ -26,7 +29,7 @@ export default function PostRentalScreen() {
     
   const handleSubmit = async () => {
     try {
-      if (!address || !bathCount || !bedCount || !price || !description || !area || !startDate || !endDate) {
+      if (!streetAddress || !bathCount || !bedCount || !price || !description || !area || !startDate || !endDate || !type || !city || !state || !zip) {
         alert('Please fill in all the required fields.');
         return;
       }
@@ -44,6 +47,13 @@ export default function PostRentalScreen() {
 
   const addPropertyAndListing = async (newImageUri) => {
     try {
+      const address = {
+        apt_number: aptNumber,
+        city : city,
+        state : state,
+        street_address : streetAddress,
+        zip_code : zip
+      }
       const propertyData = {
         address: address, // this needs to be changed later
         area: area,
@@ -86,7 +96,11 @@ export default function PostRentalScreen() {
       Alert.alert(
         "Success",
         "Your property is submitted",
-        [{ text: "OK", onPress: () => console.log("OK Pressed") }] 
+        [{ text: "OK", onPress: () => {
+            clearForms(); 
+            console.log("OK Pressed");
+          } 
+        }]
       );
 
 
@@ -99,6 +113,23 @@ export default function PostRentalScreen() {
         [{ text: "OK", onPress: () => console.log("OK Pressed") }]
       );
     }
+  }
+
+  const clearForms = () => {
+    setStreetAddress('');
+    setCity('');
+    setState('');
+    setZip('');
+    setAptNumber('');
+    setArea('');
+    setBathCount('');
+    setBedCount('');
+    setPrice('');
+    setType('');
+    setDescription('');
+    setStartDate('');
+    setEndDate('');
+    setImage('');
   }
   
 
@@ -231,26 +262,49 @@ export default function PostRentalScreen() {
         </TouchableOpacity>
         </View>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Address"
-          value={address}
-          onChangeText={setAddress}
-        />
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <TextInput
+            style={[styles.input, {width: 230}]}
+            placeholder="streetAddress"
+            value={streetAddress}
+            onChangeText={setStreetAddress}
+          />
+          <TextInput
+            style={[styles.input, {width: 120}]}
+            placeholder="Apt"
+            value={aptNumber}
+            onChangeText={setAptNumber}
+          />
+        </View>
+
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <TextInput
+            style={[styles.input, styles.subinput]}
+            placeholder="City"
+            value={city}
+            onChangeText={setCity}
+          />
+          <TextInput
+            style={[styles.input, styles.subinput]}
+            placeholder="State"
+            value={state}
+            onChangeText={setState}
+          />
+        </View>
 
         <View style={{ flexDirection : 'row', justifyContent: 'space-between' }}>
-            <TextInput
-                style={[styles.input, styles.subinput]}
-                placeholder="Apt"
-                value={aptNumber}
-                onChangeText={setAptNumber}
-            />
-            <TextInput
-                style={[styles.input, styles.subinput]}
-                placeholder="Area"
-                value={area}
-                onChangeText={setArea}
-            />
+          <TextInput
+            style={[styles.input, styles.subinput]}
+            placeholder="Zip"
+            value={zip}
+            onChangeText={setZip}
+          />
+          <TextInput
+              style={[styles.input, styles.subinput]}
+              placeholder="Area"
+              value={area}
+              onChangeText={setArea}
+          />
         </View>
 
         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
@@ -389,7 +443,7 @@ const styles = StyleSheet.create({
   header: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 16,
+    marginBottom: 0,
   },
   input: {
     backgroundColor: 'transparent',
@@ -400,7 +454,7 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     borderColor: '#11182711',
     paddingHorizontal: 20,
-    marginBottom: 16
+    marginBottom: 10
   },
   subinput: {
     width: 160
@@ -429,7 +483,8 @@ const styles = StyleSheet.create({
   image: {
     width: 160,
     height: 120,
-    marginTop: -10,
+    marginTop: -9.5,
+    marginLeft: -0.2,
   },
   button: {
     backgroundColor: "#4285F4",
