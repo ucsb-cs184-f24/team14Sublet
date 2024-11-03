@@ -5,8 +5,9 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
 } from "firebase/auth";
-import { doc, getFirestore, setDoc, updateDoc } from "firebase/firestore";
+import { doc, getFirestore, setDoc, getDoc, collection, getDocs } from "firebase/firestore";
 import { create } from "react-test-renderer";
+import { getStorage, ref, getDownloadURL } from "firebase/storage";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -23,6 +24,7 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+const storage = getStorage();
 export const auth = getAuth(app);
 export const firestore = getFirestore(app);
 
@@ -68,6 +70,140 @@ export const signIn = async (email: string, password: string) => {
   }
 };
 
+// async function fetchStorage(path: string) {
+//   if(path == null) {
+//     return undefined;
+//   }
+
+//   let dataRef = ref(storage, path);
+//   let result = undefined;
+//   try {
+//     result = await getDownloadURL(dataRef);
+//   }
+//   catch(error) {
+//     console.log(`Error fetching data from ${path}: ${error}`);
+//     result = undefined;
+//   }
+
+//   return result;
+// }
+
+export async function getListings() {
+  try {
+    let result = [];
+    let data = [];
+    // Example code block modified from official Firebase docs
+    const querySnapshot = await getDocs(collection(firestore, "listings"));
+    querySnapshot.forEach((document) => {
+      data.push(document.data());
+    });
+
+    let index = 0;
+    for(document of data) {
+      listing = document;
+
+      // Skip empty listings
+      if(listing == null || Object.entries(listing).length === 0) {
+        continue;
+      }
+
+      let propertyRef = doc(firestore, "properties", listing['property_id']);
+      console.log(listing['property_id'])
+      let propertySnap = await (getDoc(propertyRef));
+      let property = propertySnap.data()
+
+      // Skip empty properties
+      if(property == null || Object.entries(property).length === 0) {
+        continue;
+      }
+      
+      // let imageUrl = await fetchStorage(property['image_url']);
+      let imageUrl = property['image_url'];
+      let propertyAddress = "";
+      if(typeof(property['address']) === 'object' && property['address']['street_address'] != null) {
+        propertyAddress = property['address']['street_address'];
+      }
+
+      result.push({
+        id: index,
+        property: propertyAddress,
+        rent: listing['price'],
+        startDate: listing['start_date'],
+        endDate: listing['end_date'],
+        image: imageUrl,
+        bedCount: property['bedrooms'],
+        bathCount: property['bathrooms'],
+        area: property['area']
+      });
+
+      index++;
+    }
+
+    return result;
+  } catch(error) {
+    throw error;
+  }
+}
+
+export async function getInterestedLeases() {
+  try {
+    uid = auth.currentUser?.uid;
+    const docRef = doc(firestore, "users", uid);
+    const docSnap = await getDoc(docRef);
+
+    let result = []
+
+    if (docSnap.exists()) {
+      listings = docSnap.data()['interested_listing_ids'];
+      console.log(listings);
+      for (i in listings) {
+        let listingRef = doc(firestore, "listings", listings[i]);
+        let listingSnap = await (getDoc(listingRef));
+        let listing = listingSnap.data();
+
+        // Skip empty listings
+        if(listing == null || Object.entries(listing).length === 0) {
+          continue;
+        }
+
+        let propertyRef = doc(firestore, "properties", listing['property_id']);
+        console.log(listing['property_id'])
+        let propertySnap = await (getDoc(propertyRef));
+        let property = propertySnap.data()
+
+        // Skip empty properties
+        if(property == null || Object.entries(property).length === 0) {
+          continue;
+        }
+        
+        // let imageUrl = await fetchStorage(property['image_url']);
+        let imageUrl = property['image_url'];
+        if(typeof(property['address']) === 'object' && property['address']['street_address'] != null) {
+          propertyAddress = property['address']['street_address'];
+        }
+
+        result.push({
+          id: i,
+          property: propertyAddress,
+          rent: listing['price'],
+          startDate: listing['start_date'],
+          endDate: listing['end_date'],
+          image: imageUrl,
+          bedCount: property['bedrooms'],
+          bathCount: property['bathrooms'],
+          area: property['area']
+        });
+      }
+    }
+    else {
+      console.log("NOT FOUND");
+    }
+    console.log(result);
+    return result;
+  } catch (error) {
+    throw error;
+  }
+}
 export const updateUserProfile = async (
   userId: string,
   updates: {

@@ -1,6 +1,6 @@
 import { Stack, Tabs } from "expo-router";
-import { PaperProvider } from 'react-native-paper';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { PaperProvider } from "react-native-paper";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function RootLayout() {
@@ -13,7 +13,7 @@ export default function RootLayout() {
           <Tabs.Screen
             name="index"
             options={{
-              title: 'Home',
+              title: "Home",
               tabBarIcon: ({ color, size }) => (
                 <Ionicons name="home" size={size} color={color} />
               ),
@@ -22,7 +22,7 @@ export default function RootLayout() {
           <Tabs.Screen
             name="rent"
             options={{
-              title: 'Rent',
+              title: "Rent",
               tabBarIcon: ({ color, size }) => (
                 <Ionicons name="business" size={size} color={color} />
               ),
@@ -31,7 +31,7 @@ export default function RootLayout() {
           <Tabs.Screen
             name="profile"
             options={{
-              title: 'Profile',
+              title: "Profile",
               tabBarIcon: ({ color, size }) => (
                 <Ionicons name="person" size={size} color={color} />
               ),
