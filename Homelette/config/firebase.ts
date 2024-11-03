@@ -46,6 +46,8 @@ export const signUp = async (
       email: email,
       first: firstName,
       last: lastName,
+      interested_listing_ids: [],
+      listing_ids: [],
       join_date: new Date(),
     };
 
@@ -202,3 +204,18 @@ export async function getInterestedLeases() {
     throw error;
   }
 }
+export const updateUserProfile = async (
+  userId: string,
+  updates: {
+    first?: string;
+    last?: string;
+    phone?: number;
+  }
+) => {
+  try {
+    const userRef = doc(firestore, "users", userId);
+    await updateDoc(userRef, updates);
+  } catch (error) {
+    throw error;
+  }
+};
