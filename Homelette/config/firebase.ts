@@ -1,19 +1,16 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import {
-  getAuth,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-} from "firebase/auth";
-import { doc, getFirestore, setDoc, getDoc, collection, getDocs } from "firebase/firestore";
-import { create } from "react-test-renderer";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { getFirestore, doc, getDoc, collection, setDoc, getDocs, addDoc } from "firebase/firestore";
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
+import { create } from "react-test-renderer";
+// import {formatData} from './components/PostRentalScreen';
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
+export const firebaseConfig = {
   apiKey: "AIzaSyCJ_DV2YTIJm_oA-ITdy1I4kQAHRaB5fsk",
   authDomain: "team14-sublet-1034a.firebaseapp.com",
   projectId: "team14-sublet-1034a",
@@ -24,7 +21,7 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const storage = getStorage();
+export const storage = getStorage(app);
 export const auth = getAuth(app);
 export const firestore = getFirestore(app);
 
@@ -69,7 +66,6 @@ export const signIn = async (email: string, password: string) => {
     throw error;
   }
 };
-
 // async function fetchStorage(path: string) {
 //   if(path == null) {
 //     return undefined;
