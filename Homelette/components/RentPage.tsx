@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { StyleSheet, FlatList, View } from "react-native";
+import { getListings } from "@/config/firebase";
 import {
   Card,
   Title,
@@ -59,7 +60,7 @@ const theme = {
 
 const PropertyCard = ({ item }) => (
   <Card style={styles.card} elevation={2}>
-    <Card.Cover source={item.image} style={styles.cardImage} />
+    <Card.Cover source={{ uri: item.image }} style={styles.cardImage} />
     <Card.Content>
       <View style={styles.contentContainer}>
         <View style={styles.propertyDetailsContainer}>
@@ -90,11 +91,46 @@ const PropertyCard = ({ item }) => (
 );
 
 export function RentPage() {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const result = await getListings();
+        setData(result);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Displays while waiting for fetch
+  if (loading) {
+    return (
+      <PaperProvider theme={theme}>
+        <Card style={styles.card} elevation={2}>
+          <Card.Content>
+            <View style={styles.contentContainer}>
+              <View style={styles.propertyDetailsContainer}>
+                <Title style={styles.rent}>Loading...</Title>
+              </View>
+            </View>
+          </Card.Content>
+        </Card>
+      </PaperProvider>
+    );
+  }
+
   return (
     <PaperProvider theme={theme}>
       <FlatList
         style={styles.container}
-        data={leases}
+        data={data}
         renderItem={({ item }) => <PropertyCard item={item} />}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContainer}
