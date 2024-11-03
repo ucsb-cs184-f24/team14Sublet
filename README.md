@@ -1,6 +1,44 @@
-# Homelet
+# Homelette
 
-A mobile app designed to connect subleasers with subletters in Isla Vista
+A mobile app designed to connect subletters with subtenants in Isla Vista
+
+## Installation Instructions
+
+To get started with the Homelette App, follow these steps:
+
+### Prerequisites
+* Ensure you have Node.js installed.
+
+* Install Expo CLI globally by running:
+```
+npm install -g expo-cli
+```
+Clone the repository and navigate to the project directory:
+```
+git clone https://github.com/ucsb-cs184-f24/team14sublet.git
+cd homelette
+```
+
+Install the necessary dependencies:
+```
+npm install
+```
+
+### Running the App Locally
+
+* Start the development server:
+```
+expo start
+```
+* Follow the instructions provided by Expo to run the app on your connected device or an emulator.
+
+### Installation of the APK (v1.0.0-MVP)
+
+* To install the APK directly on your Android device, download it using this link: [Homelette APK](https://expo.dev/artifacts/eas/74zKP9485na2ueiz5bEMWy.apk)
+
+* Download Homelette APK
+
+* Once downloaded, ensure that your device allows installations from unknown sources. Navigate to the downloaded APK file and tap to install.
 
 # Tech Stack
 
