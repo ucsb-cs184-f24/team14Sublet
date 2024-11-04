@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Homelette",
-    "slug": "Homelette",
+    "slug": "homelette",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -39,7 +39,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "450e68b2-64bc-4b8e-a484-0df3ade162e1"
+        "projectId": "565acd4c-7d51-459d-aada-2f231f1b9744"
       }
     }
   }

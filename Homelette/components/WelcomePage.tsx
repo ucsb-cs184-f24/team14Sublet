@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Svg, { Path } from "react-native-svg";
 import {
   View,
   StyleSheet,
@@ -52,59 +53,91 @@ export function WelcomePage() {
   };
 
   return (
-    <View style={styles.container}>
-      <ThemedText style={styles.title}>Welcome to Homelette</ThemedText>
+    <View
+      style={{
+        flex: 1,
+        justifyContent: "center",
+        backgroundColor: "transparent",
+      }}
+    >
+      <View style={styles.yel}></View>
+      <Svg
+        height="80"
+        width="100%"
+        viewBox="0 0 1440 280"
+        style={styles.waveTop}
+      >
+        <Path
+          fill="#edc811"
+          d="M0,192L80,176C160,160,320,128,480,144C640,160,800,224,960,229.3C1120,235,1280,181,1360,154.7L1440,128L1440,320L1360,320C1280,320,1120,320,960,320C800,320,640,320,480,320C320,320,160,320,80,320L0,320Z"
+        />
+      </Svg>
+      <View style={styles.container}>
+        <ThemedText style={styles.title}>Welcome to Homelette</ThemedText>
 
-      {!isLogin && (
-        <>
-          <TextInput
-            style={styles.input}
-            placeholder="First Name"
-            value={firstName}
-            onChangeText={setFirstName}
-            autoCapitalize="words"
-            autoCorrect={false}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Last Name"
-            value={lastName}
-            onChangeText={setLastName}
-            autoCapitalize="words"
-            autoCorrect={false}
-          />
-        </>
-      )}
+        {!isLogin && (
+          <>
+            <TextInput
+              style={styles.input}
+              placeholder="First Name"
+              value={firstName}
+              onChangeText={setFirstName}
+              autoCapitalize="words"
+              autoCorrect={false}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Last Name"
+              value={lastName}
+              onChangeText={setLastName}
+              autoCapitalize="words"
+              autoCorrect={false}
+            />
+          </>
+        )}
 
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        autoCorrect={false}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
-      <TouchableOpacity style={styles.button} onPress={handleAuth}>
-        <ThemedText style={styles.buttonText}>
-          {isLogin ? "Login" : "Sign Up"}
-        </ThemedText>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
-        <ThemedText style={styles.switchText}>
-          {isLogin
-            ? "Need an account? Sign Up"
-            : "Already have an account? Login"}
-        </ThemedText>
-      </TouchableOpacity>
+        <TextInput
+          style={styles.input}
+          placeholder="Email"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoCorrect={false}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+        <TouchableOpacity style={styles.button} onPress={handleAuth}>
+          <ThemedText style={styles.buttonText}>
+            {isLogin ? "Login" : "Sign Up"}
+          </ThemedText>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
+          <ThemedText style={styles.switchText}>
+            {isLogin
+              ? "Need an account? Sign Up"
+              : "Already have an account? Login"}
+          </ThemedText>
+        </TouchableOpacity>
+      </View>
+      <Svg
+        height="80"
+        width="100%"
+        viewBox="0 0 1440 280"
+        style={styles.waveBottom}
+      >
+        <Path
+          fill="#edc811"
+          d="M0,192L80,176C160,160,320,128,480,144C640,160,800,224,960,229.3C1120,235,1280,181,1360,154.7L1440,128L1440,320L1360,320C1280,320,1120,320,960,320C800,320,640,320,480,320C320,320,160,320,80,320L0,320Z"
+        />
+      </Svg>
+      <View style={styles.yel}></View>
     </View>
   );
 }
@@ -114,12 +147,14 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
+    paddingVertical: 100,
+    paddingHorizontal: 20,
   },
   title: {
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 20,
+    color: "#000000",
   },
   input: {
     width: "100%",
@@ -150,5 +185,22 @@ const styles = StyleSheet.create({
     color: "red",
     marginBottom: 10,
     textAlign: "center",
+  },
+  yel: {
+    width: "100%",
+    flex: 1,
+    backgroundColor: "#edc811",
+  },
+  whit: {
+    width: "100%",
+    flex: 1,
+    paddingVertical: 30,
+  },
+  waveBottom: {
+    bottom: 0,
+  },
+  waveTop: {
+    top: 0,
+    transform: [{ scaleX: -1 }, { scaleY: -1 }],
   },
 });
