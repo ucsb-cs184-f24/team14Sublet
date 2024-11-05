@@ -40,9 +40,22 @@ expo start
 
 * Once downloaded, ensure that your device allows installations from unknown sources. Navigate to the downloaded APK file and tap to install.
 
+### Functionality
+
+* You can navigate the app using the navigation bar at the bottom of the screen
+* Leases can be posted on the Post page
+* Leases can be viewed on the Rent page
+* The user can sign out via the button on the Home page
+* Profile details can be viewed on the Profile page
+
+### Known Problems
+
+* Attempting to modify profile details will not work (v1.0.0)
+* The user must sign out and sign in again in order to see a new lease they posted (v1.0.0)
+
 # Tech Stack
 
-## Frontend:
+## Frontend
 
 - React-Native (w/ EXPO framework)
 
