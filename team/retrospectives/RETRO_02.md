@@ -1,3 +1,5 @@
+# Date of Retrospective: 11/08/24
+
 * Led by: Jonathan Herring
 * Present: Amy Wang, Haibo Yang, Collin Qian, Allen Qiu, Jason Vu
 * Absent: N/A
