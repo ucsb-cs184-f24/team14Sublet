@@ -10,6 +10,7 @@ import {
   DefaultTheme,
   IconButton,
 } from "react-native-paper";
+import MapView, { Marker } from "react-native-maps";
 
 // Mock data for properties
 const leases = [
@@ -19,33 +20,12 @@ const leases = [
     rent: 1200,
     startDate: "2023-09-04",
     endDate: "2024-08-31",
-    image: require("../assets/images/mock_property_images/123-Main-St.jpg"),
+    location: { latitude: 37.7749, longitude: -122.4194 }, // Sample coordinates
     bedCount: 3,
     bathCount: 2,
     area: 900,
   },
-  {
-    id: "2",
-    address: "456 Elm St",
-    rent: 1500,
-    startDate: "2023-10-01",
-    endDate: "2024-09-30",
-    image: require("../assets/images/mock_property_images/456-Elm-St.jpg"),
-    bedCount: 4,
-    bathCount: 3,
-    area: 1400,
-  },
-  {
-    id: "3",
-    address: "789 Oak Ave",
-    rent: 1100,
-    startDate: "2023-11-01",
-    endDate: "2024-10-31",
-    image: require("../assets/images/mock_property_images/789-Oak-Ave.jpg"),
-    bedCount: 2,
-    bathCount: 1,
-    area: 900,
-  },
+  // Add more mock leases with location coordinates as needed
 ];
 
 // Custom theme for React Native Paper
@@ -93,6 +73,7 @@ const PropertyCard = ({ item }) => (
 export function RentPage() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -109,7 +90,6 @@ export function RentPage() {
     fetchData();
   }, []);
 
-  // Displays while waiting for fetch
   if (loading) {
     return (
       <PaperProvider theme={theme}>
@@ -128,13 +108,41 @@ export function RentPage() {
 
   return (
     <PaperProvider theme={theme}>
-      <FlatList
-        style={styles.container}
-        data={data}
-        renderItem={({ item }) => <PropertyCard item={item} />}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContainer}
+      <IconButton
+        icon={viewMode === 'map' ? 'format-list-bulleted' : 'map'}
+        size={30}
+        onPress={() => setViewMode(viewMode === 'map' ? 'list' : 'map')}
+        style={styles.toggleButton}
       />
+
+      {viewMode === 'map' ? (
+        <MapView
+          style={styles.map}
+          initialRegion={{
+            latitude: 37.7749, // Default location (San Francisco)
+            longitude: -122.4194,
+            latitudeDelta: 0.1,
+            longitudeDelta: 0.1,
+          }}
+        >
+          {leases.map((lease) => (
+            <Marker
+              key={lease.id}
+              coordinate={lease.location}
+              title={lease.address}
+              description={`$${lease.rent}/mo - ${lease.bedCount} bed, ${lease.bathCount} ba`}
+            />
+          ))}
+        </MapView>
+      ) : (
+        <FlatList
+          style={styles.container}
+          data={data}
+          renderItem={({ item }) => <PropertyCard item={item} />}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContainer}
+        />
+      )}
     </PaperProvider>
   );
 }
@@ -156,20 +164,9 @@ const styles = StyleSheet.create({
   boldText: {
     fontWeight: "600",
   },
-  imageContainer: {
-    position: "relative",
-  },
   cardImage: {
     height: 200,
   },
-  // messageIcon: {
-  //   position: "absolute",
-  //   bottom: -90,
-  //   right: 25,
-  //   backgroundColor: "lightblue",
-  //   borderRadius: 25,
-  //   elevation: 4,
-  // },
   rent: {
     fontSize: 20,
     color: "black",
@@ -200,5 +197,13 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     elevation: 4,
     marginLeft: 10,
+  },
+  toggleButton: {
+    alignSelf: 'center',
+    margin: 10,
+  },
+  map: {
+    width: '100%',
+    height: '85%',
   },
 });
