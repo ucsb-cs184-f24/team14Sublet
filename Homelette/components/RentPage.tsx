@@ -17,6 +17,7 @@ import {
   Divider,
   SegmentedButtons,
   FAB,
+  Surface,
 } from "react-native-paper";
 import { FlashList } from "@shopify/flash-list";
 import { DefaultTheme } from 'react-native-paper';
@@ -27,13 +28,14 @@ const theme = {
   colors: {
     ...DefaultTheme.colors,
     primary: '#FFD700', // Main yellow
-    secondary: '#4A90E2', // Accent blue
+    secondary: '#2E3192', // Accent blue
     surface: '#FFFFFF',
     background: '#F5F5F5',
     error: '#FF6B6B',
     text: '#333333',
-    accent: '#FF9F1C',
-  },
+    accent: '#2E3192', // Using deep blue as accent
+    chatButton: '#2E3192', // Deep blue for chat button
+ },
 };
 
 // Types
@@ -82,13 +84,19 @@ const PropertyCard = ({
     <Card.Content style={styles.cardContent}>
       <View style={styles.priceRow}>
         <Title style={styles.rent}>${item.rent}/mo</Title>
-        <IconButton
-          icon="message-outline"
-          size={24}
-          style={styles.messageButton}
-          onPress={() => console.log("Message sent")}
-        />
-      </View>
+        <Surface style={styles.chatButtonContainer}>
+          <Button
+            mode="contained"
+            icon="message-text"
+            onPress={() => console.log("Chat initiated")}
+            style={styles.chatButton}
+            contentStyle={styles.chatButtonContent}
+            labelStyle={styles.chatButtonLabel}
+          >
+            Chat
+          </Button>
+        </Surface>
+     </View>
       <View style={styles.detailsContainer}>
         <Chip icon="bed" style={styles.chip}>{item.bedCount} beds</Chip>
         <Chip icon="shower" style={styles.chip}>{item.bathCount} baths</Chip>
@@ -392,5 +400,30 @@ const styles = StyleSheet.create({
   },
   messageButton: {
     backgroundColor: theme.colors.secondary + '20',
+  },
+  chatButtonContainer: {
+    elevation: 4,
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  chatButton: {
+    backgroundColor: theme.colors.chatButton,
+    borderRadius: 20,
+    paddingHorizontal: 16,
+  },
+  chatButtonContent: {
+    flexDirection: 'row-reverse', // Places icon after text
+    height: 36,
+  },
+  chatButtonLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  chip: {
+    backgroundColor: theme.colors.primary + '20',
+  },
+  chipText: {
+    color: theme.colors.secondary,
   },
 });
