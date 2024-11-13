@@ -22,7 +22,44 @@ import {
 } from "react-native-paper";
 import { FlashList } from "@shopify/flash-list";
 
+// Mock data for properties
+const leases = [
+  {
+    id: "1",
+    address: "123 Main St",
+    rent: 1200,
+    startDate: "2023-09-04",
+    endDate: "2024-08-31",
+    image: require("../assets/images/mock_property_images/123-Main-St.jpg"),
+    bedCount: 3,
+    bathCount: 2,
+    area: 900,
+  },
+  {
+    id: "2",
+    address: "456 Elm St",
+    rent: 1500,
+    startDate: "2023-10-01",
+    endDate: "2024-09-30",
+    image: require("../assets/images/mock_property_images/456-Elm-St.jpg"),
+    bedCount: 4,
+    bathCount: 3,
+    area: 1400,
+  },
+  {
+    id: "3",
+    address: "789 Oak Ave",
+    rent: 1100,
+    startDate: "2023-11-01",
+    endDate: "2024-10-31",
+    image: require("../assets/images/mock_property_images/789-Oak-Ave.jpg"),
+    bedCount: 2,
+    bathCount: 1,
+    area: 900,
+  },
+];
 
+// Custom theme for React Native Paper
 const theme = {
   ...DefaultTheme,
   colors: {
@@ -389,7 +426,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 8,
     right: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: theme.colors.surface,
+    opacity: 0.9,
   },
   cardContent: {
     padding: 16,
