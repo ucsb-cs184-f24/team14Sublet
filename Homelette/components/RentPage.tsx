@@ -84,19 +84,21 @@ const PropertyCard = ({
     <Card.Content style={styles.cardContent}>
       <View style={styles.priceRow}>
         <Title style={styles.rent}>${item.rent}/mo</Title>
-        <Surface style={styles.chatButtonContainer}>
-          <Button
-            mode="contained"
-            icon="message-text"
-            onPress={() => console.log("Chat initiated")}
-            style={styles.chatButton}
-            contentStyle={styles.chatButtonContent}
-            labelStyle={styles.chatButtonLabel}
-          >
-            Chat
-          </Button>
-        </Surface>
-     </View>
+        <View style={styles.chatButtonWrapper}>
+          <Surface style={styles.chatButtonSurface}>
+            <Button
+              mode="contained"
+              icon="message-text"
+              onPress={() => console.log("Chat initiated")}
+              style={styles.chatButton}
+              contentStyle={styles.chatButtonContent}
+              labelStyle={styles.chatButtonLabel}
+            >
+              Chat
+            </Button>
+          </Surface>
+        </View>
+      </View>
       <View style={styles.detailsContainer}>
         <Chip icon="bed" style={styles.chip}>{item.bedCount} beds</Chip>
         <Chip icon="shower" style={styles.chip}>{item.bathCount} baths</Chip>
@@ -110,7 +112,13 @@ const PropertyCard = ({
   </Card>
 );
 
-const FilterModal = ({ visible, hideModal, onApplyFilters }) => (
+interface FilterModalProps {
+  visible: boolean;
+  hideModal: () => void;
+  onApplyFilters: () => void;
+}
+
+const FilterModal = ({ visible, hideModal, onApplyFilters }: FilterModalProps) => (
   <Portal>
     <Modal
       visible={visible}
@@ -308,7 +316,6 @@ const styles = StyleSheet.create({
   card: {
     marginBottom: 16,
     borderRadius: 12,
-    overflow: 'hidden',
   },
   imageContainer: {
     position: 'relative',
@@ -340,9 +347,6 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 8,
     marginTop: 8,
-  },
-  chip: {
-    backgroundColor: theme.colors.primary + '20',
   },
   address: {
     marginTop: 8,
@@ -405,6 +409,14 @@ const styles = StyleSheet.create({
     elevation: 4,
     borderRadius: 20,
     overflow: 'hidden',
+  },
+  chatButtonWrapper: {
+    overflow: 'hidden', 
+    borderRadius: 20,
+  },
+  chatButtonSurface: {
+    elevation: 4,
+    borderRadius: 20,
   },
   chatButton: {
     backgroundColor: theme.colors.chatButton,
