@@ -1,98 +1,161 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, FlatList, View } from "react-native";
+import { StyleSheet, View, Dimensions } from "react-native";
 import { getListings } from "@/config/firebase";
+import MapView, { Marker } from 'react-native-maps';
 import {
   Card,
   Title,
   Paragraph,
   Text,
   Provider as PaperProvider,
-  DefaultTheme,
   IconButton,
+  Searchbar,
+  Chip,
+  Portal,
+  Modal,
+  Button,
+  Divider,
+  SegmentedButtons,
+  FAB,
 } from "react-native-paper";
+import { FlashList } from "@shopify/flash-list";
+import { DefaultTheme } from 'react-native-paper';
 
-// Mock data for properties
-const leases = [
-  {
-    id: "1",
-    address: "123 Main St",
-    rent: 1200,
-    startDate: "2023-09-04",
-    endDate: "2024-08-31",
-    image: require("../assets/images/mock_property_images/123-Main-St.jpg"),
-    bedCount: 3,
-    bathCount: 2,
-    area: 900,
-  },
-  {
-    id: "2",
-    address: "456 Elm St",
-    rent: 1500,
-    startDate: "2023-10-01",
-    endDate: "2024-09-30",
-    image: require("../assets/images/mock_property_images/456-Elm-St.jpg"),
-    bedCount: 4,
-    bathCount: 3,
-    area: 1400,
-  },
-  {
-    id: "3",
-    address: "789 Oak Ave",
-    rent: 1100,
-    startDate: "2023-11-01",
-    endDate: "2024-10-31",
-    image: require("../assets/images/mock_property_images/789-Oak-Ave.jpg"),
-    bedCount: 2,
-    bathCount: 1,
-    area: 900,
-  },
-];
 
-// Custom theme for React Native Paper
 const theme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    primary: "#006aff",
-    accent: "#03dac4",
+    primary: '#FFD700', // Main yellow
+    secondary: '#4A90E2', // Accent blue
+    surface: '#FFFFFF',
+    background: '#F5F5F5',
+    error: '#FF6B6B',
+    text: '#333333',
+    accent: '#FF9F1C',
   },
 };
 
-const PropertyCard = ({ item }) => (
-  <Card style={styles.card} elevation={2}>
-    <Card.Cover source={{ uri: item.image }} style={styles.cardImage} />
-    <Card.Content>
-      <View style={styles.contentContainer}>
-        <View style={styles.propertyDetailsContainer}>
-          <Title style={styles.rent}>${item.rent}/mo</Title>
-          <Paragraph style={styles.propertyDetails}>
-            <Text style={styles.boldText}>{item.bedCount}</Text> bed |{" "}
-            <Text style={styles.boldText}>{item.bathCount}</Text> ba |{" "}
-            <Text style={styles.boldText}>{item.area}</Text> sqft
-          </Paragraph>
-          <Paragraph style={styles.term}>
-            Term: {new Date(item.startDate).toLocaleDateString()} -{" "}
-            {new Date(item.endDate).toLocaleDateString()}
-          </Paragraph>
-          <Paragraph style={styles.address}>{item.address}</Paragraph>
-        </View>
+// Types
+interface Property {
+  id: string;
+  address: string;
+  rent: number;
+  startDate: string;
+  endDate: string;
+  image: string;
+  bedCount: number;
+  bathCount: number;
+  area: number;
+  latitude?: number;
+  longitude?: number;
+}
+
+interface FilterOptions {
+  minPrice?: number;
+  maxPrice?: number;
+  bedrooms?: number;
+  bathrooms?: number;
+  startDate?: Date;
+}
+
+const PropertyCard = ({ 
+  item, 
+  isFavorite, 
+  onToggleFavorite 
+}: { 
+  item: Property; 
+  isFavorite: boolean; 
+  onToggleFavorite: (id: string) => void;
+}) => (
+  <Card style={styles.card} elevation={3}>
+    <View style={styles.imageContainer}>
+      <Card.Cover source={{ uri: item.image }} style={styles.cardImage} />
+      <IconButton
+        icon={isFavorite ? "heart" : "heart-outline"}
+        iconColor={isFavorite ? theme.colors.error : theme.colors.primary}
+        size={24}
+        style={styles.favoriteButton}
+        onPress={() => onToggleFavorite(item.id)}
+      />
+    </View>
+    <Card.Content style={styles.cardContent}>
+      <View style={styles.priceRow}>
+        <Title style={styles.rent}>${item.rent}/mo</Title>
         <IconButton
-          icon="message"
-          size={30}
-          iconColor="white"
-          style={styles.messageIcon}
-          onPress={() => {
-            console.log("Message button pressed");
-          }}
+          icon="message-outline"
+          size={24}
+          style={styles.messageButton}
+          onPress={() => console.log("Message sent")}
         />
       </View>
+      <View style={styles.detailsContainer}>
+        <Chip icon="bed" style={styles.chip}>{item.bedCount} beds</Chip>
+        <Chip icon="shower" style={styles.chip}>{item.bathCount} baths</Chip>
+        <Chip icon="ruler-square" style={styles.chip}>{item.area} sqft</Chip>
+      </View>
+      <Paragraph style={styles.address}>{item.address}</Paragraph>
+      <Text style={styles.dates}>
+        {new Date(item.startDate).toLocaleDateString()} - {new Date(item.endDate).toLocaleDateString()}
+      </Text>
     </Card.Content>
   </Card>
 );
 
+const FilterModal = ({ visible, hideModal, onApplyFilters }) => (
+  <Portal>
+    <Modal
+      visible={visible}
+      onDismiss={hideModal}
+      contentContainerStyle={styles.modalContainer}
+    >
+      <Title style={styles.modalTitle}>Filter Listings</Title>
+      <Divider style={styles.divider} />
+      
+      <Text style={styles.filterLabel}>Price Range</Text>
+      <View style={styles.priceInputs}>
+        <Searchbar
+          placeholder="Min $"
+          style={styles.priceInput}
+          keyboardType="numeric"
+        />
+        <Text>-</Text>
+        <Searchbar
+          placeholder="Max $"
+          style={styles.priceInput}
+          keyboardType="numeric"
+        />
+      </View>
+
+      <Text style={styles.filterLabel}>Bedrooms</Text>
+      <SegmentedButtons
+        value="any"
+        onValueChange={() => {}}
+        buttons={[
+          { value: 'any', label: 'Any' },
+          { value: '1', label: '1+' },
+          { value: '2', label: '2+' },
+          { value: '3', label: '3+' },
+        ]}
+      />
+
+      <View style={styles.modalActions}>
+        <Button onPress={hideModal}>Reset</Button>
+        <Button mode="contained" onPress={onApplyFilters}>
+          Apply Filters
+        </Button>
+      </View>
+    </Modal>
+  </Portal>
+);
+
 export function RentPage() {
-  const [data, setData] = useState([]);
+  const [data, setData] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [filterVisible, setFilterVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -105,36 +168,110 @@ export function RentPage() {
         setLoading(false);
       }
     };
-
     fetchData();
   }, []);
 
-  // Displays while waiting for fetch
-  if (loading) {
-    return (
-      <PaperProvider theme={theme}>
-        <Card style={styles.card} elevation={2}>
-          <Card.Content>
-            <View style={styles.contentContainer}>
-              <View style={styles.propertyDetailsContainer}>
-                <Title style={styles.rent}>Loading...</Title>
-              </View>
-            </View>
-          </Card.Content>
-        </Card>
-      </PaperProvider>
-    );
-  }
+  const toggleFavorite = (id: string) => {
+    setFavorites(prev => {
+      const newFavorites = new Set(prev);
+      if (newFavorites.has(id)) {
+        newFavorites.delete(id);
+      } else {
+        newFavorites.add(id);
+      }
+      return newFavorites;
+    });
+  };
 
-  return (
-    <PaperProvider theme={theme}>
-      <FlatList
-        style={styles.container}
+  const renderContent = () => {
+    if (viewMode === 'map') {
+      return (
+        <MapView
+          style={styles.map}
+          initialRegion={{
+            latitude: 37.78825,
+            longitude: -122.4324,
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421,
+          }}
+        >
+          {data.map((item) => (
+            <Marker
+              key={item.id}
+              coordinate={{
+                latitude: item.latitude || 37.78825,
+                longitude: item.longitude || -122.4324,
+              }}
+              title={item.address}
+              description={`$${item.rent}/month`}
+            />
+          ))}
+        </MapView>
+      );
+    }
+
+    return (
+      <FlashList
         data={data}
-        renderItem={({ item }) => <PropertyCard item={item} />}
+        renderItem={({ item }) => (
+          <PropertyCard
+            item={item}
+            isFavorite={favorites.has(item.id)}
+            onToggleFavorite={toggleFavorite}
+          />
+        )}
+        estimatedItemSize={350}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContainer}
       />
+    );
+  };
+
+  return (
+    <PaperProvider theme={theme}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Searchbar
+            placeholder="Search by location..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            style={styles.searchbar}
+          />
+          <IconButton
+            icon="tune"
+            size={24}
+            onPress={() => setFilterVisible(true)}
+          />
+        </View>
+        
+        <SegmentedButtons
+          value={viewMode}
+          onValueChange={value => setViewMode(value as 'list' | 'map')}
+          buttons={[
+            { value: 'list', icon: 'view-list', label: 'List' },
+            { value: 'map', icon: 'map', label: 'Map' },
+          ]}
+          style={styles.viewToggle}
+        />
+        
+        {renderContent()}
+
+        <FilterModal
+          visible={filterVisible}
+          hideModal={() => setFilterVisible(false)}
+          onApplyFilters={() => {
+            setFilterVisible(false);
+            // Apply filters logic here
+          }}
+        />
+        
+        <FAB
+          icon="tune"
+          style={styles.fab}
+          onPress={() => setFilterVisible(true)}
+          label="Filter"
+        />
+      </View>
     </PaperProvider>
   );
 }
@@ -142,63 +279,118 @@ export function RentPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 10,
-    backgroundColor: "#f6f6f6",
+    backgroundColor: theme.colors.background,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: theme.colors.surface,
+  },
+  searchbar: {
+    flex: 1,
+    marginRight: 8,
+  },
+  viewToggle: {
+    margin: 16,
   },
   listContainer: {
-    paddingBottom: 20,
+    padding: 16,
   },
   card: {
-    marginBottom: 15,
-    borderRadius: 10,
-    overflow: "hidden",
-  },
-  boldText: {
-    fontWeight: "600",
+    marginBottom: 16,
+    borderRadius: 12,
+    overflow: 'hidden',
   },
   imageContainer: {
-    position: "relative",
+    position: 'relative',
   },
   cardImage: {
     height: 200,
   },
-  // messageIcon: {
-  //   position: "absolute",
-  //   bottom: -90,
-  //   right: 25,
-  //   backgroundColor: "lightblue",
-  //   borderRadius: 25,
-  //   elevation: 4,
-  // },
+  favoriteButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+  },
+  cardContent: {
+    padding: 16,
+  },
+  priceRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   rent: {
-    fontSize: 20,
-    color: "black",
-    fontWeight: "700",
-    marginVertical: 5,
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: theme.colors.text,
   },
-  propertyDetails: {
-    fontSize: 16,
-    color: "#444",
-    marginTop: 5,
+  detailsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 8,
   },
-  term: {
-    fontSize: 14,
-    color: "#444",
+  chip: {
+    backgroundColor: theme.colors.primary + '20',
   },
   address: {
+    marginTop: 8,
+    fontSize: 16,
+    color: theme.colors.text,
+  },
+  dates: {
+    marginTop: 4,
     fontSize: 14,
+    color: theme.colors.text + '99',
   },
-  contentContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  propertyDetailsContainer: {
+  map: {
     flex: 1,
+    height: Dimensions.get('window').height - 200,
   },
-  messageIcon: {
-    backgroundColor: "lightblue",
-    borderRadius: 25,
-    elevation: 4,
-    marginLeft: 10,
+  modalContainer: {
+    backgroundColor: theme.colors.surface,
+    padding: 20,
+    margin: 20,
+    borderRadius: 12,
+  },
+  modalTitle: {
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  divider: {
+    marginVertical: 16,
+  },
+  filterLabel: {
+    fontSize: 16,
+    marginVertical: 8,
+  },
+  priceInputs: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 16,
+  },
+  priceInput: {
+    flex: 1,
+    height: 40,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 8,
+    marginTop: 16,
+  },
+  fab: {
+    position: 'absolute',
+    margin: 16,
+    right: 0,
+    bottom: 0,
+    backgroundColor: theme.colors.primary,
+  },
+  messageButton: {
+    backgroundColor: theme.colors.secondary + '20',
   },
 });
