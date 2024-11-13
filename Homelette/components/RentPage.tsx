@@ -193,12 +193,12 @@ const FilterModal = ({ visible, hideModal, onApplyFilters }: FilterModalProps) =
         <Text style={styles.filterLabel}>Bedrooms</Text>
         <SegmentedButtons
           value="any"
-          onValueChange={() => {}}
+          onValueChange={(value) => console.log(value)}
           buttons={[
-            { value: 'any', label: 'Any' },
-            { value: '1', label: '1+' },
-            { value: '2', label: '2+' },
-            { value: '3', label: '3+' },
+            { value: 'any', label: 'Any', style: styles.segmentedButtonBackground },
+            { value: '1', label: '1+', style: styles.segmentedButtonBackground },
+            { value: '2', label: '2+', style: styles.segmentedButtonBackground },
+            { value: '3', label: '3+', style: styles.segmentedButtonBackground },
           ]}
         />
 
@@ -489,6 +489,7 @@ const styles = StyleSheet.create({
   priceInput: {
     flex: 1,
     height: 40,
+    backgroundColor: theme.colors.primaryContainer,
   },
   modalActions: {
     flexDirection: 'row',
@@ -555,5 +556,8 @@ const styles = StyleSheet.create({
   },
   segmentedButtonTextSelected: {
     color: theme.colors.onPrimaryContainer, // Selected button text color
+  },
+  segmentedButtonBackground: {
+    backgroundColor: theme.colors.primaryContainer, // Custom background for segmented buttons
   },
 });
