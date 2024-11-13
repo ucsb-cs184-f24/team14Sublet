@@ -118,52 +118,62 @@ interface FilterModalProps {
   onApplyFilters: () => void;
 }
 
-const FilterModal = ({ visible, hideModal, onApplyFilters }: FilterModalProps) => (
-  <Portal>
-    <Modal
-      visible={visible}
-      onDismiss={hideModal}
-      contentContainerStyle={styles.modalContainer}
-    >
-      <Title style={styles.modalTitle}>Filter Listings</Title>
-      <Divider style={styles.divider} />
-      
-      <Text style={styles.filterLabel}>Price Range</Text>
-      <View style={styles.priceInputs}>
-        <Searchbar
-          placeholder="Min $"
-          style={styles.priceInput}
-          keyboardType="numeric"
-        />
-        <Text>-</Text>
-        <Searchbar
-          placeholder="Max $"
-          style={styles.priceInput}
-          keyboardType="numeric"
-        />
-      </View>
+const FilterModal = ({ visible, hideModal, onApplyFilters }: FilterModalProps) => {
+  // State for min and max price inputs
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
 
-      <Text style={styles.filterLabel}>Bedrooms</Text>
-      <SegmentedButtons
-        value="any"
-        onValueChange={() => {}}
-        buttons={[
-          { value: 'any', label: 'Any' },
-          { value: '1', label: '1+' },
-          { value: '2', label: '2+' },
-          { value: '3', label: '3+' },
-        ]}
-      />
+  return (
+    <Portal>
+      <Modal
+        visible={visible}
+        onDismiss={hideModal}
+        contentContainerStyle={styles.modalContainer}
+      >
+        <Title style={styles.modalTitle}>Filter Listings</Title>
+        <Divider style={styles.divider} />
+        
+        <Text style={styles.filterLabel}>Price Range</Text>
+        <View style={styles.priceInputs}>
+          <Searchbar
+            placeholder="Min $"
+            value={minPrice} // Added value prop
+            onChangeText={setMinPrice} // Added onChangeText handler
+            style={styles.priceInput}
+            keyboardType="numeric"
+          />
+          <Text>-</Text>
+          <Searchbar
+            placeholder="Max $"
+            value={maxPrice} // Added value prop
+            onChangeText={setMaxPrice} // Added onChangeText handler
+            style={styles.priceInput}
+            keyboardType="numeric"
+          />
+        </View>
 
-      <View style={styles.modalActions}>
-        <Button onPress={hideModal}>Reset</Button>
-        <Button mode="contained" onPress={onApplyFilters}>
-          Apply Filters
-        </Button>
-      </View>
-    </Modal>
-  </Portal>
-);
+        <Text style={styles.filterLabel}>Bedrooms</Text>
+        <SegmentedButtons
+          value="any"
+          onValueChange={() => {}}
+          buttons={[
+            { value: 'any', label: 'Any' },
+            { value: '1', label: '1+' },
+            { value: '2', label: '2+' },
+            { value: '3', label: '3+' },
+          ]}
+        />
+
+        <View style={styles.modalActions}>
+          <Button onPress={hideModal}>Reset</Button>
+          <Button mode="contained" onPress={onApplyFilters}>
+            Apply Filters
+          </Button>
+        </View>
+      </Modal>
+    </Portal>
+  );
+};
 
 export function RentPage() {
   const [data, setData] = useState<Property[]>([]);
@@ -177,7 +187,23 @@ export function RentPage() {
     const fetchData = async () => {
       try {
         const result = await getListings();
-        setData(result);
+        
+        // Map the data to match the Property type
+        const formattedData = result.map((item: any) => ({
+          id: item.id,
+          address: item.property, // Rename property to address
+          rent: item.rent,
+          startDate: item.startDate,
+          endDate: item.endDate,
+          image: item.image,
+          bedCount: item.bedCount,
+          bathCount: item.bathCount,
+          area: item.area,
+          latitude: item.latitude,
+          longitude: item.longitude,
+        }));
+        
+        setData(formattedData);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -186,6 +212,7 @@ export function RentPage() {
     };
     fetchData();
   }, []);
+  
 
   const toggleFavorite = (id: string) => {
     setFavorites(prev => {
