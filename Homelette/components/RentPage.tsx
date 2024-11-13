@@ -8,6 +8,7 @@ import {
   Paragraph,
   Text,
   Provider as PaperProvider,
+  DefaultTheme,
   IconButton,
   Searchbar,
   Chip,
@@ -20,7 +21,6 @@ import {
   Surface,
 } from "react-native-paper";
 import { FlashList } from "@shopify/flash-list";
-import { DefaultTheme } from 'react-native-paper';
 
 
 const theme = {
@@ -33,12 +33,8 @@ const theme = {
     background: '#F5F5F5', // Light gray for app background
     error: '#FF6B6B', // Red for error messages
     text: '#333333', // Dark gray for general text
-    // accent: '#2E3192', // Blue accent color for icons, chips
-    // onSurface: '#333333', // Text color on surface elements
     primaryContainer: '#FFD70020', // Light yellow background for buttons and containers
     onPrimaryContainer: '#0D1321', // Rich black for text/icons on primary containers
-    // outline: '#CCCCCC', // Light gray for borders
-    // placeholder: '#757575', // Placeholder color in search bar
     chatButton: '#FFD700', // Yellow for the chat button
   },
 };
@@ -275,6 +271,20 @@ export function RentPage() {
     );
   };
 
+  if (loading) {
+    return (
+      <PaperProvider theme={theme}>
+        <Card style={styles.card} elevation={2}>
+          <Card.Content>
+            <View>
+              <Title style={styles.rent}>Loading...</Title>
+            </View>
+          </Card.Content>
+        </Card>
+      </PaperProvider>
+    );
+  }
+
   return (
     <PaperProvider theme={theme}>
       <View style={styles.container}>
@@ -367,6 +377,7 @@ const styles = StyleSheet.create({
   card: {
     marginBottom: 16,
     borderRadius: 12,
+    backgroundColor: theme.colors.primaryContainer,
   },
   imageContainer: {
     position: 'relative',
