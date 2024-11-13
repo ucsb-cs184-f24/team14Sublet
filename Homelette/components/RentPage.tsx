@@ -27,15 +27,20 @@ const theme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    primary: '#FFD700', // Main yellow
-    secondary: '#2E3192', // Accent blue
-    surface: '#FFFFFF',
-    background: '#F5F5F5',
-    error: '#FF6B6B',
-    text: '#333333',
-    accent: '#2E3192', // Using deep blue as accent
-    chatButton: '#2E3192', // Deep blue for chat button
- },
+    primary: '#FFD700', // Main yellow for buttons and primary elements
+    secondary: '#2E3192', // Accent blue for interactive elements
+    surface: '#FFFFFC', // White for cards and surfaces
+    background: '#F5F5F5', // Light gray for app background
+    error: '#FF6B6B', // Red for error messages
+    text: '#333333', // Dark gray for general text
+    // accent: '#2E3192', // Blue accent color for icons, chips
+    // onSurface: '#333333', // Text color on surface elements
+    primaryContainer: '#FFD70020', // Light yellow background for buttons and containers
+    onPrimaryContainer: '#0D1321', // Rich black for text/icons on primary containers
+    // outline: '#CCCCCC', // Light gray for borders
+    // placeholder: '#757575', // Placeholder color in search bar
+    chatButton: '#FFD700', // Yellow for the chat button
+  },
 };
 
 // Types
@@ -289,12 +294,30 @@ export function RentPage() {
         
         <SegmentedButtons
           value={viewMode}
-          onValueChange={value => setViewMode(value as 'list' | 'map')}
+          onValueChange={(value) => setViewMode(value as 'list' | 'map')}
           buttons={[
-            { value: 'list', icon: 'view-list', label: 'List' },
-            { value: 'map', icon: 'map', label: 'Map' },
+            {
+              value: 'list',
+              icon: 'view-list',
+              label: 'List',
+              style: [
+                styles.segmentedButton,
+                viewMode === 'list' && styles.segmentedButtonSelected, // Apply selected style
+              ],
+              labelStyle: viewMode === 'list' ? styles.segmentedButtonTextSelected : styles.segmentedButtonText, // Conditionally apply text color
+            },
+            {
+              value: 'map',
+              icon: 'map',
+              label: 'Map',
+              style: [
+                styles.segmentedButton,
+                viewMode === 'map' && styles.segmentedButtonSelected, // Apply selected style
+              ],
+              labelStyle: viewMode === 'map' ? styles.segmentedButtonTextSelected : styles.segmentedButtonText, // Conditionally apply text color
+            },
           ]}
-          style={styles.viewToggle}
+          style={styles.segmentedButtonsContainer}
         />
         
         {renderContent()}
@@ -333,6 +356,7 @@ const styles = StyleSheet.create({
   searchbar: {
     flex: 1,
     marginRight: 8,
+    backgroundColor: theme.colors.surface,
   },
   viewToggle: {
     margin: 16,
@@ -358,6 +382,7 @@ const styles = StyleSheet.create({
   },
   cardContent: {
     padding: 16,
+    backgroundColor: theme.colors.surface,
   },
   priceRow: {
     flexDirection: 'row',
@@ -463,6 +488,23 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.primary + '20',
   },
   chipText: {
-    color: theme.colors.secondary,
+    color: theme.colors.text,
+  },
+  segmentedButtonsContainer: {
+    backgroundColor: theme.colors.primaryContainer, // Background for the toggle buttons
+    borderRadius: 8,
+    margin: 16,
+  },
+  segmentedButton: {
+    backgroundColor: 'transparent', // Keeps individual buttons transparent, showing the container's color
+  },
+  segmentedButtonSelected: {
+    backgroundColor: theme.colors.primary, // Selected button background
+  },
+  segmentedButtonText: {
+    color: theme.colors.text, // Unselected button text color
+  },
+  segmentedButtonTextSelected: {
+    color: theme.colors.onPrimaryContainer, // Selected button text color
   },
 });
