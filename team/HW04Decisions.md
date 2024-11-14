@@ -22,6 +22,7 @@ Process/Leadership: Haibo Yang
 ### Amy
 I plan to implement a favorited listings feature that allows users to favorite and unfavorite listings directly from the RentPage. The heart icon on each listing will be functional and intuitive to use, and the favorites will be stored persistently in the backend. Additionally, I will create a dedicated "Favorited Listings" page within the user’s profile, displaying all saved favorite listings in an accessible format. 
 ### Collin
+I will create a logo and a brand guide and a wireframe for the chat feature. Logo will be for the app icon and the splash screen.
 ### Allen
 I will be implementing the chat feature where subtenants who are interested in a property can start a chat with that property owner. This includes a basic frontend interface for the chat page as well as the backend collections/logic for the chat.
 ### Jason
