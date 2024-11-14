@@ -24,4 +24,5 @@ Push more features that users expect to have on our app
 ## Retro Assessment
 * It went alright, and the retro went fairly quick. It was fairly disorganized because we had to figure out what was needed in our Retro. 
 
-## Retro Experiment Outcome (TODO by 11/14)
+## Retro Experiment Outcome
+* The experiment was a success. Amy's pull request documented the changes she made for the UI, which made the pull request very easy to read through and confirm that the changes were fine. We also added more issues to the Kanban board, so our Kanban board is more populated. This should make it easier for the TAs to grade our work.
