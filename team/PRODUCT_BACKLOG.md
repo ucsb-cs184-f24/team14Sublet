@@ -1,6 +1,6 @@
 # Product Backlog - 11/13/2024
 
-## Type of Meeting: MVP Feedback Analysis and Response
+## Type of Meeting: "Story Time" with MVP feedback
 
 ## Attendance
 
