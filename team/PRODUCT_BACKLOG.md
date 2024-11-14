@@ -73,3 +73,14 @@
   - Users can view their chats along with corresponding users and maybe property listing.
   - Notifications appear for new messages.
   - (Optional) Users can remove conversations (idea: if all/both users remove it, it will be deleted from the database)
+
+### 7. Favorite Listings: As a subtenant, I want to favorite/unfavorite listings on the RentPage and view my favorited listings in a favorited listings page.
+- **Who**: Users who want to save and easily revisit preferred property listings.
+- **What**: A favoriting feature that allows users to mark/unmark listings as favorites on the RentPage and access them on a dedicated page in their profile.
+- **Why**: To enable users to organize and quickly find properties they are interested in.
+- **Estimate**: Medium
+- **Acceptance Criteria**:
+  - Users can favorite/unfavorite listings by tapping a heart icon on each listing in the RentPage.
+  - Favorited listings are saved and persist across sessions.
+  - A "Favorited Listings" page is accessible in the user profile, displaying only favorited properties.
+  - Users can navigate from the "Favorited Listings" page to view detailed information about each listing.
