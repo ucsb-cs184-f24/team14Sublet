@@ -38,7 +38,11 @@ export const auth = getAuth(app);
 export const firestore = getFirestore(app);
 
 interface OptionalProfileFields {
-  profilePicture?: File;
+  profilePicture?: {
+    uri: string;
+    name: string;
+    type: string;
+  };
   major?: string;
   graduationYear?: number;
   aboutMe?: string;
@@ -62,8 +66,13 @@ export const signUp = async (
     let profilePictureURL: string | undefined;
 
     if (options?.profilePicture) {
+      const response = await fetch(options.profilePicture.uri);
+      const blob = await response.blob();
+
       const storageRef = ref(storage, `profile-pictures/${user.uid}`);
-      const snapshot = await uploadBytes(storageRef, options.profilePicture);
+      const snapshot = await uploadBytes(storageRef, blob, {
+        contentType: options.profilePicture.type,
+      });
       profilePictureURL = await getDownloadURL(snapshot.ref);
     }
 
