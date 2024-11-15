@@ -11,6 +11,7 @@ import {
 import { ThemedText } from "./ThemedText";
 import { signIn, signUp } from "@/config/firebase";
 import * as ImagePicker from "expo-image-picker";
+import { Ionicons } from "@expo/vector-icons";
 
 export function WelcomePage() {
   const [email, setEmail] = useState("");
@@ -50,6 +51,31 @@ export function WelcomePage() {
     } catch (error) {
       console.error("ImagePicker Error:", error);
       setError("Failed to select image. Please try again.");
+    }
+  };
+
+  const takePhoto = async () => {
+    if (Platform.OS !== "web") {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== "granted") {
+        alert("Sorry, we need camera permissions to make this work!");
+        return;
+      }
+    }
+
+    try {
+      let result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.7,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setProfileImage(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error("Camera Error:", error);
+      setError("Failed to take photo. Please try again.");
     }
   };
 
@@ -174,19 +200,26 @@ export function WelcomePage() {
           />
 
           {/* Profile Picture Section */}
-          <TouchableOpacity
-            style={styles.imagePicker}
-            onPress={pickImage} // Replaced handleSelectProfilePicture with pickImage
-          >
-            {profileImage ? (
-              <Image
-                source={{ uri: profileImage }} // Replaced profilePicture with profileImage
-                style={styles.profileImage}
-              />
-            ) : (
-              <Text style={styles.imagePickerText}>Upload Profile Picture</Text>
-            )}
-          </TouchableOpacity>
+          <View style={styles.profileContainer}>
+            <TouchableOpacity onPress={takePhoto} style={styles.iconButton}>
+              <Ionicons name="camera" size={30} color="#4285F4" />
+            </TouchableOpacity>
+
+            <View style={styles.imagePicker}>
+              {profileImage ? (
+                <Image
+                  source={{ uri: profileImage }}
+                  style={styles.profileImage}
+                />
+              ) : (
+                <Text style={styles.imagePickerText}>Profile Picture</Text>
+              )}
+            </View>
+
+            <TouchableOpacity onPress={pickImage} style={styles.iconButton}>
+              <Ionicons name="images" size={30} color="#4285F4" />
+            </TouchableOpacity>
+          </View>
         </>
       )}
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
@@ -248,8 +281,17 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: "center",
   },
+  profileContainer: {
+    marginTop: 15,
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  iconButton: {
+    padding: 20,
+  },
   imagePicker: {
-    width: 100, // Set explicit width
+    width: 100,
     height: 100,
     alignItems: "center",
     justifyContent: "center",
