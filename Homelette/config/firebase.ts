@@ -1,8 +1,20 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
-import { getFirestore, doc, getDoc, collection, setDoc, getDocs, addDoc } from "firebase/firestore";
-import { getStorage, ref, getDownloadURL } from "firebase/storage";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  collection,
+  setDoc,
+  getDocs,
+  addDoc,
+} from "firebase/firestore";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { create } from "react-test-renderer";
 // import {formatData} from './components/PostRentalScreen';
 // TODO: Add SDKs for Firebase products that you want to use
@@ -25,11 +37,19 @@ export const storage = getStorage(app);
 export const auth = getAuth(app);
 export const firestore = getFirestore(app);
 
+interface OptionalProfileFields {
+  profilePicture?: File;
+  major?: string;
+  graduationYear?: number;
+  aboutMe?: string;
+}
+
 export const signUp = async (
   email: string,
   password: string,
   firstName: string,
   lastName: string,
+  options?: OptionalProfileFields,
 ) => {
   try {
     const userCredential = await createUserWithEmailAndPassword(
@@ -39,13 +59,28 @@ export const signUp = async (
     );
     const user = userCredential.user;
 
-    const userProfile = {
+    let profilePictureURL: string | undefined;
+
+    if (options?.profilePicture) {
+      const storageRef = ref(storage, `profile-pictures/${user.uid}`);
+      const snapshot = await uploadBytes(storageRef, options.profilePicture);
+      profilePictureURL = await getDownloadURL(snapshot.ref);
+    }
+
+    const userProfile: any = {
       email: email,
       first: firstName,
       last: lastName,
       interested_listing_ids: [],
       listing_ids: [],
       join_date: new Date(),
+      // Include optional fields if they are provided
+      ...(options?.major && { major: options.major }),
+      ...(options?.graduationYear && {
+        graduation_year: options.graduationYear,
+      }),
+      ...(options?.aboutMe && { about_me: options.aboutMe }),
+      ...(profilePictureURL && { profilePictureURL }),
     };
 
     await setDoc(doc(firestore, "users", user.uid), userProfile);
@@ -95,48 +130,51 @@ export async function getListings() {
     });
 
     let index = 0;
-    for(document of data) {
+    for (document of data) {
       listing = document;
 
       // Skip empty listings
-      if(listing == null || Object.entries(listing).length === 0) {
+      if (listing == null || Object.entries(listing).length === 0) {
         continue;
       }
 
-      let propertyRef = doc(firestore, "properties", listing['property_id']);
-      console.log(listing['property_id'])
-      let propertySnap = await (getDoc(propertyRef));
-      let property = propertySnap.data()
+      let propertyRef = doc(firestore, "properties", listing["property_id"]);
+      console.log(listing["property_id"]);
+      let propertySnap = await getDoc(propertyRef);
+      let property = propertySnap.data();
 
       // Skip empty properties
-      if(property == null || Object.entries(property).length === 0) {
+      if (property == null || Object.entries(property).length === 0) {
         continue;
       }
-      
+
       // let imageUrl = await fetchStorage(property['image_url']);
-      let imageUrl = property['image_url'];
+      let imageUrl = property["image_url"];
       let propertyAddress = "";
-      if(typeof(property['address']) === 'object' && property['address']['street_address'] != null) {
-        propertyAddress = property['address']['street_address'];
+      if (
+        typeof property["address"] === "object" &&
+        property["address"]["street_address"] != null
+      ) {
+        propertyAddress = property["address"]["street_address"];
       }
 
       result.push({
         id: index,
         property: propertyAddress,
-        rent: listing['price'],
-        startDate: listing['start_date'],
-        endDate: listing['end_date'],
+        rent: listing["price"],
+        startDate: listing["start_date"],
+        endDate: listing["end_date"],
         image: imageUrl,
-        bedCount: property['bedrooms'],
-        bathCount: property['bathrooms'],
-        area: property['area']
+        bedCount: property["bedrooms"],
+        bathCount: property["bathrooms"],
+        area: property["area"],
       });
 
       index++;
     }
 
     return result;
-  } catch(error) {
+  } catch (error) {
     throw error;
   }
 }
@@ -147,51 +185,53 @@ export async function getInterestedLeases() {
     const docRef = doc(firestore, "users", uid);
     const docSnap = await getDoc(docRef);
 
-    let result = []
+    let result = [];
 
     if (docSnap.exists()) {
-      listings = docSnap.data()['interested_listing_ids'];
+      listings = docSnap.data()["interested_listing_ids"];
       console.log(listings);
       for (i in listings) {
         let listingRef = doc(firestore, "listings", listings[i]);
-        let listingSnap = await (getDoc(listingRef));
+        let listingSnap = await getDoc(listingRef);
         let listing = listingSnap.data();
 
         // Skip empty listings
-        if(listing == null || Object.entries(listing).length === 0) {
+        if (listing == null || Object.entries(listing).length === 0) {
           continue;
         }
 
-        let propertyRef = doc(firestore, "properties", listing['property_id']);
-        console.log(listing['property_id'])
-        let propertySnap = await (getDoc(propertyRef));
-        let property = propertySnap.data()
+        let propertyRef = doc(firestore, "properties", listing["property_id"]);
+        console.log(listing["property_id"]);
+        let propertySnap = await getDoc(propertyRef);
+        let property = propertySnap.data();
 
         // Skip empty properties
-        if(property == null || Object.entries(property).length === 0) {
+        if (property == null || Object.entries(property).length === 0) {
           continue;
         }
-        
+
         // let imageUrl = await fetchStorage(property['image_url']);
-        let imageUrl = property['image_url'];
-        if(typeof(property['address']) === 'object' && property['address']['street_address'] != null) {
-          propertyAddress = property['address']['street_address'];
+        let imageUrl = property["image_url"];
+        if (
+          typeof property["address"] === "object" &&
+          property["address"]["street_address"] != null
+        ) {
+          propertyAddress = property["address"]["street_address"];
         }
 
         result.push({
           id: i,
           property: propertyAddress,
-          rent: listing['price'],
-          startDate: listing['start_date'],
-          endDate: listing['end_date'],
+          rent: listing["price"],
+          startDate: listing["start_date"],
+          endDate: listing["end_date"],
           image: imageUrl,
-          bedCount: property['bedrooms'],
-          bathCount: property['bathrooms'],
-          area: property['area']
+          bedCount: property["bedrooms"],
+          bathCount: property["bathrooms"],
+          area: property["area"],
         });
       }
-    }
-    else {
+    } else {
       console.log("NOT FOUND");
     }
     console.log(result);
@@ -206,7 +246,7 @@ export const updateUserProfile = async (
     first?: string;
     last?: string;
     phone?: number;
-  }
+  },
 ) => {
   try {
     const userRef = doc(firestore, "users", userId);
