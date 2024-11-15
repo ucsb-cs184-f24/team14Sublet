@@ -249,12 +249,13 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   imagePicker: {
+    width: 100, // Set explicit width
+    height: 100,
     alignItems: "center",
     justifyContent: "center",
     borderColor: "#ccc",
     borderWidth: 1,
     borderRadius: 8,
-    height: 100,
     marginBottom: 15,
     overflow: "hidden",
   },
