@@ -5,8 +5,8 @@ import {
   TouchableOpacity,
   TextInput,
   Text,
-  Image, // Added Image import
-  Platform, // Added Platform import
+  Image,
+  Platform,
 } from "react-native";
 import { ThemedText } from "./ThemedText";
 import { signIn, signUp } from "@/config/firebase";
@@ -27,7 +27,6 @@ export function WelcomePage() {
   const eduEmailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[eE][dD][uU]$/;
 
   const pickImage = async () => {
-    // Request permissions inside pickImage function
     if (Platform.OS !== "web") {
       const { status } =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -40,9 +39,9 @@ export function WelcomePage() {
     try {
       let result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true, // Allow user to edit (crop, etc.)
-        aspect: [1, 1], // Square aspect ratio
-        quality: 0.7, // Image quality
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.7,
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
