@@ -29,7 +29,6 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-      working-directory: ./Homelette
 
     # install dependencies
     - name: Install dependencies
