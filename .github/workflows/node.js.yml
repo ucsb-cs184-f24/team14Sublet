@@ -23,9 +23,17 @@ jobs:
     # check out repository
     - uses: actions/checkout@v4
 
+    - name: Change Directory to Homelette
+      run: cd Homelette
+
     # set up node.js
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
+
+    # install dependencies
+    - name: Install Dependencies
+      run: npm install
+      working-directory: ./Homelette
