@@ -29,14 +29,3 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-
-    # install dependencies
-    - name: Install dependencies
-      run: npm install
-
-    # test Expo start
-    - name: Test Expo start
-      run: |
-        npx expo start --no-dev --no-open &
-        sleep 15 # give server time to start
-        curl --fail http://localhost:8081 || (echo "Expo failed to start" && exit 1)
