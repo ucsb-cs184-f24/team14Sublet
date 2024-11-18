@@ -1,4 +1,4 @@
-# Lect13 Meeting Notes - 11/15/2024
+# Lect14 Meeting Notes - 11/15/2024
 
 ## Type of Meeting: Stand Up
 
