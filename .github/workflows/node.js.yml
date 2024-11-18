@@ -32,13 +32,16 @@ jobs:
 
     # install dependencies
     - name: Install dependencies
-      run: npm install
-      working-directory: ./team14sublet/Homelette
+      run: |
+        cd ./Homelette
+        npm install
+      working-directory: ./Homelette
 
     # test Expo start
     - name: Test Expo start
       run: |
+        cd ./Homelette
         npx expo start --no-dev --no-open &
         sleep 15 # give server time to start
         curl --fail http://localhost:8081 || (echo "Expo failed to start" && exit 1)
-      working-directory: ./team14sublet/Homelette
+      working-directory: ./Homelette
