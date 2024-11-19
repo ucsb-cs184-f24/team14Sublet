@@ -24,6 +24,7 @@ export function WelcomePage() {
   const [profileImage, setProfileImage] = useState(null);
   const [isLogin, setIsLogin] = useState(true);
   const [error, setError] = useState("");
+  const [currentStep, setCurrentStep] = useState(1); // Step 1: Email/Password; Step 2: Optional Info
 
   const eduEmailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[eE][dD][uU]$/;
 
@@ -46,7 +47,7 @@ export function WelcomePage() {
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        setProfileImage(result.assets[0].uri); // Updated to use result.assets[0].uri
+        setProfileImage(result.assets[0].uri);
       }
     } catch (error) {
       console.error("ImagePicker Error:", error);
@@ -114,13 +115,6 @@ export function WelcomePage() {
         };
 
         await signUp(email, password, firstName, lastName, options);
-        // Optionally, reset the first and last name fields after successful sign-up
-        // setFirstName("");
-        // setLastName("");
-        // setMajor("");
-        // setGraduationYear("");
-        // setAboutMe("");
-        // setProfileImage(null);
       }
     } catch (error) {
       console.error("Authentication Error:", error);
@@ -134,42 +128,61 @@ export function WelcomePage() {
     <View style={styles.container}>
       <ThemedText style={styles.title}>Welcome to Homelette</ThemedText>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        autoCorrect={false}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-      {!isLogin && (
+      {currentStep === 1 && (
         <>
           <TextInput
             style={styles.input}
-            placeholder="First Name"
-            value={firstName}
-            onChangeText={setFirstName}
-            autoCapitalize="words"
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
             autoCorrect={false}
           />
           <TextInput
             style={styles.input}
-            placeholder="Last Name"
-            value={lastName}
-            onChangeText={setLastName}
-            autoCapitalize="words"
-            autoCorrect={false}
+            placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
           />
+          {!isLogin && (
+            <>
+              <TextInput
+                style={styles.input}
+                placeholder="First Name"
+                value={firstName}
+                onChangeText={setFirstName}
+                autoCapitalize="words"
+                autoCorrect={false}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Last Name"
+                value={lastName}
+                onChangeText={setLastName}
+                autoCapitalize="words"
+                autoCorrect={false}
+              />
+              <TouchableOpacity
+                style={styles.button}
+                onPress={() => setCurrentStep(2)}
+              >
+                <ThemedText style={styles.buttonText}>Next</ThemedText>
+              </TouchableOpacity>
+            </>
+          )}
+        </>
+      )}
 
-          {/* Major Input */}
+      {currentStep === 2 && (
+        <>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => setCurrentStep(1)}
+          >
+            <ThemedText style={styles.backButtonText}>Back</ThemedText>
+          </TouchableOpacity>
           <TextInput
             style={styles.input}
             placeholder="Major (Optional)"
@@ -178,8 +191,6 @@ export function WelcomePage() {
             autoCapitalize="words"
             autoCorrect={false}
           />
-
-          {/* Graduation Year Input */}
           <TextInput
             style={styles.input}
             placeholder="Graduation Year (Optional)"
@@ -188,8 +199,6 @@ export function WelcomePage() {
             keyboardType="numeric"
             maxLength={4}
           />
-
-          {/* About Me Input */}
           <TextInput
             style={[styles.input, styles.textArea]}
             placeholder="About Me (Optional)"
@@ -198,13 +207,10 @@ export function WelcomePage() {
             multiline
             numberOfLines={4}
           />
-
-          {/* Profile Picture Section */}
           <View style={styles.profileContainer}>
             <TouchableOpacity onPress={takePhoto} style={styles.iconButton}>
               <Ionicons name="camera" size={30} color="#4285F4" />
             </TouchableOpacity>
-
             <View style={styles.imagePicker}>
               {profileImage ? (
                 <Image
@@ -215,19 +221,17 @@ export function WelcomePage() {
                 <Text style={styles.imagePickerText}>Profile Picture</Text>
               )}
             </View>
-
             <TouchableOpacity onPress={pickImage} style={styles.iconButton}>
               <Ionicons name="images" size={30} color="#4285F4" />
             </TouchableOpacity>
           </View>
+          <TouchableOpacity style={styles.button} onPress={handleAuth}>
+            <ThemedText style={styles.buttonText}>Sign Up</ThemedText>
+          </TouchableOpacity>
         </>
       )}
+
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
-      <TouchableOpacity style={styles.button} onPress={handleAuth}>
-        <ThemedText style={styles.buttonText}>
-          {isLogin ? "Login" : "Sign Up"}
-        </ThemedText>
-      </TouchableOpacity>
       <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
         <ThemedText style={styles.switchText}>
           {isLogin
@@ -270,6 +274,18 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: "white",
+    fontSize: 16,
+  },
+  backButton: {
+    backgroundColor: "#ccc",
+    padding: 10,
+    borderRadius: 5,
+    width: "100%",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  backButtonText: {
+    color: "black",
     fontSize: 16,
   },
   switchText: {
