@@ -24,7 +24,7 @@ export function WelcomePage() {
   const [profileImage, setProfileImage] = useState(null);
   const [isLogin, setIsLogin] = useState(true);
   const [error, setError] = useState("");
-  const [currentStep, setCurrentStep] = useState(1); // Step 1: Email/Password; Step 2: Optional Info
+  const [currentStep, setCurrentStep] = useState(1);
 
   const eduEmailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[eE][dD][uU]$/;
 
@@ -146,7 +146,11 @@ export function WelcomePage() {
             onChangeText={setPassword}
             secureTextEntry
           />
-          {!isLogin && (
+          {isLogin ? (
+            <TouchableOpacity style={styles.button} onPress={handleAuth}>
+              <ThemedText style={styles.buttonText}>Login</ThemedText>
+            </TouchableOpacity>
+          ) : (
             <>
               <TextInput
                 style={styles.input}
@@ -232,13 +236,17 @@ export function WelcomePage() {
       )}
 
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
-      <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
-        <ThemedText style={styles.switchText}>
-          {isLogin
-            ? "Need an account? Sign Up"
-            : "Already have an account? Login"}
-        </ThemedText>
-      </TouchableOpacity>
+
+      {/* Conditionally render the toggle only on Step 1 */}
+      {currentStep === 1 && (
+        <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
+          <ThemedText style={styles.switchText}>
+            {isLogin
+              ? "Need an account? Sign Up"
+              : "Already have an account? Login"}
+          </ThemedText>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -324,5 +332,9 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     resizeMode: "cover",
+  },
+  textArea: {
+    height: 80,
+    textAlignVertical: "top",
   },
 });
