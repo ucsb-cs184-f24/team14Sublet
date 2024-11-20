@@ -9,18 +9,18 @@ import { useAuth } from "@/hooks/useAuth";
 import { updateUserProfile } from "../config/firebase";
 
 // Mock user profile data
-const mockUserProfile = {
-  firstName: "John",
-  lastName: "Doe",
-  email: "john.doe@ucsb.edu",
-  joinDate: "March 2024",
-  school: "UC Santa Barbara",
-  major: "Computer Science",
-  graduationYear: "2025",
-  bio: "Looking for housing near UCSB campus. Clean, quiet, and responsible tenant.",
-  listings: 2,
-  reviews: 4.5,
-};
+// const mockUserProfile = {
+//   firstName: "John",
+//   lastName: "Doe",
+//   email: "john.doe@ucsb.edu",
+//   joinDate: "March 2024",
+//   school: "UC Santa Barbara",
+//   major: "Computer Science",
+//   graduationYear: "2025",
+//   bio: "Looking for housing near UCSB campus. Clean, quiet, and responsible tenant.",
+//   listings: 2,
+//   reviews: 4.5,
+// };
 
 // Add these interfaces at the top of the file
 interface EditFormData {
@@ -200,15 +200,15 @@ export function ProfilePage() {
         <View style={styles.headerSection}>
           <Image
             source={
-              userData?.profileImageUrl
-                ? { uri: userData.profileImageUrl }
+              userData?.profilePictureURL
+                ? { uri: userData.profilePictureURL }
                 : require("../assets/images/default-pfp.png")
             }
             style={styles.profileImage}
           />
           <View style={styles.headerInfo}>
             <Title>{`${userData?.first} ${userData?.last}`}</Title>
-            <Paragraph>{mockUserProfile.school}</Paragraph>
+            <Paragraph>{userData?.school || ""}</Paragraph>
           </View>
         </View>
 
@@ -227,25 +227,25 @@ export function ProfilePage() {
               <ThemedText>Interested In</ThemedText>
             </View>
             <View style={styles.statItem}>
-              <ThemedText type="title">{mockUserProfile.reviews}</ThemedText>
+              <ThemedText type="title">{userData?.rating || "N/A"}</ThemedText>
               <ThemedText>Rating</ThemedText>
             </View>
           </View>
 
           <View style={styles.infoSection}>
             <ThemedText type="subtitle">About Me</ThemedText>
-            <ThemedText>{mockUserProfile.bio}</ThemedText>
+            <ThemedText>{userData?.about_me || "N/A"}</ThemedText>
           </View>
 
           <View style={styles.infoSection}>
             <ThemedText type="subtitle">Details</ThemedText>
             <View style={styles.detailItem}>
               <ThemedText type="defaultSemiBold">Major:</ThemedText>
-              <ThemedText>{mockUserProfile.major}</ThemedText>
+              <ThemedText>{userData?.major || "N/A"}</ThemedText>
             </View>
             <View style={styles.detailItem}>
               <ThemedText type="defaultSemiBold">Graduation Year:</ThemedText>
-              <ThemedText>{mockUserProfile.graduationYear}</ThemedText>
+              <ThemedText>{userData?.graduation_year || "N/A"}</ThemedText>
             </View>
             <View style={styles.detailItem}>
               <ThemedText type="defaultSemiBold">Email:</ThemedText>
