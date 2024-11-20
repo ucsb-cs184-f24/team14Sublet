@@ -199,7 +199,11 @@ export function ProfilePage() {
       <Card style={styles.profileCard}>
         <View style={styles.headerSection}>
           <Image
-            source={require("../assets/images/default-pfp.png")}
+            source={
+              userData?.profileImageUrl
+                ? { uri: userData.profileImageUrl }
+                : require("../assets/images/default-pfp.png")
+            }
             style={styles.profileImage}
           />
           <View style={styles.headerInfo}>
