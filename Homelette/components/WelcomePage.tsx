@@ -101,11 +101,11 @@ export function WelcomePage() {
       } else {
         const options = {
           major: major.trim() !== "" ? major.trim() : undefined,
-          graduationYear: graduationYear
+          graduation_year: graduationYear
             ? parseInt(graduationYear, 10)
             : undefined,
-          aboutMe: aboutMe.trim() !== "" ? aboutMe.trim() : undefined,
-          profilePicture: profileImage
+          about_me: aboutMe.trim() !== "" ? aboutMe.trim() : undefined,
+          profilePictureURL: profileImage
             ? {
                 uri: profileImage,
                 name: `profile_${Date.now()}.jpg`,
