@@ -4,6 +4,7 @@ import {
   getAuth,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  updateProfile,
 } from "firebase/auth";
 import {
   getFirestore,
@@ -93,6 +94,23 @@ export const signUp = async (
     };
 
     await setDoc(doc(firestore, "users", user.uid), userProfile);
+
+    const authProfileUpdates: {
+      displayName?: string;
+      photoURL?: string;
+    } = {};
+
+    if (firstName || lastName) {
+      authProfileUpdates.displayName = `${firstName} ${lastName}`.trim();
+    }
+
+    if (profilePictureURL) {
+      authProfileUpdates.photoURL = profilePictureURL;
+    }
+
+    if (authProfileUpdates.displayName || authProfileUpdates.photoURL) {
+      await updateProfile(user, authProfileUpdates);
+    }
   } catch (error) {
     throw error;
   }
