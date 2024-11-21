@@ -15,26 +15,25 @@ jobs:
         node-version: [20.18.0]
 
     steps:
-    # 检出代码
+    # check code
     - uses: actions/checkout@v4
 
-    # 设置 Node.js
+    # set Node.js
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
 
-    # 安装依赖
+    # install dependencies
     - name: Install dependencies
       run: npm install
       working-directory: ./Homelette
 
-    # 测试 Expo 启动
+    # test core code
     - name: Test Expo start
       run: |
-        cd ./Homelette
         npx expo start --no-dev --no-open &
-        sleep 15 # 给服务器一些时间来启动
+        sleep 15 # give Expo time to start
         curl --fail http://localhost:8081 || (echo "Expo failed to start" && exit 1)
       working-directory: ./Homelette
