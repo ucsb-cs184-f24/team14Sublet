@@ -1,6 +1,6 @@
 # User Manual
 ## Introduction
-"Welcome to the Homelette! This app is aimed to provide college students with flexible and convenient housing subleasing solutions, supporting quick listing, browsing, bookmarking, filtering, and communication features.
+Welcome to the **Homelette**! This app is aimed to provide college students with flexible and convenient housing subleasing solutions, supporting quick listing, browsing, bookmarking, filtering, and communication features.
 
 Whether you are a renter looking for housing (Subtenant) or a landlord posting a rental (Subletter), our app offers you a smooth and efficient user experience.
 
@@ -9,7 +9,7 @@ Whether you are a renter looking for housing (Subtenant) or a landlord posting a
   - Browse property details and view multiple photos.
   - Filter options (by price, number of roommates, amenities, distance).
   - View properties in map mode.
-  - Instant chat with landlords.
+  - Instant chat with subletters.
   - Bookmark/unbookmark properties and manage favorites list.
 
 - **Subletters Features:**
@@ -30,30 +30,29 @@ Whether you are a renter looking for housing (Subtenant) or a landlord posting a
    - Open the homepage to see a list of recommended properties.
    - Click on a card to enter the property detail page, where you can view more images and information (such as the post date, rent, etc.).
 
-![browser](Homelette/assets/images/browser.png)
+<img src="https://github.com/ucsb-cs184-f24/team14sublet/blob/main/Homelette/assets/images/browser.png" width=30% height=30% />
 
 2. **Filtering Properties**
    - At the top of the homepage, click the filter button.
    - Set filtering criteria (price range, number of roommates, amenities, distance).
    - Click "Apply" to view the filtered list of properties.
-
-![filter](Homelette/assets/images/filters.png)
+<img src="https://github.com/ucsb-cs184-f24/team14sublet/blob/main/Homelette/assets/images/filters.png" width=30% height=30% />
 
 3. **Map Mode**
    - Click the "Map" button on the homepage.
    - Browse property locations on the map and click on markers to view details.
 
-![map]((Homelette/assets/images/map.png))
+<img src="https://github.com/ucsb-cs184-f24/team14sublet/blob/main/Homelette/assets/images/map.png" width=30% height=30% />
 
 4. **Bookmarking Properties**
-   - On the property detail page or in the property list, click the bookmark button to add to your favorites.
+   - On the property detail page or in the property list, click the heart button to add to your favorites.
    - Manage your bookmarked properties on the "Favorites" page.
 
 5. **Chat Function**
-   - Click the "Contact Landlord" button on the property detail page to enter the instant chat interface.
-   - Communicate directly with the landlord to learn more about the property.
+   - Click the "Chat" button on the property detail page to enter the instant chat interface.
+   - Communicate directly with the subletters to learn more about the property.
 
-![Chat Interface](Homelette/assets/images/Chat.webp)
+<img src="https://github.com/ucsb-cs184-f24/team14sublet/blob/main/Homelette/assets/images/Chat.webp" width=30% height=30% />
 
 ### Subletter Guide
 1. **Posting a Property**
@@ -61,7 +60,7 @@ Whether you are a renter looking for housing (Subtenant) or a landlord posting a
    - Fill in the property details (title, description, price, etc.), and upload pictures.
    - Once submitted, the property will be posted immediately.
 
-![post Interface](Homelette/assets/images/post.png)
+<img src="https://github.com/ucsb-cs184-f24/team14sublet/blob/main/Homelette/assets/images/post.png" width=30% height=30% />
 
 
 2. **Managing Properties**
@@ -85,7 +84,7 @@ Whether you are a renter looking for housing (Subtenant) or a landlord posting a
 2. **View Tutorials**
    - Click the "Help" button to view beginner guides or video tutorials.
 
-![Profile Interface](Homelette/assets/images/profile.png)
+<img src="https://github.com/ucsb-cs184-f24/team14sublet/blob/main/Homelette/assets/images/profile.png" width=30% height=30% />
 
 ## Frequently Questions
 1. Why can't I post a listing?
