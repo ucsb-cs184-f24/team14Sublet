@@ -1,22 +1,22 @@
 # Design Document
 ## User Story
 ### As a subtenant
-I want to be able to view more details/pictures about a property by tapping on it's card on the Rent page (more details: date posted, etc.).
-I want to be able to filter by price, roommate count, amenities include (water, electricity, Wi-Fi), distance from school.
-I want to be able to view a Zillow-like map of clickable posted properties.
-I want to chat with potential subletters.
-I want to favorite/unfavorite listings on the RentPage and view my favorited listings in a favorited listings page.
+- I want to be able to view more details/pictures about a property by tapping on it's card on the Rent page (more details: date posted, etc.).
+- I want to be able to filter by price, roommate count, amenities include (water, electricity, Wi-Fi), distance from school.
+- I want to be able to view a Zillow-like map of clickable posted properties.
+- I want to chat with potential subletters.
+- I want to favorite/unfavorite listings on the RentPage and view my favorited listings in a favorited listings page.
 
 ### As a subletter
-I want to be able to post listings quickly, upload pictures and fill in the necessary details.
-I want to be able to view the status of posted listings (e.g. number of times viewed, number of people interested).
-I want to be able to edit or delete my listing information (e.g. change the rent or add a description).
-I want to receive instant notifications when someone is interested in my listings so that I can respond quickly to potential subleasers.
+- I want to be able to post listings quickly, upload pictures and fill in the necessary details.
+- I want to be able to view the status of posted listings (e.g. number of times viewed, number of people interested).
+- I want to be able to edit or delete my listing information (e.g. change the rent or add a description).
+- I want to receive instant notifications when someone is interested in my listings so that I can respond quickly to potential subleasers.
 
 
 ### As a user
-I want manuals or tutorials of how to use the app.
-I want to be able to edit various details about my profile, such as my password, profile picture, and class info.
+- I want manuals or tutorials of how to use the app.
+- I want to be able to edit various details about my profile, such as my password, profile picture, and class info.
 
 
 ## Functionality Definition
@@ -73,6 +73,15 @@ I want to be able to edit various details about my profile, such as my password,
 3. Firestore/Storage reads or writes data.
 4. The data is processed by Firebase Cloud Functions for back-end logic (e.g. notification push, data filtering).
 5. Return the result of the operation to the user.
+
+```mermaid
+graph TD
+    A[User Interaction] --> B{Firebase Authentication}
+    B -->|Verified| C[Firestore/Storage]
+    B -->|Failed| D[Authentication Error]
+    C --> E[Firebase Cloud Functions]
+    E --> F[Result Returned to User]
+```
 
 ###  Technology Stack
 - Development framework: React Native (Expo).
