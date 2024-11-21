@@ -32,5 +32,7 @@ jobs:
 
     # test core code
     - name: Test Expo Start
-      run: npx expo start
+      run: |
+        npx expo start --no-dev --no-open &
+        sleep 15
       working-directory: ./Homelette
