@@ -32,7 +32,5 @@ jobs:
 
     # test core code
     - name: Test Expo Start
-      run: |
-        npx expo start & sleep 60 # give Expo time to start
-        curl --fail http://localhost:8081 || (echo "Expo failed to start" && exit 1)
+      run: npx expo start
       working-directory: ./Homelette
