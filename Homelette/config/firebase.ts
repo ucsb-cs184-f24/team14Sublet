@@ -1,7 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
-import { getFirestore, doc, getDoc, collection, setDoc, getDocs, addDoc } from "firebase/firestore";
+import { getFirestore, doc, getDoc, collection, setDoc, getDocs, addDoc, updateDoc } from "firebase/firestore";
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import { create } from "react-test-renderer";
 // import {formatData} from './components/PostRentalScreen';
@@ -129,7 +129,8 @@ export async function getListings() {
         image: imageUrl,
         bedCount: property['bedrooms'],
         bathCount: property['bathrooms'],
-        area: property['area']
+        area: property['area'],
+        authorId: listing['author_id']
       });
 
       index++;
@@ -200,6 +201,63 @@ export async function getInterestedLeases() {
     throw error;
   }
 }
+
+// User can view the titles of the conversations they have
+export async function getConversationTitles() {
+  try {
+    uid = auth.currentUser?.uid;
+    const userRef = doc(firestore, "users", uid);
+    const userSnap = await getDoc(userRef);
+
+    if (userSnap.exists()) {
+      let conversations = userSnap.data()['conversations'];
+      if(conversations == null) {
+        console.log("No conversation data, creating field for current user");
+        updates = {conversations: []};
+        await updateDoc(userRef, updates);
+        return [];
+      }
+
+      console.log(conversations);
+      return conversations;
+    }
+    else {
+      console.log("NOT FOUND");
+    }
+    console.log(result);
+    return result;
+  } catch (error) {
+    throw error;
+  }
+}
+
+// Gets data from a single conversation
+export async function getConversation(conversation_id: string) {
+  try {
+    // uid = auth.currentUser?.uid;
+    const conversationRef = doc(firestore, "conversations", conversation_id);
+    const conversationSnap = await getDoc(conversationRef);
+
+    if (conversationSnap.exists()) {
+      let conversation_data = conversationSnap.data();
+      if(conversation_data == null) {
+        console.log("No conversation data! Something went wrong.");
+        throw "Conversation data missing";
+      }
+
+      console.log(conversation_data);
+      return conversation_data;
+    }
+    else {
+      console.log("NOT FOUND");
+    }
+    console.log(result);
+    return result;
+  } catch (error) {
+    throw error;
+  }
+}
+
 export const updateUserProfile = async (
   userId: string,
   updates: {
