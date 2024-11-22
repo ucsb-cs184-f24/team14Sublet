@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { StyleSheet, View, Dimensions } from "react-native";
 import { getListings } from "@/config/firebase";
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Marker } from "react-native-maps";
 import {
   Card,
   Title,
@@ -19,6 +19,8 @@ import {
   SegmentedButtons,
   FAB,
   Surface,
+  Dialog,
+  TextInput,
 } from "react-native-paper";
 import { FlashList } from "@shopify/flash-list";
 
@@ -64,15 +66,15 @@ const theme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    primary: '#FFD700', // Main yellow for buttons and primary elements
-    secondary: '#2E3192', // Accent blue for interactive elements
-    surface: '#FFFFFC', // White for cards and surfaces
-    background: '#F5F5F5', // Light gray for app background
-    error: '#FF6B6B', // Red for error messages
-    text: '#333333', // Dark gray for general text
-    primaryContainer: '#FFD70020', // Light yellow background for buttons and containers
-    onPrimaryContainer: '#0D1321', // Rich black for text/icons on primary containers
-    chatButton: '#FFD700', // Yellow for the chat button
+    primary: "#FFD700", // Main yellow for buttons and primary elements
+    secondary: "#2E3192", // Accent blue for interactive elements
+    surface: "#FFFFFC", // White for cards and surfaces
+    background: "#F5F5F5", // Light gray for app background
+    error: "#FF6B6B", // Red for error messages
+    text: "#333333", // Dark gray for general text
+    primaryContainer: "#FFD70020", // Light yellow background for buttons and containers
+    onPrimaryContainer: "#0D1321", // Rich black for text/icons on primary containers
+    chatButton: "#FFD700", // Yellow for the chat button
   },
 };
 
@@ -89,6 +91,7 @@ interface Property {
   area: number;
   latitude?: number;
   longitude?: number;
+  authorId: string;
 }
 
 interface FilterOptions {
@@ -99,13 +102,15 @@ interface FilterOptions {
   startDate?: Date;
 }
 
-const PropertyCard = ({ 
-  item, 
-  isFavorite, 
-  onToggleFavorite 
-}: { 
-  item: Property; 
-  isFavorite: boolean; 
+const PropertyCard = ({
+  item,
+  isFavorite,
+  listingAuthorId,
+  onToggleFavorite,
+}: {
+  item: Property;
+  isFavorite: boolean;
+  listingAuthorId: string;
   onToggleFavorite: (id: string) => void;
 }) => (
   <Card style={styles.card} elevation={3}>
@@ -127,7 +132,7 @@ const PropertyCard = ({
             <Button
               mode="contained"
               icon="message-text"
-              onPress={() => console.log("Chat initiated")}
+              onPress={() => console.log(item.authorId)}
               style={styles.chatButton}
               contentStyle={styles.chatButtonContent}
               labelStyle={styles.chatButtonLabel}
@@ -138,13 +143,20 @@ const PropertyCard = ({
         </View>
       </View>
       <View style={styles.detailsContainer}>
-        <Chip icon="bed" style={styles.chip}>{item.bedCount} beds</Chip>
-        <Chip icon="shower" style={styles.chip}>{item.bathCount} baths</Chip>
-        <Chip icon="ruler-square" style={styles.chip}>{item.area} sqft</Chip>
+        <Chip icon="bed" style={styles.chip}>
+          {item.bedCount} beds
+        </Chip>
+        <Chip icon="shower" style={styles.chip}>
+          {item.bathCount} baths
+        </Chip>
+        <Chip icon="ruler-square" style={styles.chip}>
+          {item.area} sqft
+        </Chip>
       </View>
       <Paragraph style={styles.address}>{item.address}</Paragraph>
       <Text style={styles.dates}>
-        {new Date(item.startDate).toLocaleDateString()} - {new Date(item.endDate).toLocaleDateString()}
+        {new Date(item.startDate).toLocaleDateString()} -{" "}
+        {new Date(item.endDate).toLocaleDateString()}
       </Text>
     </Card.Content>
   </Card>
@@ -156,10 +168,14 @@ interface FilterModalProps {
   onApplyFilters: () => void;
 }
 
-const FilterModal = ({ visible, hideModal, onApplyFilters }: FilterModalProps) => {
+const FilterModal = ({
+  visible,
+  hideModal,
+  onApplyFilters,
+}: FilterModalProps) => {
   // State for min and max price inputs
-  const [minPrice, setMinPrice] = useState('');
-  const [maxPrice, setMaxPrice] = useState('');
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
 
   return (
     <Portal>
@@ -170,7 +186,7 @@ const FilterModal = ({ visible, hideModal, onApplyFilters }: FilterModalProps) =
       >
         <Title style={styles.modalTitle}>Filter Listings</Title>
         <Divider style={styles.divider} />
-        
+
         <Text style={styles.filterLabel}>Price Range</Text>
         <View style={styles.priceInputs}>
           <Searchbar
@@ -195,10 +211,26 @@ const FilterModal = ({ visible, hideModal, onApplyFilters }: FilterModalProps) =
           value="any"
           onValueChange={(value) => console.log(value)}
           buttons={[
-            { value: 'any', label: 'Any', style: styles.segmentedButtonBackground },
-            { value: '1', label: '1+', style: styles.segmentedButtonBackground },
-            { value: '2', label: '2+', style: styles.segmentedButtonBackground },
-            { value: '3', label: '3+', style: styles.segmentedButtonBackground },
+            {
+              value: "any",
+              label: "Any",
+              style: styles.segmentedButtonBackground,
+            },
+            {
+              value: "1",
+              label: "1+",
+              style: styles.segmentedButtonBackground,
+            },
+            {
+              value: "2",
+              label: "2+",
+              style: styles.segmentedButtonBackground,
+            },
+            {
+              value: "3",
+              label: "3+",
+              style: styles.segmentedButtonBackground,
+            },
           ]}
         />
 
@@ -216,16 +248,16 @@ const FilterModal = ({ visible, hideModal, onApplyFilters }: FilterModalProps) =
 export function RentPage() {
   const [data, setData] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+  const [viewMode, setViewMode] = useState<"list" | "map">("list");
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [filterVisible, setFilterVisible] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const result = await getListings();
-        
+
         // Map the data to match the Property type
         const formattedData = result.map((item: any) => ({
           id: item.id,
@@ -239,8 +271,9 @@ export function RentPage() {
           area: item.area,
           latitude: item.latitude,
           longitude: item.longitude,
+          authorId: item.authorId,
         }));
-        
+
         setData(formattedData);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -250,10 +283,9 @@ export function RentPage() {
     };
     fetchData();
   }, []);
-  
 
   const toggleFavorite = (id: string) => {
-    setFavorites(prev => {
+    setFavorites((prev) => {
       const newFavorites = new Set(prev);
       if (newFavorites.has(id)) {
         newFavorites.delete(id);
@@ -265,7 +297,7 @@ export function RentPage() {
   };
 
   const renderContent = () => {
-    if (viewMode === 'map') {
+    if (viewMode === "map") {
       return (
         <MapView
           style={styles.map}
@@ -338,35 +370,41 @@ export function RentPage() {
             onPress={() => setFilterVisible(true)}
           />
         </View>
-        
+
         <SegmentedButtons
           value={viewMode}
-          onValueChange={(value) => setViewMode(value as 'list' | 'map')}
+          onValueChange={(value) => setViewMode(value as "list" | "map")}
           buttons={[
             {
-              value: 'list',
-              icon: 'view-list',
-              label: 'List',
+              value: "list",
+              icon: "view-list",
+              label: "List",
               style: [
                 styles.segmentedButton,
-                viewMode === 'list' && styles.segmentedButtonSelected, // Apply selected style
+                viewMode === "list" && styles.segmentedButtonSelected, // Apply selected style
               ],
-              labelStyle: viewMode === 'list' ? styles.segmentedButtonTextSelected : styles.segmentedButtonText, // Conditionally apply text color
+              labelStyle:
+                viewMode === "list"
+                  ? styles.segmentedButtonTextSelected
+                  : styles.segmentedButtonText, // Conditionally apply text color
             },
             {
-              value: 'map',
-              icon: 'map',
-              label: 'Map',
+              value: "map",
+              icon: "map",
+              label: "Map",
               style: [
                 styles.segmentedButton,
-                viewMode === 'map' && styles.segmentedButtonSelected, // Apply selected style
+                viewMode === "map" && styles.segmentedButtonSelected, // Apply selected style
               ],
-              labelStyle: viewMode === 'map' ? styles.segmentedButtonTextSelected : styles.segmentedButtonText, // Conditionally apply text color
+              labelStyle:
+                viewMode === "map"
+                  ? styles.segmentedButtonTextSelected
+                  : styles.segmentedButtonText, // Conditionally apply text color
             },
           ]}
           style={styles.segmentedButtonsContainer}
         />
-        
+
         {renderContent()}
 
         <FilterModal
@@ -377,7 +415,7 @@ export function RentPage() {
             // Apply filters logic here
           }}
         />
-        
+
         <FAB
           icon="tune"
           style={styles.fab}
@@ -395,8 +433,8 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 16,
     backgroundColor: theme.colors.surface,
   },
@@ -417,13 +455,13 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.primaryContainer,
   },
   imageContainer: {
-    position: 'relative',
+    position: "relative",
   },
   cardImage: {
     height: 200,
   },
   favoriteButton: {
-    position: 'absolute',
+    position: "absolute",
     top: 8,
     right: 8,
     backgroundColor: theme.colors.surface,
@@ -434,18 +472,18 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.surface,
   },
   priceRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   rent: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: theme.colors.text,
   },
   detailsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 8,
     marginTop: 8,
   },
@@ -457,11 +495,11 @@ const styles = StyleSheet.create({
   dates: {
     marginTop: 4,
     fontSize: 14,
-    color: theme.colors.text + '99',
+    color: theme.colors.text + "99",
   },
   map: {
     flex: 1,
-    height: Dimensions.get('window').height - 200,
+    height: Dimensions.get("window").height - 200,
   },
   modalContainer: {
     backgroundColor: theme.colors.surface,
@@ -470,7 +508,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   modalTitle: {
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 16,
   },
   divider: {
@@ -481,8 +519,8 @@ const styles = StyleSheet.create({
     marginVertical: 8,
   },
   priceInputs: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
     marginBottom: 16,
   },
@@ -492,28 +530,28 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.primaryContainer,
   },
   modalActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
+    flexDirection: "row",
+    justifyContent: "flex-end",
     gap: 8,
     marginTop: 16,
   },
   fab: {
-    position: 'absolute',
+    position: "absolute",
     margin: 16,
     right: 0,
     bottom: 0,
     backgroundColor: theme.colors.primary,
   },
   messageButton: {
-    backgroundColor: theme.colors.secondary + '20',
+    backgroundColor: theme.colors.secondary + "20",
   },
   chatButtonContainer: {
     elevation: 4,
     borderRadius: 20,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   chatButtonWrapper: {
-    overflow: 'hidden', 
+    overflow: "hidden",
     borderRadius: 20,
   },
   chatButtonSurface: {
@@ -526,16 +564,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   chatButtonContent: {
-    flexDirection: 'row-reverse', // Places icon after text
+    flexDirection: "row-reverse", // Places icon after text
     height: 36,
   },
   chatButtonLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     marginLeft: 4,
   },
   chip: {
-    backgroundColor: theme.colors.primary + '20',
+    backgroundColor: theme.colors.primary + "20",
   },
   chipText: {
     color: theme.colors.text,
@@ -546,7 +584,7 @@ const styles = StyleSheet.create({
     margin: 16,
   },
   segmentedButton: {
-    backgroundColor: 'transparent', // Keeps individual buttons transparent, showing the container's color
+    backgroundColor: "transparent", // Keeps individual buttons transparent, showing the container's color
   },
   segmentedButtonSelected: {
     backgroundColor: theme.colors.primary, // Selected button background
