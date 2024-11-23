@@ -1,7 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
-import { getFirestore, doc, getDoc, collection, setDoc, getDocs, addDoc, updateDoc } from "firebase/firestore";
+import { getFirestore, doc, getDoc, collection, setDoc, getDocs, addDoc, updateDoc, arrayUnion } from "firebase/firestore";
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import { create } from "react-test-renderer";
 // import {formatData} from './components/PostRentalScreen';
@@ -273,3 +273,91 @@ export const updateUserProfile = async (
     throw error;
   }
 };
+
+export const sendMessage = async (senderId: string, targetId: string, text: string, title: string) => {
+  try {
+    console.log(senderId, targetId, text, title);
+
+    const senderRef = doc(firestore, "users", senderId);
+    const targetRef = doc(firestore, "users", targetId);
+
+    const senderSnap = await getDoc(senderRef);
+    const targetSnap = await getDoc(targetRef);
+    if(!targetSnap.exists()) {
+      console.log("Target not found");
+      return;
+    }
+
+    let message = {
+      is_image: false, // Add support later
+      text: text,
+      timestamp: Date.now(),
+      uid: senderId,
+    }
+
+    let conversationRef;
+    let conversation;
+    let conversationExists = false;
+    conversationRef = doc(firestore, "conversations", `${senderId}_${targetId}`); // Id format: user1Id_user2Id
+    conversationDoc = await getDoc(conversationRef);
+    conversationExists = conversationDoc.exists();
+    if(!conversationExists) { // Check for 
+      conversationRef = doc(firestore, "conversations", `${targetId}_${senderId}`); // check reverse format
+      conversationDoc = await getDoc(conversationRef);
+      conversationExists = conversationDoc.exists();
+    }
+    if(!conversationExists) {
+      await setDoc(doc(firestore, "conversations", `${senderId}_${targetId}`), {messages: [message]});
+
+      let senderData = senderSnap.data();
+      let targetData = targetSnap.data();
+
+      if(senderData['conversations'] == null) {
+        await updateDoc(senderRef, {
+          conversations: [{
+            conversation_id: `${senderId}_${targetId}`,
+            conversation_title: title,
+          }]
+        });
+      }
+      else {
+        await updateDoc(senderRef, {
+          conversations: arrayUnion({
+            conversation_id: `${senderId}_${targetId}`,
+            conversation_title: title,
+          })
+        });
+      }
+
+      if(targetData['conversations'] == null) {
+        await updateDoc(targetRef, {
+          conversations: [{
+            conversation_id: `${senderId}_${targetId}`,
+            conversation_title: title,
+          }]
+        });
+      }
+      else {
+        await updateDoc(targetRef, {
+          conversations: arrayUnion({
+            conversation_id: `${senderId}_${targetId}`,
+            conversation_title: title,
+          })
+        });
+      }
+    }
+    else {
+      await updateDoc(conversationRef, {
+        messages: arrayUnion(message)
+      });
+    }
+
+    console.log(`${senderId} sent message to ${targetId}: ${text}`);
+  } catch(error) {
+    throw error;
+  }
+  
+  
+
+
+}

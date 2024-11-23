@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { StyleSheet, View, Dimensions } from "react-native";
-import { getListings } from "@/config/firebase";
+import { getListings, auth, sendMessage } from "@/config/firebase";
 import MapView, { Marker } from "react-native-maps";
 import {
   Card,
@@ -112,55 +112,115 @@ const PropertyCard = ({
   isFavorite: boolean;
   listingAuthorId: string;
   onToggleFavorite: (id: string) => void;
-}) => (
-  <Card style={styles.card} elevation={3}>
-    <View style={styles.imageContainer}>
-      <Card.Cover source={{ uri: item.image }} style={styles.cardImage} />
-      <IconButton
-        icon={isFavorite ? "heart" : "heart-outline"}
-        iconColor={isFavorite ? theme.colors.error : theme.colors.primary}
-        size={24}
-        style={styles.favoriteButton}
-        onPress={() => onToggleFavorite(item.id)}
-      />
-    </View>
-    <Card.Content style={styles.cardContent}>
-      <View style={styles.priceRow}>
-        <Title style={styles.rent}>${item.rent}/mo</Title>
-        <View style={styles.chatButtonWrapper}>
-          <Surface style={styles.chatButtonSurface}>
-            <Button
-              mode="contained"
-              icon="message-text"
-              onPress={() => console.log(item.authorId)}
-              style={styles.chatButton}
-              contentStyle={styles.chatButtonContent}
-              labelStyle={styles.chatButtonLabel}
-            >
-              Chat
-            </Button>
-          </Surface>
+}) => {
+  const [isVisible, setVisible] = useState(false);
+  const [message, setMessage] = useState("");
+
+  const handleSendMessage = (
+    senderId: string,
+    targetId: string,
+    message: string,
+    title: string,
+  ) => {
+    sendMessage(senderId, targetId, message, title);
+    handleClosePopup();
+  };
+
+  const handleClosePopup = () => {
+    setVisible(false);
+    setMessage("");
+  };
+
+  return (
+    <View>
+      <Card style={styles.card} elevation={3}>
+        <View style={styles.imageContainer}>
+          <Card.Cover source={{ uri: item.image }} style={styles.cardImage} />
+          <IconButton
+            icon={isFavorite ? "heart" : "heart-outline"}
+            iconColor={isFavorite ? theme.colors.error : theme.colors.primary}
+            size={24}
+            style={styles.favoriteButton}
+            onPress={() => onToggleFavorite(item.id)}
+          />
         </View>
-      </View>
-      <View style={styles.detailsContainer}>
-        <Chip icon="bed" style={styles.chip}>
-          {item.bedCount} beds
-        </Chip>
-        <Chip icon="shower" style={styles.chip}>
-          {item.bathCount} baths
-        </Chip>
-        <Chip icon="ruler-square" style={styles.chip}>
-          {item.area} sqft
-        </Chip>
-      </View>
-      <Paragraph style={styles.address}>{item.address}</Paragraph>
-      <Text style={styles.dates}>
-        {new Date(item.startDate).toLocaleDateString()} -{" "}
-        {new Date(item.endDate).toLocaleDateString()}
-      </Text>
-    </Card.Content>
-  </Card>
-);
+        <Card.Content style={styles.cardContent}>
+          <View style={styles.priceRow}>
+            <Title style={styles.rent}>${item.rent}/mo</Title>
+            <View style={styles.chatButtonWrapper}>
+              <Surface style={styles.chatButtonSurface}>
+                <Button
+                  mode="contained"
+                  icon="message-text"
+                  onPress={() => setVisible(true)}
+                  style={styles.chatButton}
+                  contentStyle={styles.chatButtonContent}
+                  labelStyle={styles.chatButtonLabel}
+                >
+                  Chat
+                </Button>
+              </Surface>
+            </View>
+          </View>
+          <View style={styles.detailsContainer}>
+            <Chip icon="bed" style={styles.chip}>
+              {item.bedCount} beds
+            </Chip>
+            <Chip icon="shower" style={styles.chip}>
+              {item.bathCount} baths
+            </Chip>
+            <Chip icon="ruler-square" style={styles.chip}>
+              {item.area} sqft
+            </Chip>
+          </View>
+          <Paragraph style={styles.address}>{item.address}</Paragraph>
+          <Text style={styles.dates}>
+            {new Date(item.startDate).toLocaleDateString()} -{" "}
+            {new Date(item.endDate).toLocaleDateString()}
+          </Text>
+        </Card.Content>
+      </Card>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isVisible}
+        onDismiss={() => setVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View>
+            <Text style={styles.modalTitle}>Message the Subletter</Text>
+            <TextInput
+              style={styles.messageInput}
+              placeholder={`Your message here`}
+              value={message}
+              onChangeText={setMessage}
+            />
+            <View>
+              <Button
+                mode="contained"
+                onPress={() => {
+                  handleSendMessage(
+                    auth.currentUser?.uid,
+                    item.authorId,
+                    message,
+                    item.address,
+                  );
+                }}
+                style={{ marginBottom: 10 }}
+              >
+                Send
+              </Button>
+              <Button buttonColor="#ffffbb" onPress={() => handleClosePopup()}>
+                Cancel
+              </Button>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
+};
 
 interface FilterModalProps {
   visible: boolean;
@@ -544,6 +604,9 @@ const styles = StyleSheet.create({
   },
   messageButton: {
     backgroundColor: theme.colors.secondary + "20",
+  },
+  messageInput: {
+    marginBottom: 10,
   },
   chatButtonContainer: {
     elevation: 4,
