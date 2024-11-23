@@ -55,33 +55,32 @@ expo start
 
 # Tech Stack
 
-## Frontend
-
-- React-Native (w/ EXPO framework)
-
-## Backend
-
-- Firebase
+- Development framework: React Native (Expo).
+- Database: Firestore.
+- Cloud Storage: Firebase Storage.
+- Authentication Service: Firebase Authentication.
+- Push Messaging: Firebase Cloud Messaging.
 
 # App Planning
 
 # User Stories
 
-## As a subletter:
-- As a subletter, the application should send me more leases that are similar the ones that I like
-- As a subletter, I would like to show interest or disinterest in specific leases
-- As a subletter, I want to talk to the subleaser about the leases I like
-- As a subletter, I want to be able to narrow down my search by filtering criteria (e.g., rent, room type, proximity to campus)
+## As a subtenant
+- I want to be able to view more details/pictures about a property by tapping on it's card on the Rent page (more details: date posted, etc.).
+- I want to be able to filter by price, roommate count, amenities include (water, electricity, Wi-Fi), distance from school.
+- I want to be able to view a Zillow-like map of clickable posted properties.
+- I want to chat with potential subletters.
+- I want to favorite/unfavorite listings on the RentPage and view my favorited listings in a favorited listings page.
 
-## As a subleaser:
-- As a subleaser, I want to post my leases
-- As a subleaser, I want to track my posted leasers
+## As a subletter
+- I want to be able to post listings quickly, upload pictures and fill in the necessary details.
+- I want to be able to view the status of posted listings (e.g. number of times viewed, number of people interested).
+- I want to be able to edit or delete my listing information (e.g. change the rent or add a description).
+- I want to receive instant notifications when someone is interested in my listings so that I can respond quickly to potential subleasers.
 
-## As a user:
-- As a user, I want to be able to create an account and log in
-
-## As an admin:
-- As an admin, I want to browse and manage the data of customer, property, and transaction
+## As a user
+- I want manuals or tutorials of how to use the app.
+- I want to be able to edit various details about my profile, such as my password, profile picture, and class info.
 
 # Project Team
 
