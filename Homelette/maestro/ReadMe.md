@@ -1,3 +1,7 @@
+# Video of Test Run
+
+[![Video](https://img.youtube.com/vi/it34yJEnC8E/0.jpg)](https://youtu.be/it34yJEnC8E)
+
 # Instructions for Running the E2E Testing Script with Maestro
 
 ## Prerequisites
