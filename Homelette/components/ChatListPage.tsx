@@ -7,6 +7,7 @@ import {
   Keyboard,
   Platform,
   Animated,
+  Image,
 } from "react-native";
 import {
   Card,
@@ -209,19 +210,59 @@ export function ChatListPage() {
   );
 
   const ChatMessage = ({ message }: { message: Message }) => {
-    // SglkA4VpbdZxcZWa5WG211RsIIq1
+    const [imageLink, setImageLink] = useState(
+      "https://via.placeholder.com/100",
+    );
+
+    useEffect(() => {
+      const userRef = doc(firestore, "users", message.uid);
+
+      const fetchData = onSnapshot(userRef, (snapshot) => {
+        if (snapshot.exists()) {
+          if (snapshot.data()["profilePictureURL"] != null) {
+            setImageLink(snapshot.data()["profilePictureURL"]);
+          }
+        } else {
+          console.log("Image link not found");
+        }
+      });
+
+      return () => fetchData();
+    }, []);
 
     if (message.uid == auth.currentUser.uid) {
       return (
-        <View style={styles.messageRight}>
-          <Text style={styles.messageText}>{message.text}</Text>
+        <View style={{ flexDirection: "column" }}>
+          <Image
+            source={{ uri: imageLink }}
+            style={{
+              width: 20,
+              height: 20,
+              borderRadius: 10,
+              alignSelf: "flex-end",
+            }}
+          />
+          <View style={styles.messageRight}>
+            <Text style={styles.messageText}>{message.text}</Text>
+          </View>
         </View>
       );
     }
 
     return (
-      <View style={styles.messageLeft}>
-        <Text style={styles.messageText}>{message.text}</Text>
+      <View style={{ flexDirection: "column" }}>
+        <Image
+          source={{ uri: imageLink }}
+          style={{
+            width: 20,
+            height: 20,
+            borderRadius: 10,
+            alignSelf: "flex-start",
+          }}
+        />
+        <View style={styles.messageLeft}>
+          <Text style={styles.messageText}>{message.text}</Text>
+        </View>
       </View>
     );
   };
@@ -534,7 +575,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     alignSelf: "flex-start",
-    marginBottom: 5,
+    marginBottom: 10,
   },
   messageRight: {
     backgroundColor: theme.colors.chatButton,
@@ -542,7 +583,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     alignSelf: "flex-end",
-    marginBottom: 5,
+    marginBottom: 10,
   },
   messageText: {
     fontSize: 20,
