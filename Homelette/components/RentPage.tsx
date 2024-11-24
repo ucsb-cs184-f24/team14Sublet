@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { StyleSheet, View, Dimensions } from "react-native";
-import { getListings, auth, sendMessage } from "@/config/firebase";
+import { getListings, auth, sendNewMessage } from "@/config/firebase";
 import MapView, { Marker } from "react-native-maps";
 import {
   Card,
@@ -122,7 +122,7 @@ const PropertyCard = ({
     message: string,
     title: string,
   ) => {
-    sendMessage(senderId, targetId, message, title);
+    sendNewMessage(senderId, targetId, message, title);
     handleClosePopup();
   };
 
