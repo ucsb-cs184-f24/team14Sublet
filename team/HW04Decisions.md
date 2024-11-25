@@ -9,7 +9,7 @@ Design/UX: Collin Qian
 Process/Leadership: Haibo Yang
 
 ## Assessment Partner
-| Assessed  | Assessor |
+| Assessor | Assessed |
 |-----------|----------|
 | Amy       | Collin   |
 | Collin    | Allen    |
