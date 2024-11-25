@@ -23,7 +23,7 @@
     "@react-native-firebase/firestore": "^21.3.0",
     "@react-navigation/bottom-tabs": "^6.6.1",
     "@react-navigation/native": "^6.1.18",
-    "@shopify/flash-list": "^1.7.2",
+    "@shopify/flash-list": "1.6.4",
     "date-fns": "^4.1.0",
     "expo": "~51.0.28",
     "expo-auth-session": "~5.5.2",

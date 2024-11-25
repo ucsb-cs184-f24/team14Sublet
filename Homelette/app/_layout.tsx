@@ -1,7 +1,7 @@
 import { Stack, Tabs } from "expo-router";
-import { PaperProvider } from 'react-native-paper';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import Octicons from '@expo/vector-icons/Octicons';
+import { PaperProvider } from "react-native-paper";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import Octicons from "@expo/vector-icons/Octicons";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function RootLayout() {
@@ -14,7 +14,7 @@ export default function RootLayout() {
           <Tabs.Screen
             name="post"
             options={{
-              title: 'Post',
+              title: "Post",
               tabBarIcon: ({ color, size }) => (
                 <Octicons name="diff-added" size={size} color={color} />
               ),
@@ -44,6 +44,15 @@ export default function RootLayout() {
               title: "Profile",
               tabBarIcon: ({ color, size }) => (
                 <Ionicons name="person" size={size} color={color} />
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name="messages"
+            options={{
+              title: "Messages",
+              tabBarIcon: ({ color, size }) => (
+                <Ionicons name="chatbubbles" size={size} color={color} />
               ),
             }}
           />
