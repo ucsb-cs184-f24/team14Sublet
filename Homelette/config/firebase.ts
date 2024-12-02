@@ -235,6 +235,9 @@ export const updateUserProfile = async (
     first?: string;
     last?: string;
     phone?: number;
+    bio?: string;
+    major?: string;
+    graduationYear?: string;
   }
 ) => {
   try {

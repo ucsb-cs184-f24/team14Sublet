@@ -27,6 +27,9 @@ interface EditFormData {
   first: string;
   last: string;
   phone: string;
+  bio: string;
+  major: string;
+  graduationYear: string;
 }
 
 interface EditProfileModalProps {
@@ -107,6 +110,66 @@ const EditProfileModal = ({ visible, onClose, onSave, editForm, setEditForm }: E
               },
             }}
           />
+          <TextInput
+            label="Major"
+            value={editForm.major}
+            onChangeText={(text) => setEditForm(prev => ({ ...prev, major: text }))}
+            style={styles.input}
+            mode="outlined"
+            outlineColor="#006aff"
+            activeOutlineColor="#006aff"
+            textColor="black"
+            theme={{
+              colors: {
+                primary: '#006aff',
+                background: 'white',
+                text: 'black',
+                placeholder: 'gray',
+                onSurfaceVariant: 'black',
+              },
+            }}
+          />
+          <TextInput
+            label="Graduation Year"
+            value={editForm.graduationYear}
+            onChangeText={(text) => setEditForm(prev => ({ ...prev, graduationYear: text }))}
+            keyboardType="numeric"
+            style={styles.input}
+            mode="outlined"
+            outlineColor="#006aff"
+            activeOutlineColor="#006aff"
+            textColor="black"
+            theme={{
+              colors: {
+                primary: '#006aff',
+                background: 'white',
+                text: 'black',
+                placeholder: 'gray',
+                onSurfaceVariant: 'black',
+              },
+            }}
+          />
+          <TextInput
+            label="About Me"
+            value={editForm.bio}
+            onChangeText={(text) => setEditForm(prev => ({ ...prev, bio: text }))}
+            style={[styles.input, styles.bioInput]}
+            mode="outlined"
+            outlineColor="#006aff"
+            activeOutlineColor="#006aff"
+            textColor="black"
+            multiline
+            numberOfLines={4}
+            theme={{
+              colors: {
+                primary: '#006aff',
+                background: 'white',
+                text: 'black',
+                placeholder: 'gray',
+                onSurfaceVariant: 'black',
+              },
+            }}
+          />
         </Card.Content>
         <Card.Actions>
           <Button 
@@ -137,6 +200,9 @@ export function ProfilePage() {
       first: '',
       last: '',
       phone: '',
+      bio: '',
+      major: '',
+      graduationYear: '',
     });
 
     useEffect(() => {const fetchUserData = async () => {
@@ -161,6 +227,9 @@ export function ProfilePage() {
         first: userData?.first || '',
         last: userData?.last || '',
         phone: userData?.phone?.toString() || '',
+        bio: userData?.bio || '',
+        major: userData?.major || '',
+        graduationYear: userData?.graduationYear || '',
       });
       setIsEditing(true);
     };
@@ -173,6 +242,9 @@ export function ProfilePage() {
           first: editForm.first,
           last: editForm.last,
           phone: parseInt(editForm.phone) || 0,
+          bio: editForm.bio,
+          major: editForm.major,
+          graduationYear: editForm.graduationYear,
         };
 
         await updateUserProfile(user.uid, updates);
@@ -221,18 +293,18 @@ export function ProfilePage() {
 
             <View style={styles.infoSection}>
               <ThemedText type="subtitle">About Me</ThemedText>
-              <ThemedText>{mockUserProfile.bio}</ThemedText>
+              <ThemedText>{userData?.bio}</ThemedText>
             </View>
 
             <View style={styles.infoSection}>
               <ThemedText type="subtitle">Details</ThemedText>
               <View style={styles.detailItem}>
                 <ThemedText type="defaultSemiBold">Major:</ThemedText>
-                <ThemedText>{mockUserProfile.major}</ThemedText>
+                <ThemedText>{userData?.major}</ThemedText>
               </View>
               <View style={styles.detailItem}>
                 <ThemedText type="defaultSemiBold">Graduation Year:</ThemedText>
-                <ThemedText>{mockUserProfile.graduationYear}</ThemedText>
+                <ThemedText>{userData?.graduationYear}</ThemedText>
               </View>
               <View style={styles.detailItem}>
                 <ThemedText type="defaultSemiBold">Email:</ThemedText>
@@ -328,5 +400,8 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     backgroundColor: 'white',
     height: 56,
+  },
+  bioInput: {
+    height: 120,
   },
 }); 
