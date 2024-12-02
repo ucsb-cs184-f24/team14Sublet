@@ -1,0 +1,38 @@
+name: Node.js CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.18.0]
+
+    steps:
+    # check code
+    - uses: actions/checkout@v4
+
+    # set Node.js
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    # install dependencies
+    - name: Install dependencies
+      run: npm install
+      working-directory: ./Homelette
+
+    # test core code
+    - name: Test Expo Start
+      run: |
+        npx expo start --no-dev &
+        sleep 15
+      working-directory: ./Homelette
