@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { StyleSheet, View, Dimensions } from "react-native";
-import { getListings } from "@/config/firebase";
+import { getListings, auth, sendNewMessage } from "@/config/firebase";
 import MapView, { Marker } from "react-native-maps";
 import {
   Card,
@@ -102,6 +102,7 @@ interface FilterOptions {
 const PropertyCard = ({
   item,
   isFavorite,
+  listingAuthorId,
   onToggleFavorite,
 }: {
   item: Property;
