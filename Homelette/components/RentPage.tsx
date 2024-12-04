@@ -90,6 +90,7 @@ interface Property {
   area: number;
   latitude?: number;
   longitude?: number;
+  authorId: string;
 }
 
 interface FilterOptions {
@@ -336,6 +337,7 @@ export function RentPage() {
           area: item.area,
           latitude: item.latitude,
           longitude: item.longitude,
+          authorId: item.authorId,
         }));
 
         setData(formattedData);
