@@ -6,6 +6,7 @@ import {
   signInWithEmailAndPassword,
   updateProfile,
 } from "firebase/auth";
+
 import {
   getFirestore,
   doc,
@@ -14,7 +15,10 @@ import {
   setDoc,
   getDocs,
   addDoc,
+  updateDoc,
+  arrayUnion,
 } from "firebase/firestore";
+
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { create } from "react-test-renderer";
 // import {formatData} from './components/PostRentalScreen';
@@ -195,6 +199,7 @@ export async function getListings() {
         bedCount: property["bedrooms"],
         bathCount: property["bathrooms"],
         area: property["area"],
+        authorId: listing["author_id"],
       });
 
       index++;
