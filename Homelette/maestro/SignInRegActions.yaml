@@ -1,0 +1,139 @@
+# E2E test for MVP (v1.0.0)
+
+# This E2E test tests the flow of logging in,
+# landing on the post page, visiting the home page,
+# visiting the rent page, visiting the profile page,
+# and finally signing out of the app.
+
+appId: com.homelette.app # Change this to your actual app id
+---
+- launchApp
+
+# Login page assertions
+- assertVisible:
+    text: "Welcome to Homelette"
+- assertVisible:
+    text: "Email"
+- assertVisible:
+    text: "Password"
+- assertVisible:
+    text: "Login"
+- assertVisible:
+    text: "Need an account? Sign Up"
+
+# Sign in page assertions
+- tapOn: "Need an account? Sign Up"
+- assertVisible:
+    text: "Welcome to Homelette"
+- assertVisible:
+    text: "First Name"
+- assertVisible:
+    text: "Last Name"
+- assertVisible:
+    text: "Email"
+- assertVisible:
+    text: "Password"
+- assertVisible:
+    text: "Sign Up"
+- assertVisible:
+    text: "Already have an account? Login"
+- tapOn: "Already have an account? Login"
+- assertNotVisible:
+    text: "First Name"
+- assertNotVisible:
+    text: "Last Name"
+- assertNotVisible:
+    text: "Sign Up"
+
+# Sign in
+- tapOn: "Email"
+- inputText: "tester@testuniversity.edu"
+- tapOn: "Password"
+- inputText: "tester"
+- tapOn: "Login"
+
+# Post page assertions
+- assertVisible:
+    text: "Post Your Lease"
+- assertVisible:
+    text: "streetAddress"
+- assertVisible:
+    text: "Zip"
+- assertVisible:
+    text: "Start Date"
+- assertVisible:
+    text: "Submit"
+
+# Post page error modal assertions
+- tapOn: "Submit"
+- assertVisible:
+    text: "Alert"
+- assertVisible:
+    text: "Please fill in all the required fields."
+- assertVisible:
+    text: "OK"
+- tapOn: "OK"
+
+# Profile page assertions
+- tapOn: "Profile"
+- assertVisible:
+    text: "testerfirst testerlast"
+- assertVisible:
+    text: "Listings"
+- assertVisible:
+    text: "Interested In"
+- assertVisible:
+    text: "Rating"
+- assertVisible:
+    text: "About Me"
+- assertVisible:
+    text: "Details"
+- assertVisible:
+    text: "Major:"
+- assertVisible:
+    text: "Edit Profile"
+
+# Edit profile modal assertions
+- tapOn: "Edit Profile"
+- assertVisible:
+    text: "Edit Profile"
+- assertVisible:
+    text: "First Name"
+- assertVisible:
+    text: "Last Name"
+- assertVisible:
+    text: "Phone"
+- assertVisible:
+    text: "Cancel"
+- assertVisible:
+    text: "Save"
+- tapOn: "Cancel"
+
+# Rent page assertions
+- tapOn: "Rent"
+- extendedWaitUntil:
+    visible: "^\\d+ bed \\| \\d+ ba \\| \\d+ sqft$"
+    timeout: 10000
+
+# Home page assertions
+- tapOn:
+    point: 38%,91%
+- assertVisible:
+    text: "Homelette Home Page"
+- assertVisible:
+    text: "Email: tester@testuniversity.edu"
+- assertVisible:
+    text: "Sign Out"
+
+# Sign out
+- tapOn: "Sign Out"
+- assertVisible:
+    text: "Welcome to Homelette"
+- assertVisible:
+    text: "Email"
+- assertVisible:
+    text: "Password"
+- assertVisible:
+    text: "Login"
+- assertVisible:
+    text: "Need an account? Sign Up"
