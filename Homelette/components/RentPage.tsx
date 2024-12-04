@@ -197,7 +197,7 @@ const PropertyCard = ({
             <Text style={styles.modalTitle}>Message the Subletter</Text>
             <TextInput
               style={styles.messageInput}
-              placeholder="Your message here"
+              placeholder={`Your message here`}
               value={message}
               onChangeText={setMessage}
             />
@@ -608,6 +608,9 @@ const styles = StyleSheet.create({
   },
   messageButton: {
     backgroundColor: theme.colors.secondary + "20",
+  },
+  messageInput: {
+    marginBottom: 10,
   },
   chatButtonContainer: {
     elevation: 4,
