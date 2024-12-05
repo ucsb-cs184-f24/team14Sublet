@@ -472,7 +472,7 @@ export default function PostRentalScreen() {
                   activeOutlineColor="#006aff"
                   right={<TextInput.Icon icon="calendar" />}
                   onPressIn={() => toggleDatePicker('start')}
-                  editable={false}
+                  editable={true}
                 />
               )}
             </View>
@@ -518,7 +518,7 @@ export default function PostRentalScreen() {
                   activeOutlineColor="#006aff"
                   right={<TextInput.Icon icon="calendar" />}
                   onPressIn={() => toggleDatePicker('end')}
-                  editable={false}
+                  editable={true}
                 />
               )}
             </View>
