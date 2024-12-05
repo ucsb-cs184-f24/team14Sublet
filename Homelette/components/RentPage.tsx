@@ -520,6 +520,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderRadius: 12,
     backgroundColor: theme.colors.primaryContainer,
+    overflow: 'hidden',
   },
   imageContainer: {
     position: "relative",
