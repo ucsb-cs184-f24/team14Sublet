@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { ThemedText } from "./ThemedText";
 import { signIn, signUp } from "@/config/firebase";
+import { WaveBackground } from './WaveBackground';
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -126,8 +127,9 @@ export function WelcomePage() {
 
   return (
     <View style={styles.container}>
-      <ThemedText style={styles.title}>Welcome to Homelette</ThemedText>
-
+      <WaveBackground />
+      <View style={styles.content}>
+        <ThemedText style={styles.title}>Homelette</ThemedText>
       {currentStep === 1 && (
         <>
           <TextInput
@@ -254,35 +256,56 @@ export function WelcomePage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  content: {
+    flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
+    padding: 30,
   },
   title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
+    fontSize: 38,
+    fontWeight: "900",
+    marginBottom: 40,
+    marginTop: 20,
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 0.5, height: 0.5 },
+    textShadowRadius: 1.5,
+    letterSpacing: 1,
+    padding: 15,
   },
   input: {
-    width: "100%",
-    height: 40,
-    borderColor: "gray",
-    borderWidth: 1,
-    borderRadius: 5,
-    marginBottom: 10,
-    paddingHorizontal: 10,
+    width: "85%",
+    height: 45,
+    borderColor: "#E0E0E0",
+    borderWidth: 1.5,
+    borderRadius: 8,
+    marginBottom: 25,
+    paddingHorizontal: 15,
+    backgroundColor: 'rgba(250, 250, 250, 0.9)',
+    fontSize: 16,
   },
   button: {
-    backgroundColor: "#4285F4",
-    padding: 10,
-    borderRadius: 5,
-    width: "100%",
+    backgroundColor: '#F3B33D',
+    padding: 12,
+    borderRadius: 8,
+    width: "50%",
     alignItems: "center",
-    marginTop: 10,
+    marginTop: 15,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   buttonText: {
-    color: "white",
-    fontSize: 16,
+    color: '#1B4571',
+    fontSize: 18,
+    fontWeight: "800",
   },
   backButton: {
     backgroundColor: "#ccc",
@@ -297,13 +320,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   switchText: {
-    marginTop: 15,
-    color: "#4285F4",
+    marginTop: 20,
+    color: '#FFFFFF',
+    fontSize: 15,
   },
   errorText: {
-    color: "red",
-    marginBottom: 10,
+    color: '#FF6B6B',
+    marginBottom: 12,
     textAlign: "center",
+    fontSize: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    padding: 5,
+    borderRadius: 4,
   },
   profileContainer: {
     marginTop: 15,
