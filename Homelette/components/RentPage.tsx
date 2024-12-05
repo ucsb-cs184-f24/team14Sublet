@@ -302,8 +302,8 @@ const FilterModal = ({
         />
 
         <View style={styles.modalActions}>
-          <Button onPress={hideModal}>Reset</Button>
-          <Button mode="contained" onPress={onApplyFilters}>
+          <Button onPress={hideModal} buttonColor="#FFD70020" textColor="#000000">Reset</Button>
+          <Button mode="contained" textColor="#000000" onPress={onApplyFilters}>
             Apply Filters
           </Button>
         </View>
