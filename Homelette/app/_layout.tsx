@@ -13,7 +13,7 @@ export default function RootLayout() {
       <SafeAreaView style={{ flex: 1 }}>
         <PaperProvider>
           {user ? (
-            <Tabs screenOptions={{ headerShown: false }}>
+            <Tabs screenOptions={{ tabBarActiveTintColor: "#EBC968", headerShown: false }}>
               <Tabs.Screen
                 name="post"
                 options={{
