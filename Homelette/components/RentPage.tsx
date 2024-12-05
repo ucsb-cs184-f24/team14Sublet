@@ -205,6 +205,7 @@ const PropertyCard = ({
             <View>
               <Button
                 mode="contained"
+                textColor="#000000"
                 onPress={() => {
                   handleSendMessage(
                     auth.currentUser?.uid,
@@ -217,7 +218,7 @@ const PropertyCard = ({
               >
                 Send
               </Button>
-              <Button buttonColor="#ffffbb" onPress={() => handleClosePopup()}>
+              <Button buttonColor="#ffffbb" textColor="#000000" onPress={() => handleClosePopup()}>
                 Cancel
               </Button>
             </View>
@@ -640,6 +641,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     marginLeft: 4,
+    color: '#000000',
   },
   chip: {
     backgroundColor: theme.colors.primary + "20",
