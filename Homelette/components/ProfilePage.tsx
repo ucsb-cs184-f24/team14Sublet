@@ -7,6 +7,8 @@ import { firestore } from "../config/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { useAuth } from "@/hooks/useAuth";
 import { updateUserProfile } from "../config/firebase";
+import { signOut } from "firebase/auth";
+import { auth } from "@/config/firebase";
 
 // Mock user profile data
 // const mockUserProfile = {
@@ -194,6 +196,14 @@ export function ProfilePage() {
     }
   };
 
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error("Sign Out Error:", error);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Card style={styles.profileCard}>
@@ -263,6 +273,9 @@ export function ProfilePage() {
         <Card.Actions>
           <Button mode="contained" onPress={handleEditPress}>
             Edit Profile
+          </Button>
+          <Button mode="outlined" onPress={handleSignOut}>
+            Sign Out
           </Button>
         </Card.Actions>
       </Card>
