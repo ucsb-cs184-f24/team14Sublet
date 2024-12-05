@@ -19,7 +19,6 @@ import {
   SegmentedButtons,
   FAB,
   Surface,
-  Dialog,
   TextInput,
 } from "react-native-paper";
 import { FlashList } from "@shopify/flash-list";
@@ -135,7 +134,14 @@ const PropertyCard = ({
     <View>
       <Card style={styles.card} elevation={3}>
         <View style={styles.imageContainer}>
-          <Card.Cover source={{ uri: item.image }} style={styles.cardImage} />
+          <Card.Cover
+            source={
+              item.image
+                ? { uri: item.image }
+                : require("../assets/images/default-property.png")
+            }
+            style={styles.cardImage}
+          />
           <IconButton
             icon={isFavorite ? "heart" : "heart-outline"}
             iconColor={isFavorite ? theme.colors.error : theme.colors.primary}
