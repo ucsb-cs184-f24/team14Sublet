@@ -13,16 +13,7 @@ export default function RootLayout() {
       <SafeAreaView style={{ flex: 1 }}>
         <PaperProvider>
           {user ? (
-            <Tabs screenOptions={{ headerShown: false }}>
-              <Tabs.Screen
-                name="post"
-                options={{
-                  title: "Post",
-                  tabBarIcon: ({ color, size }) => (
-                    <Octicons name="diff-added" size={size} color={color} />
-                  ),
-                }}
-              />
+            <Tabs screenOptions={{ tabBarActiveTintColor: "#EBC968", headerShown: false }}>
               <Tabs.Screen
                 name="index"
                 options={{
@@ -33,20 +24,11 @@ export default function RootLayout() {
                 }}
               />
               <Tabs.Screen
-                name="rent"
+                name="post"
                 options={{
-                  title: "Rent",
+                  title: "Post",
                   tabBarIcon: ({ color, size }) => (
-                    <Ionicons name="business" size={size} color={color} />
-                  ),
-                }}
-              />
-              <Tabs.Screen
-                name="profile"
-                options={{
-                  title: "Profile",
-                  tabBarIcon: ({ color, size }) => (
-                    <Ionicons name="person" size={size} color={color} />
+                    <Octicons name="diff-added" size={size} color={color} />
                   ),
                 }}
               />
@@ -56,6 +38,15 @@ export default function RootLayout() {
                   title: "Messages",
                   tabBarIcon: ({ color, size }) => (
                     <Ionicons name="chatbubbles" size={size} color={color} />
+                  ),
+                }}
+              />
+              <Tabs.Screen
+                name="profile"
+                options={{
+                  title: "Profile",
+                  tabBarIcon: ({ color, size }) => (
+                    <Ionicons name="person" size={size} color={color} />
                   ),
                 }}
               />
