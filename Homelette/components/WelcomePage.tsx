@@ -108,10 +108,10 @@ export function WelcomePage() {
           aboutMe: aboutMe.trim() !== "" ? aboutMe.trim() : undefined,
           profilePicture: profileImage
             ? {
-                uri: profileImage,
-                name: `profile_${Date.now()}.jpg`,
-                type: "image/jpeg",
-              }
+              uri: profileImage,
+              name: `profile_${Date.now()}.jpg`,
+              type: "image/jpeg",
+            }
             : undefined,
         };
 
@@ -130,125 +130,126 @@ export function WelcomePage() {
       <WaveBackground />
       <View style={styles.content}>
         <ThemedText style={styles.title}>Homelette</ThemedText>
-      {currentStep === 1 && (
-        <>
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
-          {isLogin ? (
-            <TouchableOpacity style={styles.button} onPress={handleAuth}>
-              <ThemedText style={styles.buttonText}>Login</ThemedText>
-            </TouchableOpacity>
-          ) : (
-            <>
-              <TextInput
-                style={styles.input}
-                placeholder="First Name"
-                value={firstName}
-                onChangeText={setFirstName}
-                autoCapitalize="words"
-                autoCorrect={false}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Last Name"
-                value={lastName}
-                onChangeText={setLastName}
-                autoCapitalize="words"
-                autoCorrect={false}
-              />
-              <TouchableOpacity
-                style={styles.button}
-                onPress={() => setCurrentStep(2)}
-              >
-                <ThemedText style={styles.buttonText}>Next</ThemedText>
+        {currentStep === 1 && (
+          <>
+            <TextInput
+              style={styles.input}
+              placeholder="Email"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+            />
+            {isLogin ? (
+              <TouchableOpacity style={styles.button} onPress={handleAuth}>
+                <ThemedText style={styles.buttonText}>Login</ThemedText>
               </TouchableOpacity>
-            </>
-          )}
-        </>
-      )}
-
-      {currentStep === 2 && (
-        <>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => setCurrentStep(1)}
-          >
-            <ThemedText style={styles.backButtonText}>Back</ThemedText>
-          </TouchableOpacity>
-          <TextInput
-            style={styles.input}
-            placeholder="Major (Optional)"
-            value={major}
-            onChangeText={setMajor}
-            autoCapitalize="words"
-            autoCorrect={false}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Graduation Year (Optional)"
-            value={graduationYear}
-            onChangeText={setGraduationYear}
-            keyboardType="numeric"
-            maxLength={4}
-          />
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            placeholder="About Me (Optional)"
-            value={aboutMe}
-            onChangeText={setAboutMe}
-            multiline
-            numberOfLines={4}
-          />
-          <View style={styles.profileContainer}>
-            <TouchableOpacity onPress={takePhoto} style={styles.iconButton}>
-              <Ionicons name="camera" size={30} color="#4285F4" />
-            </TouchableOpacity>
-            <View style={styles.imagePicker}>
-              {profileImage ? (
-                <Image
-                  source={{ uri: profileImage }}
-                  style={styles.profileImage}
+            ) : (
+              <>
+                <TextInput
+                  style={styles.input}
+                  placeholder="First Name"
+                  value={firstName}
+                  onChangeText={setFirstName}
+                  autoCapitalize="words"
+                  autoCorrect={false}
                 />
-              ) : (
-                <Text style={styles.imagePickerText}>Profile Picture</Text>
-              )}
-            </View>
-            <TouchableOpacity onPress={pickImage} style={styles.iconButton}>
-              <Ionicons name="images" size={30} color="#4285F4" />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Last Name"
+                  value={lastName}
+                  onChangeText={setLastName}
+                  autoCapitalize="words"
+                  autoCorrect={false}
+                />
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={() => setCurrentStep(2)}
+                >
+                  <ThemedText style={styles.buttonText}>Next</ThemedText>
+                </TouchableOpacity>
+              </>
+            )}
+          </>
+        )}
+
+        {currentStep === 2 && (
+          <>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => setCurrentStep(1)}
+            >
+              <ThemedText style={styles.backButtonText}>Back</ThemedText>
             </TouchableOpacity>
-          </View>
-          <TouchableOpacity style={styles.button} onPress={handleAuth}>
-            <ThemedText style={styles.buttonText}>Sign Up</ThemedText>
+            <TextInput
+              style={styles.input}
+              placeholder="Major (Optional)"
+              value={major}
+              onChangeText={setMajor}
+              autoCapitalize="words"
+              autoCorrect={false}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Graduation Year (Optional)"
+              value={graduationYear}
+              onChangeText={setGraduationYear}
+              keyboardType="numeric"
+              maxLength={4}
+            />
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              placeholder="About Me (Optional)"
+              value={aboutMe}
+              onChangeText={setAboutMe}
+              multiline
+              numberOfLines={4}
+            />
+            <View style={styles.profileContainer}>
+              <TouchableOpacity onPress={takePhoto} style={styles.iconButton}>
+                <Ionicons name="camera" size={30} color="#4285F4" />
+              </TouchableOpacity>
+              <View style={styles.imagePicker}>
+                {profileImage ? (
+                  <Image
+                    source={{ uri: profileImage }}
+                    style={styles.profileImage}
+                  />
+                ) : (
+                  <Text style={styles.imagePickerText}>Profile Picture</Text>
+                )}
+              </View>
+              <TouchableOpacity onPress={pickImage} style={styles.iconButton}>
+                <Ionicons name="images" size={30} color="#4285F4" />
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity style={styles.button} onPress={handleAuth}>
+              <ThemedText style={styles.buttonText}>Sign Up</ThemedText>
+            </TouchableOpacity>
+          </>
+        )}
+
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+        {/* Conditionally render the toggle only on Step 1 */}
+        {currentStep === 1 && (
+          <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
+            <ThemedText style={styles.switchText}>
+              {isLogin
+                ? "Need an account? Sign Up"
+                : "Already have an account? Login"}
+            </ThemedText>
           </TouchableOpacity>
-        </>
-      )}
-
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
-
-      {/* Conditionally render the toggle only on Step 1 */}
-      {currentStep === 1 && (
-        <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
-          <ThemedText style={styles.switchText}>
-            {isLogin
-              ? "Need an account? Sign Up"
-              : "Already have an account? Login"}
-          </ThemedText>
-        </TouchableOpacity>
-      )}
+        )}
+      </View>
     </View>
   );
 }
