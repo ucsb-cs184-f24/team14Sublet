@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, View, Dimensions } from "react-native";
-import { getListings, auth, sendNewMessage } from "@/config/firebase";
+import { StyleSheet, View, Dimensions, Alert } from "react-native";
+import {
+  getListings,
+  auth,
+  sendNewMessage,
+  firestore,
+  addListingToInterested,
+  removeListingFromInterested,
+} from "@/config/firebase"; // Ensure correct path
 import MapView, { Marker } from "react-native-maps";
 import {
   Card,
@@ -22,69 +29,33 @@ import {
   TextInput,
 } from "react-native-paper";
 import { FlashList } from "@shopify/flash-list";
+import { doc, getDoc, collection, getDocs, addDoc } from "firebase/firestore"; // Ensure correct imports
 
-// Mock data for properties
-const leases = [
-  {
-    id: "1",
-    address: "123 Main St",
-    rent: 1200,
-    startDate: "2023-09-04",
-    endDate: "2024-08-31",
-    image: require("../assets/images/mock_property_images/123-Main-St.jpg"),
-    bedCount: 3,
-    bathCount: 2,
-    area: 900,
-  },
-  {
-    id: "2",
-    address: "456 Elm St",
-    rent: 1500,
-    startDate: "2023-10-01",
-    endDate: "2024-09-30",
-    image: require("../assets/images/mock_property_images/456-Elm-St.jpg"),
-    bedCount: 4,
-    bathCount: 3,
-    area: 1400,
-  },
-  {
-    id: "3",
-    address: "789 Oak Ave",
-    rent: 1100,
-    startDate: "2023-11-01",
-    endDate: "2024-10-31",
-    image: require("../assets/images/mock_property_images/789-Oak-Ave.jpg"),
-    bedCount: 2,
-    bathCount: 1,
-    area: 900,
-  },
-];
-
-// Custom theme for React Native Paper
+// Custom Theme for React Native Paper
 const theme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    primary: "#FFD700", // Main yellow for buttons and primary elements
-    secondary: "#2E3192", // Accent blue for interactive elements
-    surface: "#FFFFFC", // White for cards and surfaces
-    background: "#F5F5F5", // Light gray for app background
-    error: "#FF6B6B", // Red for error messages
-    text: "#333333", // Dark gray for general text
-    primaryContainer: "#FFD70020", // Light yellow background for buttons and containers
-    onPrimaryContainer: "#0D1321", // Rich black for text/icons on primary containers
-    chatButton: "#FFD700", // Yellow for the chat button
+    primary: "#FFD700",
+    secondary: "#2E3192",
+    surface: "#FFFFFC",
+    background: "#F5F5F5",
+    error: "#FF6B6B",
+    text: "#333333",
+    primaryContainer: "#FFD70020",
+    onPrimaryContainer: "#0D1321",
+    chatButton: "#FFD700",
   },
 };
 
-// Types
+// Type Definitions
 interface Property {
   id: string;
   address: string;
   rent: number;
   startDate: string;
   endDate: string;
-  image: string;
+  image: any; // Adjusted to 'any' to accommodate require statements or URI strings
   bedCount: number;
   bathCount: number;
   area: number;
@@ -101,28 +72,39 @@ interface FilterOptions {
   startDate?: Date;
 }
 
+interface FilterModalProps {
+  visible: boolean;
+  hideModal: () => void;
+  onApplyFilters: (filters: FilterOptions) => void;
+}
+
+// PropertyCard Component
 const PropertyCard = ({
   item,
   isFavorite,
-  listingAuthorId,
   onToggleFavorite,
 }: {
   item: Property;
   isFavorite: boolean;
-  listingAuthorId: string;
   onToggleFavorite: (id: string) => void;
 }) => {
   const [isVisible, setVisible] = useState(false);
   const [message, setMessage] = useState("");
 
-  const handleSendMessage = (
+  const handleSendMessage = async (
     senderId: string,
     targetId: string,
     message: string,
-    title: string,
+    title: string
   ) => {
-    sendNewMessage(senderId, targetId, message, title);
-    handleClosePopup();
+    try {
+      await sendNewMessage(senderId, targetId, message, title);
+      Alert.alert("Success", "Your message has been sent.");
+      handleClosePopup();
+    } catch (error) {
+      console.error("Error sending message:", error);
+      Alert.alert("Error", "Failed to send your message. Please try again.");
+    }
   };
 
   const handleClosePopup = () => {
@@ -137,7 +119,9 @@ const PropertyCard = ({
           <Card.Cover
             source={
               item.image
-                ? { uri: item.image }
+                ? typeof item.image === "string"
+                  ? { uri: item.image }
+                  : item.image
                 : require("../assets/images/default-property.png")
             }
             style={styles.cardImage}
@@ -187,6 +171,7 @@ const PropertyCard = ({
         </Card.Content>
       </Card>
 
+      {/* Message Modal */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -201,24 +186,33 @@ const PropertyCard = ({
               placeholder={`Your message here`}
               value={message}
               onChangeText={setMessage}
+              multiline
             />
             <View>
               <Button
                 mode="contained"
                 textColor="#000000"
                 onPress={() => {
+                  if (message.trim() === "") {
+                    Alert.alert("Error", "Message cannot be empty.");
+                    return;
+                  }
                   handleSendMessage(
-                    auth.currentUser?.uid,
+                    auth.currentUser?.uid || "",
                     item.authorId,
                     message,
-                    item.address,
+                    item.address
                   );
                 }}
                 style={{ marginBottom: 10 }}
               >
                 Send
               </Button>
-              <Button buttonColor="#ffffbb" textColor="#000000" onPress={() => handleClosePopup()}>
+              <Button
+                buttonColor="#ffffbb"
+                textColor="#000000"
+                onPress={handleClosePopup}
+              >
                 Cancel
               </Button>
             </View>
@@ -229,12 +223,7 @@ const PropertyCard = ({
   );
 };
 
-interface FilterModalProps {
-  visible: boolean;
-  hideModal: () => void;
-  onApplyFilters: () => void;
-}
-
+// FilterModal Component
 const FilterModal = ({
   visible,
   hideModal,
@@ -243,6 +232,24 @@ const FilterModal = ({
   // State for min and max price inputs
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
+  const [bedrooms, setBedrooms] = useState("any");
+
+  const applyFilters = () => {
+    const filters: FilterOptions = {};
+    if (minPrice) filters.minPrice = parseInt(minPrice);
+    if (maxPrice) filters.maxPrice = parseInt(maxPrice);
+    if (bedrooms !== "any") filters.bedrooms = parseInt(bedrooms);
+    onApplyFilters(filters);
+    hideModal();
+  };
+
+  const resetFilters = () => {
+    setMinPrice("");
+    setMaxPrice("");
+    setBedrooms("any");
+    onApplyFilters({});
+    hideModal();
+  };
 
   return (
     <Portal>
@@ -258,16 +265,16 @@ const FilterModal = ({
         <View style={styles.priceInputs}>
           <Searchbar
             placeholder="Min $"
-            value={minPrice} // Added value prop
-            onChangeText={setMinPrice} // Added onChangeText handler
+            value={minPrice}
+            onChangeText={setMinPrice}
             style={styles.priceInput}
             keyboardType="numeric"
           />
           <Text>-</Text>
           <Searchbar
             placeholder="Max $"
-            value={maxPrice} // Added value prop
-            onChangeText={setMaxPrice} // Added onChangeText handler
+            value={maxPrice}
+            onChangeText={setMaxPrice}
             style={styles.priceInput}
             keyboardType="numeric"
           />
@@ -275,8 +282,8 @@ const FilterModal = ({
 
         <Text style={styles.filterLabel}>Bedrooms</Text>
         <SegmentedButtons
-          value="any"
-          onValueChange={(value) => console.log(value)}
+          value={bedrooms}
+          onValueChange={setBedrooms}
           buttons={[
             {
               value: "any",
@@ -299,11 +306,18 @@ const FilterModal = ({
               style: styles.segmentedButtonBackground,
             },
           ]}
+          style={styles.segmentedButtonsContainer}
         />
 
         <View style={styles.modalActions}>
-          <Button onPress={hideModal} buttonColor="#FFD70020" textColor="#000000">Reset</Button>
-          <Button mode="contained" textColor="#000000" onPress={onApplyFilters}>
+          <Button
+            onPress={resetFilters}
+            buttonColor="#FFD70020"
+            textColor="#000000"
+          >
+            Reset
+          </Button>
+          <Button mode="contained" textColor="#000000" onPress={applyFilters}>
             Apply Filters
           </Button>
         </View>
@@ -312,6 +326,7 @@ const FilterModal = ({
   );
 };
 
+// RentPage Component
 export function RentPage() {
   const [data, setData] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
@@ -319,20 +334,22 @@ export function RentPage() {
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [filterVisible, setFilterVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [filters, setFilters] = useState<FilterOptions>({});
 
+  // Fetch Listings Data
   useEffect(() => {
     const fetchData = async () => {
       try {
         const result = await getListings();
 
         // Map the data to match the Property type
-        const formattedData = result.map((item: any) => ({
+        const formattedData: Property[] = result.map((item: any) => ({
           id: item.id,
           address: item.property, // Rename property to address
           rent: item.rent,
           startDate: item.startDate,
           endDate: item.endDate,
-          image: item.image,
+          image: item.image, // Ensure this is a URI string or a require statement
           bedCount: item.bedCount,
           bathCount: item.bathCount,
           area: item.area,
@@ -344,6 +361,7 @@ export function RentPage() {
         setData(formattedData);
       } catch (error) {
         console.error("Error fetching data:", error);
+        Alert.alert("Error", "Failed to fetch listings. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -351,7 +369,38 @@ export function RentPage() {
     fetchData();
   }, []);
 
-  const toggleFavorite = (id: string) => {
+  // Fetch Initial Favorites from Firestore
+  useEffect(() => {
+    const fetchFavorites = async () => {
+      if (auth.currentUser?.uid) {
+        try {
+          const userRef = doc(firestore, "users", auth.currentUser.uid);
+          const userSnap = await getDoc(userRef);
+          if (userSnap.exists()) {
+            const favoritesArray: string[] =
+              userSnap.data().interested_listing_ids || [];
+            setFavorites(new Set(favoritesArray));
+          }
+        } catch (error) {
+          console.error("Error fetching favorites:", error);
+          Alert.alert(
+            "Error",
+            "Failed to fetch your favorites. Please try again."
+          );
+        }
+      }
+    };
+    fetchFavorites();
+  }, []);
+
+  // Toggle Favorite Function with Optimistic UI Update
+  const toggleFavorite = async (id: string) => {
+    if (!auth.currentUser?.uid) {
+      Alert.alert("Authentication Required", "Please log in to manage favorites.");
+      return;
+    }
+
+    // Optimistically update the favorites state
     setFavorites((prev) => {
       const newFavorites = new Set(prev);
       if (newFavorites.has(id)) {
@@ -361,21 +410,79 @@ export function RentPage() {
       }
       return newFavorites;
     });
+
+    try {
+      if (favorites.has(id)) {
+        await removeListingFromInterested(auth.currentUser.uid, id);
+      } else {
+        await addListingToInterested(auth.currentUser.uid, id);
+      }
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+      Alert.alert(
+        "Error",
+        "Failed to update favorites. Please try again."
+      );
+      // Revert the optimistic update in case of error
+      setFavorites((prev) => {
+        const revertedFavorites = new Set(prev);
+        if (revertedFavorites.has(id)) {
+          revertedFavorites.delete(id);
+        } else {
+          revertedFavorites.add(id);
+        }
+        return revertedFavorites;
+      });
+    }
   };
 
+  // Apply Filters Function
+  const applyFilters = (appliedFilters: FilterOptions) => {
+    setFilters(appliedFilters);
+  };
+
+  // Filtered and Searched Data
+  const filteredData = data.filter((item) => {
+    // Search Query Filter
+    const matchesSearch = item.address
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+
+    // Price Range Filter
+    const withinMinPrice =
+      filters.minPrice !== undefined ? item.rent >= filters.minPrice : true;
+    const withinMaxPrice =
+      filters.maxPrice !== undefined ? item.rent <= filters.maxPrice : true;
+
+    // Bedrooms Filter
+    const meetsBedrooms =
+      filters.bedrooms !== undefined
+        ? item.bedCount >= filters.bedrooms
+        : true;
+
+    return matchesSearch && withinMinPrice && withinMaxPrice && meetsBedrooms;
+  });
+
+  // Render Content Based on View Mode
   const renderContent = () => {
     if (viewMode === "map") {
       return (
         <MapView
           style={styles.map}
           initialRegion={{
-            latitude: 37.78825,
-            longitude: -122.4324,
+            latitude:
+              filteredData.length > 0
+                ? filteredData[0].latitude || 37.78825
+                : 37.78825,
+            longitude:
+              filteredData.length > 0
+                ? filteredData[0].longitude || -122.4324
+                : -122.4324,
             latitudeDelta: 0.0922,
             longitudeDelta: 0.0421,
           }}
         >
-          {data.map((item) => (
+          {filteredData.map((item) => (
             <Marker
               key={item.id}
               coordinate={{
@@ -392,7 +499,7 @@ export function RentPage() {
 
     return (
       <FlashList
-        data={data}
+        data={filteredData}
         renderItem={({ item }) => (
           <PropertyCard
             item={item}
@@ -407,16 +514,13 @@ export function RentPage() {
     );
   };
 
+  // Loading State
   if (loading) {
     return (
       <PaperProvider theme={theme}>
-        <Card style={styles.card} elevation={2}>
-          <Card.Content>
-            <View>
-              <Title style={styles.rent}>Loading...</Title>
-            </View>
-          </Card.Content>
-        </Card>
+        <View style={styles.loadingContainer}>
+          <Title style={styles.rent}>Loading...</Title>
+        </View>
       </PaperProvider>
     );
   }
@@ -424,6 +528,7 @@ export function RentPage() {
   return (
     <PaperProvider theme={theme}>
       <View style={styles.container}>
+        {/* Header with Searchbar and Filter Icon */}
         <View style={styles.header}>
           <Searchbar
             placeholder="Search by location..."
@@ -438,6 +543,7 @@ export function RentPage() {
           />
         </View>
 
+        {/* View Mode Segmented Buttons */}
         <SegmentedButtons
           value={viewMode}
           onValueChange={(value) => setViewMode(value as "list" | "map")}
@@ -448,12 +554,12 @@ export function RentPage() {
               label: "List",
               style: [
                 styles.segmentedButton,
-                viewMode === "list" && styles.segmentedButtonSelected, // Apply selected style
+                viewMode === "list" && styles.segmentedButtonSelected,
               ],
               labelStyle:
                 viewMode === "list"
                   ? styles.segmentedButtonTextSelected
-                  : styles.segmentedButtonText, // Conditionally apply text color
+                  : styles.segmentedButtonText,
             },
             {
               value: "map",
@@ -461,39 +567,41 @@ export function RentPage() {
               label: "Map",
               style: [
                 styles.segmentedButton,
-                viewMode === "map" && styles.segmentedButtonSelected, // Apply selected style
+                viewMode === "map" && styles.segmentedButtonSelected,
               ],
               labelStyle:
                 viewMode === "map"
                   ? styles.segmentedButtonTextSelected
-                  : styles.segmentedButtonText, // Conditionally apply text color
+                  : styles.segmentedButtonText,
             },
           ]}
           style={styles.segmentedButtonsContainer}
         />
 
+        {/* Main Content */}
         {renderContent()}
 
+        {/* Filter Modal */}
         <FilterModal
           visible={filterVisible}
           hideModal={() => setFilterVisible(false)}
-          onApplyFilters={() => {
-            setFilterVisible(false);
-            // Apply filters logic here
-          }}
+          onApplyFilters={applyFilters}
         />
 
-        <FAB
+        {/* Floating Action Button for Filters (Optional) */}
+        {/* Uncomment the FAB if you prefer using it for filters */}
+        {/* <FAB
           icon="tune"
           style={styles.fab}
           onPress={() => setFilterVisible(true)}
           label="Filter"
-        />
+        /> */}
       </View>
     </PaperProvider>
   );
 }
 
+// Stylesheet
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -510,8 +618,10 @@ const styles = StyleSheet.create({
     marginRight: 8,
     backgroundColor: theme.colors.surface,
   },
-  viewToggle: {
-    margin: 16,
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   listContainer: {
     padding: 16,
@@ -520,7 +630,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderRadius: 12,
     backgroundColor: theme.colors.primaryContainer,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   imageContainer: {
     position: "relative",
@@ -578,6 +688,8 @@ const styles = StyleSheet.create({
   modalTitle: {
     textAlign: "center",
     marginBottom: 16,
+    fontSize: 20,
+    fontWeight: "bold",
   },
   divider: {
     marginVertical: 16,
@@ -615,6 +727,7 @@ const styles = StyleSheet.create({
   },
   messageInput: {
     marginBottom: 10,
+    backgroundColor: theme.colors.surface,
   },
   chatButtonContainer: {
     elevation: 4,
@@ -635,14 +748,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   chatButtonContent: {
-    flexDirection: "row-reverse", // Places icon after text
+    flexDirection: "row-reverse",
     height: 36,
   },
   chatButtonLabel: {
     fontSize: 14,
     fontWeight: "600",
     marginLeft: 4,
-    color: '#000000',
+    color: "#000000",
   },
   chip: {
     backgroundColor: theme.colors.primary + "20",
@@ -651,23 +764,23 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
   },
   segmentedButtonsContainer: {
-    backgroundColor: theme.colors.primaryContainer, // Background for the toggle buttons
+    backgroundColor: theme.colors.primaryContainer,
     borderRadius: 8,
     margin: 16,
   },
   segmentedButton: {
-    backgroundColor: "transparent", // Keeps individual buttons transparent, showing the container's color
+    backgroundColor: "transparent",
   },
   segmentedButtonSelected: {
-    backgroundColor: theme.colors.primary, // Selected button background
+    backgroundColor: theme.colors.primary,
   },
   segmentedButtonText: {
-    color: theme.colors.text, // Unselected button text color
+    color: theme.colors.text,
   },
   segmentedButtonTextSelected: {
-    color: theme.colors.onPrimaryContainer, // Selected button text color
+    color: theme.colors.onPrimaryContainer,
   },
   segmentedButtonBackground: {
-    backgroundColor: theme.colors.primaryContainer, // Custom background for segmented buttons
+    backgroundColor: theme.colors.primaryContainer,
   },
 });
