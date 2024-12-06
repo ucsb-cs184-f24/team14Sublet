@@ -10,25 +10,14 @@ import { updateUserProfile } from "../config/firebase";
 import { signOut } from "firebase/auth";
 import { auth } from "@/config/firebase";
 
-// Mock user profile data
-// const mockUserProfile = {
-//   firstName: "John",
-//   lastName: "Doe",
-//   email: "john.doe@ucsb.edu",
-//   joinDate: "March 2024",
-//   school: "UC Santa Barbara",
-//   major: "Computer Science",
-//   graduationYear: "2025",
-//   bio: "Looking for housing near UCSB campus. Clean, quiet, and responsible tenant.",
-//   listings: 2,
-//   reviews: 4.5,
-// };
-
 // Add these interfaces at the top of the file
 interface EditFormData {
   first: string;
   last: string;
   phone: string;
+  about_me: string;
+  major: string;
+  graduation_year: string;
 }
 
 interface EditProfileModalProps {
@@ -39,14 +28,7 @@ interface EditProfileModalProps {
   setEditForm: React.Dispatch<React.SetStateAction<EditFormData>>;
 }
 
-// Move EditProfileModal outside of ProfilePage
-const EditProfileModal = ({
-  visible,
-  onClose,
-  onSave,
-  editForm,
-  setEditForm,
-}: EditProfileModalProps) => (
+const EditProfileModal = ({ visible, onClose, onSave, editForm, setEditForm }: EditProfileModalProps) => (
   <Modal
     visible={visible}
     animationType="slide"
@@ -60,9 +42,7 @@ const EditProfileModal = ({
           <TextInput
             label="First Name"
             value={editForm.first}
-            onChangeText={(text) =>
-              setEditForm((prev) => ({ ...prev, first: text }))
-            }
+            onChangeText={(text) => setEditForm(prev => ({ ...prev, first: text }))}
             style={styles.input}
             mode="outlined"
             outlineColor="#006aff"
@@ -70,20 +50,18 @@ const EditProfileModal = ({
             textColor="black"
             theme={{
               colors: {
-                primary: "#006aff",
-                background: "white",
-                text: "black",
-                placeholder: "gray",
-                onSurfaceVariant: "black",
+                primary: '#006aff',
+                background: 'white',
+                text: 'black',
+                placeholder: 'gray',
+                onSurfaceVariant: 'black',
               },
             }}
           />
           <TextInput
             label="Last Name"
             value={editForm.last}
-            onChangeText={(text) =>
-              setEditForm((prev) => ({ ...prev, last: text }))
-            }
+            onChangeText={(text) => setEditForm(prev => ({ ...prev, last: text }))}
             style={styles.input}
             mode="outlined"
             outlineColor="#006aff"
@@ -91,20 +69,18 @@ const EditProfileModal = ({
             textColor="black"
             theme={{
               colors: {
-                primary: "#006aff",
-                background: "white",
-                text: "black",
-                placeholder: "gray",
-                onSurfaceVariant: "black",
+                primary: '#006aff',
+                background: 'white',
+                text: 'black',
+                placeholder: 'gray',
+                onSurfaceVariant: 'black',
               },
             }}
           />
           <TextInput
             label="Phone"
             value={editForm.phone}
-            onChangeText={(text) =>
-              setEditForm((prev) => ({ ...prev, phone: text }))
-            }
+            onChangeText={(text) => setEditForm(prev => ({ ...prev, phone: text }))}
             keyboardType="numeric"
             style={styles.input}
             mode="outlined"
@@ -113,20 +89,87 @@ const EditProfileModal = ({
             textColor="black"
             theme={{
               colors: {
-                primary: "#006aff",
-                background: "white",
-                text: "black",
-                placeholder: "gray",
-                onSurfaceVariant: "black",
+                primary: '#006aff',
+                background: 'white',
+                text: 'black',
+                placeholder: 'gray',
+                onSurfaceVariant: 'black',
+              },
+            }}
+          />
+          <TextInput
+            label="Major"
+            value={editForm.major}
+            onChangeText={(text) => setEditForm(prev => ({ ...prev, major: text }))}
+            style={styles.input}
+            mode="outlined"
+            outlineColor="#006aff"
+            activeOutlineColor="#006aff"
+            textColor="black"
+            theme={{
+              colors: {
+                primary: '#006aff',
+                background: 'white',
+                text: 'black',
+                placeholder: 'gray',
+                onSurfaceVariant: 'black',
+              },
+            }}
+          />
+          <TextInput
+            label="Graduation Year"
+            value={editForm.graduation_year}
+            onChangeText={(text) => setEditForm(prev => ({ ...prev, graduation_year: text }))}
+            keyboardType="numeric"
+            style={styles.input}
+            mode="outlined"
+            outlineColor="#006aff"
+            activeOutlineColor="#006aff"
+            textColor="black"
+            theme={{
+              colors: {
+                primary: '#006aff',
+                background: 'white',
+                text: 'black',
+                placeholder: 'gray',
+                onSurfaceVariant: 'black',
+              },
+            }}
+          />
+          <TextInput
+            label="About Me"
+            value={editForm.about_me}
+            onChangeText={(text) => setEditForm(prev => ({ ...prev, about_me: text }))}
+            style={[styles.input, styles.about_meInput]}
+            mode="outlined"
+            outlineColor="#006aff"
+            activeOutlineColor="#006aff"
+            textColor="black"
+            multiline
+            numberOfLines={4}
+            theme={{
+              colors: {
+                primary: '#006aff',
+                background: 'white',
+                text: 'black',
+                placeholder: 'gray',
+                onSurfaceVariant: 'black',
               },
             }}
           />
         </Card.Content>
         <Card.Actions>
-          <Button onPress={onClose} textColor="#006aff">
+          <Button
+            onPress={onClose}
+            textColor="#006aff"
+          >
             Cancel
           </Button>
-          <Button onPress={onSave} mode="contained" buttonColor="#006aff">
+          <Button
+            onPress={onSave}
+            mode="contained"
+            buttonColor="#006aff"
+          >
             Save
           </Button>
         </Card.Actions>
@@ -140,9 +183,12 @@ export function ProfilePage() {
   const [userData, setUserData] = useState<any>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState<EditFormData>({
-    first: "",
-    last: "",
-    phone: "",
+    first: '',
+    last: '',
+    phone: '',
+    about_me: '',
+    major: '',
+    graduation_year: '',
   });
 
   useEffect(() => {
@@ -165,9 +211,12 @@ export function ProfilePage() {
 
   const handleEditPress = () => {
     setEditForm({
-      first: userData?.first || "",
-      last: userData?.last || "",
-      phone: userData?.phone?.toString() || "",
+      first: userData?.first || '',
+      last: userData?.last || '',
+      phone: userData?.phone?.toString() || '',
+      about_me: userData?.about_me || '',
+      major: userData?.major || '',
+      graduation_year: userData?.graduation_year || '',
     });
     setIsEditing(true);
   };
@@ -180,19 +229,22 @@ export function ProfilePage() {
         first: editForm.first,
         last: editForm.last,
         phone: parseInt(editForm.phone) || 0,
+        about_me: editForm.about_me,
+        major: editForm.major,
+        graduation_year: editForm.graduation_year,
       };
 
       await updateUserProfile(user.uid, updates);
 
       // Update local state
-      setUserData((prev) => ({
+      setUserData(prev => ({
         ...prev,
-        ...updates,
+        ...updates
       }));
 
       setIsEditing(false);
     } catch (error) {
-      console.error("Error updating profile:", error);
+      console.error('Error updating profile:', error);
     }
   };
 
@@ -354,5 +406,8 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     backgroundColor: "white",
     height: 56,
+  },
+  about_meInput: {
+    height: 120,
   },
 });
