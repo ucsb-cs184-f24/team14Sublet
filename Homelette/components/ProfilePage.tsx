@@ -15,27 +15,33 @@ import { useNavigation } from "@react-navigation/native";
 // Mock data for favorited listings
 const mockFavoritedListings = [
   {
-    id: "1",
-    address: "123 Main St",
-    rent: 1200,
-    startDate: "2023-09-04",
-    endDate: "2024-08-31",
-    image: "https://via.placeholder.com/150",
-    bedCount: 3,
-    bathCount: 2,
-    area: 900,
+    id: '1',
+    type: 'Studio Apartment',
+    address: {
+      street_address: '2650 Durant Avenue',
+      city: 'Berkeley',
+      state: 'CA',
+      zip_code: '94704'
+    },
+    bedrooms: 0,
+    bathrooms: 1,
+    area: 450,
+    image_url: null
   },
   {
-    id: "2",
-    address: "456 Elm St",
-    rent: 1500,
-    startDate: "2023-10-01",
-    endDate: "2024-09-30",
-    image: "https://via.placeholder.com/150",
-    bedCount: 4,
-    bathCount: 3,
-    area: 1400,
-  },
+    id: '2',
+    type: '2 Bedroom Apartment',
+    address: {
+      street_address: '2728 Dwight Way',
+      city: 'Berkeley',
+      state: 'CA',
+      zip_code: '94704'
+    },
+    bedrooms: 2,
+    bathrooms: 1,
+    area: 750,
+    image_url: null
+  }
 ];
 
 // Color theme matching RentPage.tsx
@@ -560,6 +566,57 @@ const PropertyCard = ({ property, onEdit, onDelete }) => {
   );
 };
 
+// Saved Property Card Component
+const SavedPropertyCard = ({ property }) => {
+  return (
+    <Card style={styles.propertyCard}>
+      <View style={styles.propertyImageWrapper}>
+        {property.image_url ? (
+          <Image 
+            source={{ uri: property.image_url }} 
+            style={styles.propertyImage}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={[styles.propertyImage, styles.propertyImagePlaceholder]}>
+            <MaterialCommunityIcons name="image-off" size={40} color="#666" />
+          </View>
+        )}
+      </View>
+
+      <Card.Content style={styles.propertyContent}>
+        <View style={styles.propertyHeader}>
+          <View>
+            <Title style={styles.propertyType}>{property.type}</Title>
+            <Paragraph style={styles.propertyAddress} numberOfLines={2}>
+              {property.address.street_address}, {property.address.city}, {property.address.state} {property.address.zip_code}
+            </Paragraph>
+          </View>
+        </View>
+
+        <View style={styles.propertyStats}>
+          <View style={styles.propertyStat}>
+            <MaterialCommunityIcons name="bed" size={20} color="#666" />
+            <Text style={styles.propertyStatText}>
+              {property.bedrooms === 0 ? 'Studio' : property.bedrooms}
+            </Text>
+          </View>
+          <View style={styles.propertyStatDivider} />
+          <View style={styles.propertyStat}>
+            <MaterialCommunityIcons name="shower" size={20} color="#666" />
+            <Text style={styles.propertyStatText}>{property.bathrooms}</Text>
+          </View>
+          <View style={styles.propertyStatDivider} />
+          <View style={styles.propertyStat}>
+            <MaterialCommunityIcons name="ruler-square" size={20} color="#666" />
+            <Text style={styles.propertyStatText}>{property.area} ft²</Text>
+          </View>
+        </View>
+      </Card.Content>
+    </Card>
+  );
+};
+
 export function ProfilePage() {
   const { user } = useAuth();
   const navigation = useNavigation();
@@ -879,11 +936,7 @@ export function ProfilePage() {
                   </View>
                 ) : (
                   favoritedListings.map((listing) => (
-                    <FavoritedListingCard 
-                      key={listing.id} 
-                      item={listing} 
-                      onRemoveFavorite={handleRemoveFavorite} 
-                    />
+                    <SavedPropertyCard key={listing.id} property={listing} />
                   ))
                 )}
               </Card.Content>
@@ -1259,5 +1312,33 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     backgroundColor: '#FFD700',
+  },
+  propertyAddress: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 4,
+  },
+  propertyStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.1)',
+  },
+  propertyStat: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  propertyStatDivider: {
+    width: 1,
+    height: 24,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+  },
+  propertyStatText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginTop: 4,
   },
 });
