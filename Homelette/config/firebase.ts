@@ -1,8 +1,25 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
-import { getFirestore, doc, getDoc, collection, setDoc, getDocs, addDoc, updateDoc, arrayUnion } from "firebase/firestore";
-import { getStorage, ref, getDownloadURL } from "firebase/storage";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile,
+} from "firebase/auth";
+
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  collection,
+  setDoc,
+  getDocs,
+  addDoc,
+  updateDoc,
+  arrayUnion,
+} from "firebase/firestore";
+
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { create } from "react-test-renderer";
 // import {formatData} from './components/PostRentalScreen';
 // TODO: Add SDKs for Firebase products that you want to use
@@ -25,11 +42,23 @@ export const storage = getStorage(app);
 export const auth = getAuth(app);
 export const firestore = getFirestore(app);
 
+interface OptionalProfileFields {
+  profilePicture?: {
+    uri: string;
+    name: string;
+    type: string;
+  };
+  major?: string;
+  graduationYear?: number;
+  aboutMe?: string;
+}
+
 export const signUp = async (
   email: string,
   password: string,
   firstName: string,
   lastName: string,
+  options?: OptionalProfileFields,
 ) => {
   try {
     const userCredential = await createUserWithEmailAndPassword(
@@ -39,16 +68,53 @@ export const signUp = async (
     );
     const user = userCredential.user;
 
-    const userProfile = {
+    let profilePictureURL: string | undefined;
+
+    if (options?.profilePicture) {
+      const response = await fetch(options.profilePicture.uri);
+      const blob = await response.blob();
+
+      const storageRef = ref(storage, `profile-pictures/${user.uid}`);
+      const snapshot = await uploadBytes(storageRef, blob, {
+        contentType: options.profilePicture.type,
+      });
+      profilePictureURL = await getDownloadURL(snapshot.ref);
+    }
+
+    const userProfile: any = {
       email: email,
       first: firstName,
       last: lastName,
       interested_listing_ids: [],
       listing_ids: [],
       join_date: new Date(),
+      // Include optional fields if they are provided
+      ...(options?.major && { major: options.major }),
+      ...(options?.graduationYear && {
+        graduation_year: options.graduationYear,
+      }),
+      ...(options?.aboutMe && { about_me: options.aboutMe }),
+      ...(profilePictureURL && { profilePictureURL }),
     };
 
     await setDoc(doc(firestore, "users", user.uid), userProfile);
+
+    const authProfileUpdates: {
+      displayName?: string;
+      photoURL?: string;
+    } = {};
+
+    if (firstName || lastName) {
+      authProfileUpdates.displayName = `${firstName} ${lastName}`.trim();
+    }
+
+    if (profilePictureURL) {
+      authProfileUpdates.photoURL = profilePictureURL;
+    }
+
+    if (authProfileUpdates.displayName || authProfileUpdates.photoURL) {
+      await updateProfile(user, authProfileUpdates);
+    }
   } catch (error) {
     throw error;
   }
@@ -95,11 +161,11 @@ export async function getListings() {
     });
 
     let index = 0;
-    for(document of data) {
+    for (document of data) {
       listing = document;
 
       // Skip empty listings
-      if(listing == null || Object.entries(listing).length === 0) {
+      if (listing == null || Object.entries(listing).length === 0) {
         continue;
       }
 
@@ -109,14 +175,14 @@ export async function getListings() {
       let property = propertySnap.data()
 
       // Skip empty properties
-      if(property == null || Object.entries(property).length === 0) {
+      if (property == null || Object.entries(property).length === 0) {
         continue;
       }
-      
+
       // let imageUrl = await fetchStorage(property['image_url']);
       let imageUrl = property['image_url'];
       let propertyAddress = "";
-      if(typeof(property['address']) === 'object' && property['address']['street_address'] != null) {
+      if (typeof (property['address']) === 'object' && property['address']['street_address'] != null) {
         propertyAddress = property['address']['street_address'];
       }
 
@@ -137,7 +203,7 @@ export async function getListings() {
     }
 
     return result;
-  } catch(error) {
+  } catch (error) {
     throw error;
   }
 }
@@ -159,7 +225,7 @@ export async function getInterestedLeases() {
         let listing = listingSnap.data();
 
         // Skip empty listings
-        if(listing == null || Object.entries(listing).length === 0) {
+        if (listing == null || Object.entries(listing).length === 0) {
           continue;
         }
 
@@ -169,13 +235,13 @@ export async function getInterestedLeases() {
         let property = propertySnap.data()
 
         // Skip empty properties
-        if(property == null || Object.entries(property).length === 0) {
+        if (property == null || Object.entries(property).length === 0) {
           continue;
         }
-        
+
         // let imageUrl = await fetchStorage(property['image_url']);
         let imageUrl = property['image_url'];
-        if(typeof(property['address']) === 'object' && property['address']['street_address'] != null) {
+        if (typeof (property['address']) === 'object' && property['address']['street_address'] != null) {
           propertyAddress = property['address']['street_address'];
         }
 
@@ -211,7 +277,7 @@ export async function getConversation(conversation_id: string) {
 
     if (conversationSnap.exists()) {
       let conversation_data = conversationSnap.data();
-      if(conversation_data == null) {
+      if (conversation_data == null) {
         console.log("No conversation data! Something went wrong.");
         throw "Conversation data missing";
       }
@@ -257,7 +323,7 @@ export const sendNewMessage = async (senderId: string, targetId: string, text: s
 
     const senderSnap = await getDoc(senderRef);
     const targetSnap = await getDoc(targetRef);
-    if(!targetSnap.exists()) {
+    if (!targetSnap.exists()) {
       console.log("Target not found");
       return;
     }
@@ -275,18 +341,18 @@ export const sendNewMessage = async (senderId: string, targetId: string, text: s
     conversationRef = doc(firestore, "conversations", `${senderId}_${targetId}`); // Id format: user1Id_user2Id
     conversationDoc = await getDoc(conversationRef);
     conversationExists = conversationDoc.exists();
-    if(!conversationExists) { // Check for conversation id
+    if (!conversationExists) { // Check for conversation id
       conversationRef = doc(firestore, "conversations", `${targetId}_${senderId}`); // check reverse format
       conversationDoc = await getDoc(conversationRef);
       conversationExists = conversationDoc.exists();
     }
-    if(!conversationExists) {
-      await setDoc(doc(firestore, "conversations", `${senderId}_${targetId}`), {messages: [message]});
+    if (!conversationExists) {
+      await setDoc(doc(firestore, "conversations", `${senderId}_${targetId}`), { messages: [message] });
 
       let senderData = senderSnap.data();
       let targetData = targetSnap.data();
 
-      if(senderData['conversations'] == null) {
+      if (senderData['conversations'] == null) {
         await updateDoc(senderRef, {
           conversations: [{
             conversation_id: `${senderId}_${targetId}`,
@@ -303,7 +369,7 @@ export const sendNewMessage = async (senderId: string, targetId: string, text: s
         });
       }
 
-      if(targetData['conversations'] == null) {
+      if (targetData['conversations'] == null) {
         await updateDoc(targetRef, {
           conversations: [{
             conversation_id: `${senderId}_${targetId}`,
@@ -327,7 +393,7 @@ export const sendNewMessage = async (senderId: string, targetId: string, text: s
     }
 
     console.log(`${senderId} sent message to ${targetId}: ${text}`);
-  } catch(error) {
+  } catch (error) {
     throw error;
   }
 }
@@ -345,10 +411,10 @@ export const sendMessage = async (senderId: string, conversation_id: string, tex
   let conversationRef;
   let conversation;
   let conversationExists = false;
-  conversationRef = doc(firestore, "conversations", conversation_id); 
+  conversationRef = doc(firestore, "conversations", conversation_id);
   conversationDoc = await getDoc(conversationRef);
   conversationExists = conversationDoc.exists();
-  if(!conversationExists) { 
+  if (!conversationExists) {
     console.log("Conversation not found! Error");
     return;
   }
