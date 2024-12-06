@@ -567,9 +567,49 @@ const PropertyCard = ({ property, onEdit, onDelete }) => {
 };
 
 // Saved Property Card Component
-const SavedPropertyCard = ({ property }) => {
+const SavedPropertyCard = ({ property, onRemove }) => {
+  const [showConfirmation, setShowConfirmation] = useState(false);
+
+  const handleRemove = () => {
+    setShowConfirmation(true);
+  };
+
   return (
     <Card style={styles.propertyCard}>
+      <Portal>
+        <Dialog 
+          visible={showConfirmation} 
+          onDismiss={() => setShowConfirmation(false)}
+          style={styles.dialog}
+        >
+          <Dialog.Title style={styles.dialogTitle}>Remove Listing</Dialog.Title>
+          <Dialog.Content>
+            <Paragraph style={styles.dialogContent}>Are you sure you want to remove this listing?</Paragraph>
+          </Dialog.Content>
+          <Dialog.Actions style={styles.dialogActions}>
+            <Button 
+              onPress={() => setShowConfirmation(false)}
+              textColor={theme.colors.text}
+              style={styles.dialogButton}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onPress={() => {
+                setShowConfirmation(false);
+                onRemove(property.id);
+              }}
+              mode="contained"
+              buttonColor={theme.colors.primary}
+              textColor={theme.colors.text}
+              style={styles.dialogButton}
+            >
+              Remove
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
+
       <View style={styles.propertyImageWrapper}>
         {property.image_url ? (
           <Image 
@@ -582,6 +622,12 @@ const SavedPropertyCard = ({ property }) => {
             <MaterialCommunityIcons name="image-off" size={40} color="#666" />
           </View>
         )}
+        <TouchableOpacity 
+          style={styles.favoriteButton}
+          onPress={handleRemove}
+        >
+          <MaterialCommunityIcons name="heart" size={24} color={theme.colors.primary} />
+        </TouchableOpacity>
       </View>
 
       <Card.Content style={styles.propertyContent}>
@@ -936,7 +982,7 @@ export function ProfilePage() {
                   </View>
                 ) : (
                   favoritedListings.map((listing) => (
-                    <SavedPropertyCard key={listing.id} property={listing} />
+                    <SavedPropertyCard key={listing.id} property={listing} onRemove={handleRemoveFavorite} />
                   ))
                 )}
               </Card.Content>
@@ -1340,5 +1386,44 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginTop: 4,
+  },
+  favoriteButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 8,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  dialog: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 8,
+  },
+  dialogTitle: {
+    color: theme.colors.text,
+    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  dialogContent: {
+    color: theme.colors.text,
+    textAlign: 'center',
+  },
+  dialogActions: {
+    justifyContent: 'space-around',
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+  },
+  dialogButton: {
+    minWidth: 100,
   },
 });
