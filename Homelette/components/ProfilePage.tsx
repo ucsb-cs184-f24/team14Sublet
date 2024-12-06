@@ -1,7 +1,7 @@
 import React from "react";
 import { useState, useEffect } from "react";
-import { View, StyleSheet, ScrollView, Image, Modal } from "react-native";
-import { Card, Title, Paragraph, Button, TextInput, Surface, Chip } from "react-native-paper";
+import { View, StyleSheet, ScrollView, Image, Modal, TouchableOpacity } from "react-native";
+import { Card, Title, Paragraph, Button, TextInput, Surface, Chip, IconButton } from "react-native-paper";
 import { ThemedText } from "./ThemedText";
 import { firestore } from "../config/firebase";
 import { doc, getDoc } from "firebase/firestore";
@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { updateUserProfile } from "../config/firebase";
 import { signOut } from "firebase/auth";
 import { auth } from "@/config/firebase";
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 // Mock data for favorited listings
 const mockFavoritedListings = [
@@ -51,25 +52,36 @@ const theme = {
 // Favorited Listing Card Component
 const FavoritedListingCard = ({ item, onRemoveFavorite }) => {
   return (
-    <Surface elevation={2} style={styles.favoritedListingCard}>
-      <View style={styles.favoritedListingContent}>
-        <Image source={{ uri: item.image }} style={styles.favoritedListingImage} />
-        <View style={styles.favoritedListingDetails}>
-          <Title style={styles.favoritedListingTitle}>${item.rent}/mo</Title>
-          <Paragraph style={styles.favoritedListingAddress}>{item.address}</Paragraph>
-          <View style={styles.favoritedListingChips}>
-            <Chip icon="bed" style={styles.favoritedListingChip} textStyle={styles.chipText}>
+    <Surface elevation={2} style={styles.listingCard}>
+      <View style={styles.listingContent}>
+        <Image source={{ uri: item.image }} style={styles.listingImage} />
+        <View style={styles.listingDetails}>
+          <Title style={styles.listingTitle}>${item.rent}/mo</Title>
+          <Paragraph style={styles.listingAddress}>{item.address}</Paragraph>
+          <View style={styles.listingChips}>
+            <Chip 
+              icon="bed" 
+              style={styles.listingChip} 
+              textStyle={[styles.chipText, { color: theme.colors.text }]}
+              theme={{ colors: { surface: theme.colors.surface } }}
+            >
               {item.bedCount} beds
             </Chip>
-            <Chip icon="shower" style={styles.favoritedListingChip} textStyle={styles.chipText}>
+            <Chip 
+              icon="shower" 
+              style={styles.listingChip} 
+              textStyle={[styles.chipText, { color: theme.colors.text }]}
+              theme={{ colors: { surface: theme.colors.surface } }}
+            >
               {item.bathCount} baths
             </Chip>
           </View>
           <Button
             mode="contained"
             onPress={() => onRemoveFavorite(item.id)}
-            style={styles.removeFavoriteButton}
+            style={styles.removeButton}
             buttonColor={theme.colors.primary}
+            textColor={theme.colors.text}
           >
             Remove
           </Button>
@@ -252,6 +264,7 @@ export function ProfilePage() {
   const [userData, setUserData] = useState<any>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [favoritedListings, setFavoritedListings] = useState(mockFavoritedListings);
+  const [activeTab, setActiveTab] = useState('profile');
   const [editForm, setEditForm] = useState<EditFormData>({
     first: '',
     last: '',
@@ -332,7 +345,8 @@ export function ProfilePage() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollViewContent}>
-      <View style={styles.container}>
+      {/* Profile Section */}
+      <View style={styles.profileSection}>
         <Card style={styles.profileCard}>
           <View style={styles.headerSection}>
             <Image
@@ -353,13 +367,13 @@ export function ProfilePage() {
             <View style={styles.statsContainer}>
               <View style={styles.statItem}>
                 <ThemedText type="title">
-                  {userData?.listing_ids?.length}
+                  {userData?.listing_ids?.length || 0}
                 </ThemedText>
                 <ThemedText>Listings</ThemedText>
               </View>
               <View style={styles.statItem}>
                 <ThemedText type="title">
-                  {userData?.interested_listing_ids?.length}
+                  {userData?.interested_listing_ids?.length || 0}
                 </ThemedText>
                 <ThemedText>Interested In</ThemedText>
               </View>
@@ -418,37 +432,88 @@ export function ProfilePage() {
           </Card.Actions>
         </Card>
 
-        <EditProfileModal
-          visible={isEditing}
-          onClose={() => setIsEditing(false)}
-          onSave={handleSave}
-          editForm={editForm}
-          setEditForm={setEditForm}
-        />
-      </View>
-      {/* Favorited Listings Section */}
-      <Card style={styles.favoritedListingsCard}>
-        <Card.Content>
-          <View style={styles.sectionHeader}>
-            <ThemedText type="subtitle">Favorited Listings</ThemedText>
-            <Chip style={styles.favoritesCountChip} textStyle={styles.chipText}>
-              {favoritedListings.length}
-            </Chip>
+        {/* Navigation Buttons */}
+        <View style={styles.navigationButtons}>
+          <TouchableOpacity 
+            style={[styles.navButton, activeTab === 'favorites' && styles.activeNavButton]}
+            onPress={() => setActiveTab('favorites')}
+          >
+            <MaterialCommunityIcons name="heart" size={24} color={theme.colors.text} />
+            <ThemedText style={styles.navButtonText}>Favorited Listings</ThemedText>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.navButton, activeTab === 'myListings' && styles.activeNavButton]}
+            onPress={() => setActiveTab('myListings')}
+          >
+            <MaterialCommunityIcons name="home" size={24} color={theme.colors.text} />
+            <ThemedText style={styles.navButtonText}>My Listings</ThemedText>
+          </TouchableOpacity>
+        </View>
+
+        {/* Listings Section */}
+        {activeTab === 'favorites' && (
+          <View style={styles.listingsSection}>
+            <Card style={styles.listingsCard}>
+              <Card.Content>
+                <View style={styles.sectionHeader}>
+                  <ThemedText type="subtitle">Favorited Listings</ThemedText>
+                  <Chip style={styles.countChip} textStyle={{ color: theme.colors.text }}>
+                    {favoritedListings.length}
+                  </Chip>
+                </View>
+                {favoritedListings.length === 0 ? (
+                  <View style={styles.emptyContainer}>
+                    <ThemedText>No favorited listings yet</ThemedText>
+                    <Button 
+                      mode="outlined" 
+                      onPress={() => {}} 
+                      style={styles.exploreButton}
+                      textColor={theme.colors.text}
+                    >
+                      Explore Listings
+                    </Button>
+                  </View>
+                ) : (
+                  favoritedListings.map((listing) => (
+                    <FavoritedListingCard 
+                      key={listing.id} 
+                      item={listing} 
+                      onRemoveFavorite={handleRemoveFavorite} 
+                    />
+                  ))
+                )}
+              </Card.Content>
+            </Card>
           </View>
-          {favoritedListings.length === 0 ? (
-            <View style={styles.emptyFavoritesContainer}>
-              <ThemedText>No favorited listings yet</ThemedText>
-              <Button mode="outlined" onPress={() => { }} style={styles.exploreListingsButton}>
-                Explore Listings
-              </Button>
-            </View>
-          ) : (
-            favoritedListings.map((listing) => (
-              <FavoritedListingCard key={listing.id} item={listing} onRemoveFavorite={handleRemoveFavorite} />
-            ))
-          )}
-        </Card.Content>
-      </Card>
+        )}
+
+        {activeTab === 'myListings' && (
+          <View style={styles.listingsSection}>
+            <Card style={styles.listingsCard}>
+              <Card.Content>
+                <View style={styles.sectionHeader}>
+                  <ThemedText type="subtitle">My Listings</ThemedText>
+                  <Chip style={styles.countChip} textStyle={{ color: theme.colors.text }}>
+                    {userData?.listing_ids?.length || 0}
+                  </Chip>
+                </View>
+                {/* Add My Listings content here */}
+                <View style={styles.emptyContainer}>
+                  <ThemedText>Coming soon!</ThemedText>
+                </View>
+              </Card.Content>
+            </Card>
+          </View>
+        )}
+      </View>
+
+      <EditProfileModal
+        visible={isEditing}
+        onClose={() => setIsEditing(false)}
+        onSave={handleSave}
+        editForm={editForm}
+        setEditForm={setEditForm}
+      />
     </ScrollView>
   );
 }
@@ -456,17 +521,22 @@ export function ProfilePage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 12,
     backgroundColor: theme.colors.background,
   },
+  scrollViewContent: {
+    paddingBottom: 32,
+  },
+  profileSection: {
+    padding: 16,
+  },
   profileCard: {
-    borderRadius: 12,
+    marginBottom: 16,
     backgroundColor: theme.colors.surface,
   },
   headerSection: {
-    flexDirection: "row",
+    flexDirection: 'row',
     padding: 16,
-    alignItems: "center",
+    alignItems: 'center',
   },
   profileImage: {
     width: 80,
@@ -475,124 +545,114 @@ const styles = StyleSheet.create({
   },
   headerInfo: {
     marginLeft: 16,
+    flex: 1,
   },
   statsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
+    flexDirection: 'row',
+    justifyContent: 'space-around',
     marginVertical: 16,
-    borderRadius: 8,
-    backgroundColor: "#f8f8f8",
-    padding: 16,
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
+    paddingHorizontal: 8,
   },
   statItem: {
-    alignItems: "center",
+    alignItems: 'center',
   },
   infoSection: {
-    marginVertical: 16,
+    marginVertical: 12,
   },
   detailItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginVertical: 4,
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    padding: 20,
-  },
-  modalCard: {
-    padding: 20,
-    backgroundColor: "white",
-    elevation: 5,
-  },
-  modalTitle: {
-    color: "black",
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  input: {
-    marginBottom: 15,
-    backgroundColor: "white",
-    height: 56,
-  },
-  about_meInput: {
-    height: 120,
-  },
-  favoritedListingsCard: {
-    marginTop: 16,
-    borderRadius: 12,
-    backgroundColor: theme.colors.surface,
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 16,
-  },
-  favoritesCountChip: {
-    backgroundColor: theme.colors.primaryContainer,
-  },
-  favoritedListingCard: {
-    marginBottom: 16,
-    borderRadius: 12,
-    backgroundColor: theme.colors.surface,
-  },
-  favoritedListingContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-  },
-  favoritedListingImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 12,
-    marginRight: 16,
-  },
-  favoritedListingDetails: {
-    flex: 1,
-  },
-  favoritedListingTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: theme.colors.text,
-  },
-  favoritedListingAddress: {
-    marginVertical: 4,
-    color: theme.colors.text,
-  },
-  favoritedListingChips: {
-    flexDirection: "row",
-    gap: 8,
-    marginVertical: 8,
-  },
-  favoritedListingChip: {
-    backgroundColor: theme.colors.primaryContainer,
-  },
-  chipText: {
-    color: theme.colors.text,
-  },
-  removeFavoriteButton: {
-    marginTop: 8,
-    borderRadius: 8,
-  },
-  emptyFavoritesContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 16,
-  },
-  exploreListingsButton: {
-    marginTop: 16,
-  },
-  scrollViewContent: {
-    paddingBottom: 32,
   },
   actionButton: {
     marginHorizontal: 8,
   },
   signOutButton: {
     borderColor: theme.colors.text,
+  },
+  navigationButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  navButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.surface,
+    padding: 12,
+    marginHorizontal: 8,
+    borderRadius: 8,
+    elevation: 2,
+  },
+  activeNavButton: {
+    backgroundColor: theme.colors.primaryContainer,
+  },
+  navButtonText: {
+    marginLeft: 8,
+    fontWeight: '500',
+  },
+  listingsSection: {
+    marginTop: 8,
+  },
+  listingsCard: {
+    backgroundColor: theme.colors.surface,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  countChip: {
+    backgroundColor: theme.colors.primaryContainer,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    padding: 24,
+  },
+  exploreButton: {
+    marginTop: 12,
+  },
+  listingCard: {
+    marginBottom: 16,
+    backgroundColor: theme.colors.surface,
+    borderRadius: 8,
+  },
+  listingContent: {
+    flexDirection: 'row',
+    padding: 12,
+  },
+  listingImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
+  },
+  listingDetails: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  listingTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  listingAddress: {
+    fontSize: 14,
+    color: '#666',
+  },
+  listingChips: {
+    flexDirection: 'row',
+    marginTop: 8,
+  },
+  listingChip: {
+    marginRight: 8,
+    backgroundColor: theme.colors.primaryContainer,
+  },
+  chipText: {
+    fontSize: 12,
+  },
+  removeButton: {
+    marginTop: 8,
   },
 });
