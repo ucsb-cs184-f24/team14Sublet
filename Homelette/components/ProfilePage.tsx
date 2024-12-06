@@ -452,7 +452,7 @@ const PropertyCard = ({ property, onEdit, onDelete }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   return (
-    <Surface elevation={2} style={styles.propertyCardContainer}>
+    <Card style={styles.propertyCard}>
       <View style={styles.propertyImageWrapper}>
         {property.image_url ? (
           <Image 
@@ -556,7 +556,7 @@ const PropertyCard = ({ property, onEdit, onDelete }) => {
           </Dialog.Actions>
         </Dialog>
       </Portal>
-    </Surface>
+    </Card>
   );
 };
 
@@ -1094,10 +1094,15 @@ const styles = StyleSheet.create({
   propertiesContainer: {
     marginTop: 16,
   },
-  propertyCardContainer: {
-    marginBottom: 16,
+  propertyCard: {
+    marginVertical: 8,
     borderRadius: 12,
-    overflow: 'hidden',
+    backgroundColor: '#FFFFFF',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   propertyImageWrapper: {
     height: 180,
