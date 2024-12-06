@@ -1,15 +1,16 @@
 import React from "react";
 import { useState, useEffect } from "react";
-import { View, StyleSheet, ScrollView, Image, Modal, TouchableOpacity } from "react-native";
-import { Card, Title, Paragraph, Button, TextInput, Surface, Chip, IconButton } from "react-native-paper";
+import { View, StyleSheet, ScrollView, Image, Modal, TouchableOpacity, Alert } from "react-native";
+import { Card, Title, Paragraph, Button, TextInput, Surface, Chip, IconButton, Portal, Dialog } from "react-native-paper";
 import { ThemedText } from "./ThemedText";
 import { firestore } from "../config/firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, collection, query, where, getDocs, deleteDoc, updateDoc } from "firebase/firestore";
 import { useAuth } from "@/hooks/useAuth";
 import { updateUserProfile } from "../config/firebase";
 import { signOut } from "firebase/auth";
 import { auth } from "@/config/firebase";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useNavigation } from "@react-navigation/native";
 
 // Mock data for favorited listings
 const mockFavoritedListings = [
@@ -259,8 +260,122 @@ const EditProfileModal = ({ visible, onClose, onSave, editForm, setEditForm }: E
   </Modal>
 );
 
+// Property Card Component
+const PropertyCard = ({ property, onEdit, onDelete }) => {
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  return (
+    <Surface elevation={2} style={styles.propertyCardContainer}>
+      <View style={styles.propertyImageWrapper}>
+        {property.image_url ? (
+          <Image 
+            source={{ uri: property.image_url }} 
+            style={styles.propertyImage}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={styles.propertyImagePlaceholder}>
+            <MaterialCommunityIcons name="home" size={40} color="#666" />
+          </View>
+        )}
+      </View>
+
+      <View style={styles.propertyContent}>
+        <View style={styles.propertyHeader}>
+          <View>
+            <ThemedText style={styles.propertyTypeText}>{property.type}</ThemedText>
+            <View style={styles.propertyLocationRow}>
+              <MaterialCommunityIcons name="map-marker" size={14} color={theme.colors.text} />
+              <ThemedText numberOfLines={1} style={styles.propertyAddressText}>
+                {property.address.street_address}
+                {property.apt_number ? ` #${property.apt_number}` : ''}
+              </ThemedText>
+            </View>
+            <ThemedText style={styles.propertySubAddressText}>
+              {property.address.city}, {property.address.state} {property.address.zip_code}
+            </ThemedText>
+          </View>
+          <View style={styles.propertyActions}>
+            <IconButton
+              icon="pencil"
+              size={20}
+              iconColor={theme.colors.text}
+              onPress={() => onEdit(property)}
+            />
+            <IconButton
+              icon="delete"
+              size={20}
+              iconColor={theme.colors.error}
+              onPress={() => setShowDeleteConfirm(true)}
+            />
+          </View>
+        </View>
+
+        <View style={styles.propertyDetailsGrid}>
+          <View style={styles.propertyDetailItem}>
+            <MaterialCommunityIcons name="bed" size={18} color={theme.colors.text} />
+            <ThemedText style={styles.propertyDetailValue}>{property.bedrooms}</ThemedText>
+            <ThemedText style={styles.propertyDetailLabel}>Beds</ThemedText>
+          </View>
+          <View style={styles.propertyDetailSeparator} />
+          <View style={styles.propertyDetailItem}>
+            <MaterialCommunityIcons name="shower" size={18} color={theme.colors.text} />
+            <ThemedText style={styles.propertyDetailValue}>{property.bathrooms}</ThemedText>
+            <ThemedText style={styles.propertyDetailLabel}>Baths</ThemedText>
+          </View>
+          <View style={styles.propertyDetailSeparator} />
+          <View style={styles.propertyDetailItem}>
+            <MaterialCommunityIcons name="ruler" size={18} color={theme.colors.text} />
+            <ThemedText style={styles.propertyDetailValue}>
+              {Number(property.area).toLocaleString()}
+            </ThemedText>
+            <ThemedText style={styles.propertyDetailLabel}>Sq Ft</ThemedText>
+          </View>
+        </View>
+
+        <View style={styles.propertyMetrics}>
+          <View style={styles.propertyMetricBadge}>
+            <MaterialCommunityIcons name="heart" size={16} color={theme.colors.text} />
+            <ThemedText style={styles.propertyMetricText}>
+              {property.favorites?.length || 0} favorites
+            </ThemedText>
+          </View>
+          <View style={styles.propertyMetricBadge}>
+            <MaterialCommunityIcons name="chat" size={16} color={theme.colors.text} />
+            <ThemedText style={styles.propertyMetricText}>
+              {property.chats?.length || 0} chats
+            </ThemedText>
+          </View>
+        </View>
+      </View>
+
+      <Portal>
+        <Dialog visible={showDeleteConfirm} onDismiss={() => setShowDeleteConfirm(false)}>
+          <Dialog.Title>Delete Property</Dialog.Title>
+          <Dialog.Content>
+            <Paragraph>Are you sure you want to delete this property? This action cannot be undone.</Paragraph>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setShowDeleteConfirm(false)}>Cancel</Button>
+            <Button 
+              onPress={() => {
+                setShowDeleteConfirm(false);
+                onDelete(property.id);
+              }}
+              textColor={theme.colors.error}
+            >
+              Delete
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
+    </Surface>
+  );
+};
+
 export function ProfilePage() {
   const { user } = useAuth();
+  const navigation = useNavigation();
   const [userData, setUserData] = useState<any>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [favoritedListings, setFavoritedListings] = useState(mockFavoritedListings);
@@ -273,6 +388,8 @@ export function ProfilePage() {
     major: '',
     graduation_year: '',
   });
+  const [userProperties, setUserProperties] = useState([]);
+  const [isLoadingProperties, setIsLoadingProperties] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -283,6 +400,40 @@ export function ProfilePage() {
           const userData = userDocSnap.data();
           setUserData(userData);
           console.log(userData);
+          
+          // Fetch properties
+          const fetchUserProperties = async () => {
+            if (!user) return;
+            
+            setIsLoadingProperties(true);
+            try {
+              // Get user's listing IDs
+              const userDocRef = doc(firestore, "users", user.uid);
+              const userDoc = await getDoc(userDocRef);
+              const listingIds = userDoc.data()?.listing_ids || [];
+              
+              // Fetch each property
+              const properties = [];
+              for (const id of listingIds) {
+                const propertyRef = doc(firestore, "properties", id);
+                const propertyDoc = await getDoc(propertyRef);
+                if (propertyDoc.exists()) {
+                  properties.push({
+                    id: propertyDoc.id,
+                    ...propertyDoc.data()
+                  });
+                }
+              }
+              
+              setUserProperties(properties);
+            } catch (error) {
+              console.error("Error fetching properties:", error);
+              Alert.alert("Error", "Failed to fetch your properties. Please try again later.");
+            } finally {
+              setIsLoadingProperties(false);
+            }
+          };
+          fetchUserProperties();
         } else {
           console.log("No such document!");
         }
@@ -341,6 +492,35 @@ export function ProfilePage() {
 
   const handleRemoveFavorite = (listingId: string) => {
     setFavoritedListings((prev) => prev.filter((listing) => listing.id !== listingId));
+  };
+
+  const handleEditProperty = (property) => {
+    navigation.navigate("EditListing", { listingId: property.id });
+  };
+
+  const handleDeleteProperty = async (propertyId) => {
+    try {
+      // Delete property document
+      await deleteDoc(doc(firestore, "properties", propertyId));
+      
+      // Update user's listing_ids
+      const updatedListingIds = userData.listing_ids.filter(id => id !== propertyId);
+      await updateDoc(doc(firestore, "users", user.uid), {
+        listing_ids: updatedListingIds
+      });
+      
+      // Update local state
+      setUserProperties(prev => prev.filter(p => p.id !== propertyId));
+      setUserData(prev => ({
+        ...prev,
+        listing_ids: updatedListingIds
+      }));
+      
+      Alert.alert("Success", "Property deleted successfully");
+    } catch (error) {
+      console.error("Error deleting property:", error);
+      Alert.alert("Error", "Failed to delete property. Please try again later.");
+    }
   };
 
   return (
@@ -494,13 +674,37 @@ export function ProfilePage() {
                 <View style={styles.sectionHeader}>
                   <ThemedText type="subtitle">My Listings</ThemedText>
                   <Chip style={styles.countChip} textStyle={{ color: theme.colors.text }}>
-                    {userData?.listing_ids?.length || 0}
+                    {userProperties.length}
                   </Chip>
                 </View>
-                {/* Add My Listings content here */}
-                <View style={styles.emptyContainer}>
-                  <ThemedText>Coming soon!</ThemedText>
-                </View>
+                {isLoadingProperties ? (
+                  <View style={styles.emptyContainer}>
+                    <ThemedText>Loading...</ThemedText>
+                  </View>
+                ) : userProperties.length === 0 ? (
+                  <View style={styles.emptyContainer}>
+                    <ThemedText>You haven't posted any listings yet</ThemedText>
+                    <Button 
+                      mode="outlined" 
+                      onPress={() => navigation.navigate("PostLease")} 
+                      style={styles.exploreButton}
+                      textColor={theme.colors.text}
+                    >
+                      Post a Listing
+                    </Button>
+                  </View>
+                ) : (
+                  <View style={styles.propertiesContainer}>
+                    {userProperties.map((property) => (
+                      <PropertyCard
+                        key={property.id}
+                        property={property}
+                        onEdit={handleEditProperty}
+                        onDelete={handleDeleteProperty}
+                      />
+                    ))}
+                  </View>
+                )}
               </Card.Content>
             </Card>
           </View>
@@ -656,5 +860,106 @@ const styles = StyleSheet.create({
   },
   removeButton: {
     marginTop: 8,
+  },
+  propertiesContainer: {
+    marginTop: 16,
+  },
+  propertyCardContainer: {
+    marginBottom: 16,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  propertyImageWrapper: {
+    height: 180,
+    backgroundColor: '#f5f5f5',
+  },
+  propertyImage: {
+    width: '100%',
+    height: '100%',
+  },
+  propertyImagePlaceholder: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+  },
+  propertyContent: {
+    padding: 16,
+  },
+  propertyHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  propertyTypeText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  propertyLocationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  propertyAddressText: {
+    fontSize: 15,
+    flex: 1,
+  },
+  propertySubAddressText: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 2,
+    marginLeft: 18,
+  },
+  propertyActions: {
+    flexDirection: 'row',
+  },
+  propertyDetailsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.1)',
+  },
+  propertyDetailItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  propertyDetailSeparator: {
+    width: 1,
+    height: 24,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+  },
+  propertyDetailValue: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginTop: 4,
+  },
+  propertyDetailLabel: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 2,
+  },
+  propertyMetrics: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.1)',
+  },
+  propertyMetricBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.primaryContainer,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    gap: 6,
+  },
+  propertyMetricText: {
+    fontSize: 13,
   },
 });
