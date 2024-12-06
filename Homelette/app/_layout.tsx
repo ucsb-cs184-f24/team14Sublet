@@ -32,15 +32,6 @@ export default function RootLayout() {
                 }}
               />
               <Tabs.Screen
-                name="rent"
-                options={{
-                  title: "Rent",
-                  tabBarIcon: ({ color, size }) => (
-                    <Ionicons name="business" size={size} color={color} />
-                  ),
-                }}
-              />
-              <Tabs.Screen
                 name="messages"
                 options={{
                   title: "Messages",
