@@ -543,19 +543,32 @@ const PropertyCard = ({ property, onEdit, onDelete }) => {
       </View>
 
       <Portal>
-        <Dialog visible={showDeleteConfirm} onDismiss={() => setShowDeleteConfirm(false)}>
-          <Dialog.Title>Delete Property</Dialog.Title>
+        <Dialog 
+          visible={showDeleteConfirm} 
+          onDismiss={() => setShowDeleteConfirm(false)}
+          style={{ backgroundColor: theme.colors.surface }}
+        >
+          <Dialog.Title style={{ color: theme.colors.text }}>Delete Property</Dialog.Title>
           <Dialog.Content>
-            <Paragraph>Are you sure you want to delete this property? This action cannot be undone.</Paragraph>
+            <Paragraph style={{ color: theme.colors.text }}>Are you sure you want to delete this property? This action cannot be undone.</Paragraph>
           </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={() => setShowDeleteConfirm(false)}>Cancel</Button>
+          <Dialog.Actions style={{ justifyContent: 'space-around', paddingHorizontal: 16, paddingBottom: 8 }}>
+            <Button 
+              onPress={() => setShowDeleteConfirm(false)}
+              textColor={theme.colors.text}
+              style={{ minWidth: 100, borderColor: theme.colors.primary }}
+            >
+              Cancel
+            </Button>
             <Button 
               onPress={() => {
                 setShowDeleteConfirm(false);
                 onDelete(property.id);
               }}
-              textColor={theme.colors.error}
+              mode="contained"
+              buttonColor={theme.colors.primary}
+              textColor={theme.colors.text}
+              style={{ minWidth: 100 }}
             >
               Delete
             </Button>
@@ -1404,7 +1417,7 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
   },
   dialog: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.surface,
     borderRadius: 12,
     padding: 8,
   },
