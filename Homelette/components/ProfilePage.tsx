@@ -16,8 +16,8 @@ const mockUserProfile = {
   joinDate: 'March 2024',
   school: 'UC Santa Barbara',
   major: 'Computer Science',
-  graduationYear: '2025',
-  bio: 'Looking for housing near UCSB campus. Clean, quiet, and responsible tenant.',
+  graduation_year: '2025',
+  about_me: 'Looking for housing near UCSB campus. Clean, quiet, and responsible tenant.',
   listings: 2,
   reviews: 4.5,
 };
@@ -27,9 +27,9 @@ interface EditFormData {
   first: string;
   last: string;
   phone: string;
-  bio: string;
+  about_me: string;
   major: string;
-  graduationYear: string;
+  graduation_year: string;
 }
 
 interface EditProfileModalProps {
@@ -131,8 +131,8 @@ const EditProfileModal = ({ visible, onClose, onSave, editForm, setEditForm }: E
           />
           <TextInput
             label="Graduation Year"
-            value={editForm.graduationYear}
-            onChangeText={(text) => setEditForm(prev => ({ ...prev, graduationYear: text }))}
+            value={editForm.graduation_year}
+            onChangeText={(text) => setEditForm(prev => ({ ...prev, graduation_year: text }))}
             keyboardType="numeric"
             style={styles.input}
             mode="outlined"
@@ -151,9 +151,9 @@ const EditProfileModal = ({ visible, onClose, onSave, editForm, setEditForm }: E
           />
           <TextInput
             label="About Me"
-            value={editForm.bio}
-            onChangeText={(text) => setEditForm(prev => ({ ...prev, bio: text }))}
-            style={[styles.input, styles.bioInput]}
+            value={editForm.about_me}
+            onChangeText={(text) => setEditForm(prev => ({ ...prev, about_me: text }))}
+            style={[styles.input, styles.about_meInput]}
             mode="outlined"
             outlineColor="#006aff"
             activeOutlineColor="#006aff"
@@ -172,13 +172,13 @@ const EditProfileModal = ({ visible, onClose, onSave, editForm, setEditForm }: E
           />
         </Card.Content>
         <Card.Actions>
-          <Button 
+          <Button
             onPress={onClose}
             textColor="#006aff"
           >
             Cancel
           </Button>
-          <Button 
+          <Button
             onPress={onSave}
             mode="contained"
             buttonColor="#006aff"
@@ -193,149 +193,150 @@ const EditProfileModal = ({ visible, onClose, onSave, editForm, setEditForm }: E
 
 export function ProfilePage() {
 
-    const { user } = useAuth();
-    const [userData, setUserData] = useState<any>(null);
-    const [isEditing, setIsEditing] = useState(false);
-    const [editForm, setEditForm] = useState<EditFormData>({
-      first: '',
-      last: '',
-      phone: '',
-      bio: '',
-      major: '',
-      graduationYear: '',
-    });
+  const { user } = useAuth();
+  const [userData, setUserData] = useState<any>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState<EditFormData>({
+    first: '',
+    last: '',
+    phone: '',
+    about_me: '',
+    major: '',
+    graduation_year: '',
+  });
 
-    useEffect(() => {const fetchUserData = async () => {
-        if (user) {
-          const userDocRef = doc(firestore, 'users', user.uid);
-          const userDocSnap = await getDoc(userDocRef);
-          if (userDocSnap.exists()) {
-            const userData = userDocSnap.data();
-            setUserData(userData);
-            console.log(userData);
-          } else {
-            console.log('No such document!');
-          }
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (user) {
+        const userDocRef = doc(firestore, 'users', user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        if (userDocSnap.exists()) {
+          const userData = userDocSnap.data();
+          setUserData(userData);
+          console.log(userData);
+        } else {
+          console.log('No such document!');
         }
-      };
-  
-      fetchUserData();
-    }, [user]);
-
-    const handleEditPress = () => {
-      setEditForm({
-        first: userData?.first || '',
-        last: userData?.last || '',
-        phone: userData?.phone?.toString() || '',
-        bio: userData?.bio || '',
-        major: userData?.major || '',
-        graduationYear: userData?.graduationYear || '',
-      });
-      setIsEditing(true);
-    };
-
-    const handleSave = async () => {
-      if (!user) return;
-
-      try {
-        const updates = {
-          first: editForm.first,
-          last: editForm.last,
-          phone: parseInt(editForm.phone) || 0,
-          bio: editForm.bio,
-          major: editForm.major,
-          graduationYear: editForm.graduationYear,
-        };
-
-        await updateUserProfile(user.uid, updates);
-        
-        // Update local state
-        setUserData(prev => ({
-          ...prev,
-          ...updates
-        }));
-        
-        setIsEditing(false);
-      } catch (error) {
-        console.error('Error updating profile:', error);
       }
     };
 
-    return (
-      <View style={styles.container}>
-        <Card style={styles.profileCard}>
-          <View style={styles.headerSection}>
-            <Image
-              source={{ uri: 'https://via.placeholder.com/100' }}
-              style={styles.profileImage}
-            />
-            <View style={styles.headerInfo}>
-              <Title>{`${userData?.first} ${userData?.last}`}</Title>
-              <Paragraph>{mockUserProfile.school}</Paragraph>
+    fetchUserData();
+  }, [user]);
+
+  const handleEditPress = () => {
+    setEditForm({
+      first: userData?.first || '',
+      last: userData?.last || '',
+      phone: userData?.phone?.toString() || '',
+      about_me: userData?.about_me || '',
+      major: userData?.major || '',
+      graduation_year: userData?.graduation_year || '',
+    });
+    setIsEditing(true);
+  };
+
+  const handleSave = async () => {
+    if (!user) return;
+
+    try {
+      const updates = {
+        first: editForm.first,
+        last: editForm.last,
+        phone: parseInt(editForm.phone) || 0,
+        about_me: editForm.about_me,
+        major: editForm.major,
+        graduation_year: editForm.graduation_year,
+      };
+
+      await updateUserProfile(user.uid, updates);
+
+      // Update local state
+      setUserData(prev => ({
+        ...prev,
+        ...updates
+      }));
+
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <Card style={styles.profileCard}>
+        <View style={styles.headerSection}>
+          <Image
+            source={{ uri: 'https://via.placeholder.com/100' }}
+            style={styles.profileImage}
+          />
+          <View style={styles.headerInfo}>
+            <Title>{`${userData?.first} ${userData?.last}`}</Title>
+            <Paragraph>{mockUserProfile.school}</Paragraph>
+          </View>
+        </View>
+
+        <Card.Content>
+          <View style={styles.statsContainer}>
+            <View style={styles.statItem}>
+              <ThemedText type="title">{userData?.listing_ids?.length}</ThemedText>
+              <ThemedText>Listings</ThemedText>
+            </View>
+            <View style={styles.statItem}>
+              <ThemedText type="title">{userData?.interested_listing_ids?.length}</ThemedText>
+              <ThemedText>Interested In</ThemedText>
+            </View>
+            <View style={styles.statItem}>
+              <ThemedText type="title">{mockUserProfile.reviews}</ThemedText>
+              <ThemedText>Rating</ThemedText>
             </View>
           </View>
 
-          <Card.Content>
-            <View style={styles.statsContainer}>
-              <View style={styles.statItem}>
-                <ThemedText type="title">{userData?.listing_ids?.length}</ThemedText>
-                <ThemedText>Listings</ThemedText>
-              </View>
-              <View style={styles.statItem}>
-                <ThemedText type="title">{userData?.interested_listing_ids?.length}</ThemedText>
-                <ThemedText>Interested In</ThemedText>
-              </View>
-              <View style={styles.statItem}>
-                <ThemedText type="title">{mockUserProfile.reviews}</ThemedText>
-                <ThemedText>Rating</ThemedText>
-              </View>
+          <View style={styles.infoSection}>
+            <ThemedText type="subtitle">About Me</ThemedText>
+            <ThemedText>{userData?.about_me}</ThemedText>
+          </View>
+
+          <View style={styles.infoSection}>
+            <ThemedText type="subtitle">Details</ThemedText>
+            <View style={styles.detailItem}>
+              <ThemedText type="defaultSemiBold">Major:</ThemedText>
+              <ThemedText>{userData?.major}</ThemedText>
             </View>
-
-            <View style={styles.infoSection}>
-              <ThemedText type="subtitle">About Me</ThemedText>
-              <ThemedText>{userData?.bio}</ThemedText>
+            <View style={styles.detailItem}>
+              <ThemedText type="defaultSemiBold">Graduation Year:</ThemedText>
+              <ThemedText>{userData?.graduation_year}</ThemedText>
             </View>
-
-            <View style={styles.infoSection}>
-              <ThemedText type="subtitle">Details</ThemedText>
-              <View style={styles.detailItem}>
-                <ThemedText type="defaultSemiBold">Major:</ThemedText>
-                <ThemedText>{userData?.major}</ThemedText>
-              </View>
-              <View style={styles.detailItem}>
-                <ThemedText type="defaultSemiBold">Graduation Year:</ThemedText>
-                <ThemedText>{userData?.graduationYear}</ThemedText>
-              </View>
-              <View style={styles.detailItem}>
-                <ThemedText type="defaultSemiBold">Email:</ThemedText>
-                <ThemedText>{userData?.email}</ThemedText>
-              </View>
-              <View style={styles.detailItem}>
-                <ThemedText type="defaultSemiBold">Member Since:</ThemedText>
-                <ThemedText>
-                  {userData?.join_date?.toDate().toLocaleDateString()}
-                </ThemedText>
-              </View>
+            <View style={styles.detailItem}>
+              <ThemedText type="defaultSemiBold">Email:</ThemedText>
+              <ThemedText>{userData?.email}</ThemedText>
             </View>
-          </Card.Content>
+            <View style={styles.detailItem}>
+              <ThemedText type="defaultSemiBold">Member Since:</ThemedText>
+              <ThemedText>
+                {userData?.join_date?.toDate().toLocaleDateString()}
+              </ThemedText>
+            </View>
+          </View>
+        </Card.Content>
 
-          <Card.Actions>
-            <Button mode="contained" onPress={handleEditPress}>
-              Edit Profile
-            </Button>
-          </Card.Actions>
-        </Card>
+        <Card.Actions>
+          <Button mode="contained" onPress={handleEditPress}>
+            Edit Profile
+          </Button>
+        </Card.Actions>
+      </Card>
 
-        <EditProfileModal 
-          visible={isEditing}
-          onClose={() => setIsEditing(false)}
-          onSave={handleSave}
-          editForm={editForm}
-          setEditForm={setEditForm}
-        />
-      </View>
-    );
-  }
+      <EditProfileModal
+        visible={isEditing}
+        onClose={() => setIsEditing(false)}
+        onSave={handleSave}
+        editForm={editForm}
+        setEditForm={setEditForm}
+      />
+    </View>
+  );
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -401,7 +402,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     height: 56,
   },
-  bioInput: {
+  about_meInput: {
     height: 120,
   },
 }); 
