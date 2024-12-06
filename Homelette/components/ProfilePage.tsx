@@ -579,4 +579,3 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
   },
 });
-
