@@ -1,7 +1,7 @@
 import React from "react";
 import { useState, useEffect } from "react";
-import { View, StyleSheet, Image, Modal } from "react-native";
-import { Card, Title, Paragraph, Button, TextInput } from "react-native-paper";
+import { View, StyleSheet, ScrollView, Image, Modal } from "react-native";
+import { Card, Title, Paragraph, Button, TextInput, Surface, Chip } from "react-native-paper";
 import { ThemedText } from "./ThemedText";
 import { firestore } from "../config/firebase";
 import { doc, getDoc } from "firebase/firestore";
@@ -9,6 +9,75 @@ import { useAuth } from "@/hooks/useAuth";
 import { updateUserProfile } from "../config/firebase";
 import { signOut } from "firebase/auth";
 import { auth } from "@/config/firebase";
+
+// Mock data for favorited listings
+const mockFavoritedListings = [
+  {
+    id: "1",
+    address: "123 Main St",
+    rent: 1200,
+    startDate: "2023-09-04",
+    endDate: "2024-08-31",
+    image: "https://via.placeholder.com/150",
+    bedCount: 3,
+    bathCount: 2,
+    area: 900,
+  },
+  {
+    id: "2",
+    address: "456 Elm St",
+    rent: 1500,
+    startDate: "2023-10-01",
+    endDate: "2024-09-30",
+    image: "https://via.placeholder.com/150",
+    bedCount: 4,
+    bathCount: 3,
+    area: 1400,
+  },
+];
+
+// Color theme matching RentPage.tsx
+const theme = {
+  colors: {
+    primary: "#FFD700",
+    secondary: "#2E3192",
+    surface: "#FFFFFC",
+    background: "#F5F5F5",
+    text: "#333333",
+    primaryContainer: "#FFD70020",
+  },
+};
+
+// Favorited Listing Card Component
+const FavoritedListingCard = ({ item, onRemoveFavorite }) => {
+  return (
+    <Surface elevation={2} style={styles.favoritedListingCard}>
+      <View style={styles.favoritedListingContent}>
+        <Image source={{ uri: item.image }} style={styles.favoritedListingImage} />
+        <View style={styles.favoritedListingDetails}>
+          <Title style={styles.favoritedListingTitle}>${item.rent}/mo</Title>
+          <Paragraph style={styles.favoritedListingAddress}>{item.address}</Paragraph>
+          <View style={styles.favoritedListingChips}>
+            <Chip icon="bed" style={styles.favoritedListingChip} textStyle={styles.chipText}>
+              {item.bedCount} beds
+            </Chip>
+            <Chip icon="shower" style={styles.favoritedListingChip} textStyle={styles.chipText}>
+              {item.bathCount} baths
+            </Chip>
+          </View>
+          <Button
+            mode="contained"
+            onPress={() => onRemoveFavorite(item.id)}
+            style={styles.removeFavoriteButton}
+            buttonColor={theme.colors.primary}
+          >
+            Remove
+          </Button>
+        </View>
+      </View>
+    </Surface>
+  );
+};
 
 // Add these interfaces at the top of the file
 interface EditFormData {
@@ -78,7 +147,7 @@ const EditProfileModal = ({ visible, onClose, onSave, editForm, setEditForm }: E
             }}
           />
           <TextInput
-            label="Phone"
+            label="Phone Number"
             value={editForm.phone}
             onChangeText={(text) => setEditForm(prev => ({ ...prev, phone: text }))}
             keyboardType="numeric"
@@ -182,6 +251,7 @@ export function ProfilePage() {
   const { user } = useAuth();
   const [userData, setUserData] = useState<any>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [favoritedListings, setFavoritedListings] = useState(mockFavoritedListings);
   const [editForm, setEditForm] = useState<EditFormData>({
     first: '',
     last: '',
@@ -256,101 +326,131 @@ export function ProfilePage() {
     }
   };
 
+  const handleRemoveFavorite = (listingId: string) => {
+    setFavoritedListings((prev) => prev.filter((listing) => listing.id !== listingId));
+  };
+
   return (
-    <View style={styles.container}>
-      <Card style={styles.profileCard}>
-        <View style={styles.headerSection}>
-          <Image
-            source={
-              userData?.profilePictureURL
-                ? { uri: userData.profilePictureURL }
-                : require("../assets/images/default-pfp.png")
-            }
-            style={styles.profileImage}
-          />
-          <View style={styles.headerInfo}>
-            <Title>{`${userData?.first} ${userData?.last}`}</Title>
-            <Paragraph>{userData?.school || ""}</Paragraph>
+    <ScrollView style={styles.container} contentContainerStyle={styles.scrollViewContent}>
+      <View style={styles.container}>
+        <Card style={styles.profileCard}>
+          <View style={styles.headerSection}>
+            <Image
+              source={
+                userData?.profilePictureURL
+                  ? { uri: userData.profilePictureURL }
+                  : require("../assets/images/default-pfp.png")
+              }
+              style={styles.profileImage}
+            />
+            <View style={styles.headerInfo}>
+              <Title>{`${userData?.first} ${userData?.last}`}</Title>
+              <Paragraph>{userData?.school || ""}</Paragraph>
+            </View>
           </View>
-        </View>
 
+          <Card.Content>
+            <View style={styles.statsContainer}>
+              <View style={styles.statItem}>
+                <ThemedText type="title">
+                  {userData?.listing_ids?.length}
+                </ThemedText>
+                <ThemedText>Listings</ThemedText>
+              </View>
+              <View style={styles.statItem}>
+                <ThemedText type="title">
+                  {userData?.interested_listing_ids?.length}
+                </ThemedText>
+                <ThemedText>Interested In</ThemedText>
+              </View>
+              <View style={styles.statItem}>
+                <ThemedText type="title">{userData?.rating || "N/A"}</ThemedText>
+                <ThemedText>Rating</ThemedText>
+              </View>
+            </View>
+
+            <View style={styles.infoSection}>
+              <ThemedText type="subtitle">About Me</ThemedText>
+              <ThemedText>{userData?.about_me || "N/A"}</ThemedText>
+            </View>
+
+            <View style={styles.infoSection}>
+              <ThemedText type="subtitle">Details</ThemedText>
+              <View style={styles.detailItem}>
+                <ThemedText type="defaultSemiBold">Major:</ThemedText>
+                <ThemedText>{userData?.major || "N/A"}</ThemedText>
+              </View>
+              <View style={styles.detailItem}>
+                <ThemedText type="defaultSemiBold">Graduation Year:</ThemedText>
+                <ThemedText>{userData?.graduation_year || "N/A"}</ThemedText>
+              </View>
+              <View style={styles.detailItem}>
+                <ThemedText type="defaultSemiBold">Email:</ThemedText>
+                <ThemedText>{userData?.email}</ThemedText>
+              </View>
+              <View style={styles.detailItem}>
+                <ThemedText type="defaultSemiBold">Member Since:</ThemedText>
+                <ThemedText>
+                  {userData?.join_date?.toDate().toLocaleDateString()}
+                </ThemedText>
+              </View>
+            </View>
+          </Card.Content>
+
+          <Card.Actions>
+            <Button mode="contained" onPress={handleEditPress}>
+              Edit Profile
+            </Button>
+            <Button mode="outlined" onPress={handleSignOut}>
+              Sign Out
+            </Button>
+          </Card.Actions>
+        </Card>
+
+        <EditProfileModal
+          visible={isEditing}
+          onClose={() => setIsEditing(false)}
+          onSave={handleSave}
+          editForm={editForm}
+          setEditForm={setEditForm}
+        />
+      </View>
+      {/* Favorited Listings Section */}
+      <Card style={styles.favoritedListingsCard}>
         <Card.Content>
-          <View style={styles.statsContainer}>
-            <View style={styles.statItem}>
-              <ThemedText type="title">
-                {userData?.listing_ids?.length}
-              </ThemedText>
-              <ThemedText>Listings</ThemedText>
-            </View>
-            <View style={styles.statItem}>
-              <ThemedText type="title">
-                {userData?.interested_listing_ids?.length}
-              </ThemedText>
-              <ThemedText>Interested In</ThemedText>
-            </View>
-            <View style={styles.statItem}>
-              <ThemedText type="title">{userData?.rating || "N/A"}</ThemedText>
-              <ThemedText>Rating</ThemedText>
-            </View>
+          <View style={styles.sectionHeader}>
+            <ThemedText type="subtitle">Favorited Listings</ThemedText>
+            <Chip style={styles.favoritesCountChip} textStyle={styles.chipText}>
+              {favoritedListings.length}
+            </Chip>
           </View>
-
-          <View style={styles.infoSection}>
-            <ThemedText type="subtitle">About Me</ThemedText>
-            <ThemedText>{userData?.about_me || "N/A"}</ThemedText>
-          </View>
-
-          <View style={styles.infoSection}>
-            <ThemedText type="subtitle">Details</ThemedText>
-            <View style={styles.detailItem}>
-              <ThemedText type="defaultSemiBold">Major:</ThemedText>
-              <ThemedText>{userData?.major || "N/A"}</ThemedText>
+          {favoritedListings.length === 0 ? (
+            <View style={styles.emptyFavoritesContainer}>
+              <ThemedText>No favorited listings yet</ThemedText>
+              <Button mode="outlined" onPress={() => { }} style={styles.exploreListingsButton}>
+                Explore Listings
+              </Button>
             </View>
-            <View style={styles.detailItem}>
-              <ThemedText type="defaultSemiBold">Graduation Year:</ThemedText>
-              <ThemedText>{userData?.graduation_year || "N/A"}</ThemedText>
-            </View>
-            <View style={styles.detailItem}>
-              <ThemedText type="defaultSemiBold">Email:</ThemedText>
-              <ThemedText>{userData?.email}</ThemedText>
-            </View>
-            <View style={styles.detailItem}>
-              <ThemedText type="defaultSemiBold">Member Since:</ThemedText>
-              <ThemedText>
-                {userData?.join_date?.toDate().toLocaleDateString()}
-              </ThemedText>
-            </View>
-          </View>
+          ) : (
+            favoritedListings.map((listing) => (
+              <FavoritedListingCard key={listing.id} item={listing} onRemoveFavorite={handleRemoveFavorite} />
+            ))
+          )}
         </Card.Content>
-
-        <Card.Actions>
-          <Button mode="contained" onPress={handleEditPress}>
-            Edit Profile
-          </Button>
-          <Button mode="outlined" onPress={handleSignOut}>
-            Sign Out
-          </Button>
-        </Card.Actions>
       </Card>
-
-      <EditProfileModal
-        visible={isEditing}
-        onClose={() => setIsEditing(false)}
-        onSave={handleSave}
-        editForm={editForm}
-        setEditForm={setEditForm}
-      />
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    backgroundColor: "#f5f5f5",
+    padding: 12,
+    backgroundColor: theme.colors.background,
   },
   profileCard: {
     borderRadius: 12,
+    backgroundColor: theme.colors.surface,
   },
   headerSection: {
     flexDirection: "row",
@@ -409,5 +509,73 @@ const styles = StyleSheet.create({
   },
   about_meInput: {
     height: 120,
+  },
+  favoritedListingsCard: {
+    marginTop: 16,
+    borderRadius: 12,
+    backgroundColor: theme.colors.surface,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  favoritesCountChip: {
+    backgroundColor: theme.colors.primaryContainer,
+  },
+  favoritedListingCard: {
+    marginBottom: 16,
+    borderRadius: 12,
+    backgroundColor: theme.colors.surface,
+  },
+  favoritedListingContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16,
+  },
+  favoritedListingImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 12,
+    marginRight: 16,
+  },
+  favoritedListingDetails: {
+    flex: 1,
+  },
+  favoritedListingTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: theme.colors.text,
+  },
+  favoritedListingAddress: {
+    marginVertical: 4,
+    color: theme.colors.text,
+  },
+  favoritedListingChips: {
+    flexDirection: "row",
+    gap: 8,
+    marginVertical: 8,
+  },
+  favoritedListingChip: {
+    backgroundColor: theme.colors.primaryContainer,
+  },
+  chipText: {
+    color: theme.colors.text,
+  },
+  removeFavoriteButton: {
+    marginTop: 8,
+    borderRadius: 8,
+  },
+  emptyFavoritesContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 16,
+  },
+  exploreListingsButton: {
+    marginTop: 16,
+  },
+  scrollViewContent: {
+    paddingBottom: 32,
   },
 });
