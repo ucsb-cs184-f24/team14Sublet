@@ -60,7 +60,7 @@ const FavoritedListingCard = ({ item, onRemoveFavorite }) => {
           <Paragraph style={styles.listingAddress}>{item.address}</Paragraph>
           <View style={styles.listingChips}>
             <Chip 
-              icon="bed" 
+              icon={() => <MaterialCommunityIcons name="bed" size={16} color={theme.colors.text} />}
               style={styles.listingChip} 
               textStyle={[styles.chipText, { color: theme.colors.text }]}
               theme={{ colors: { surface: theme.colors.surface } }}
@@ -68,7 +68,7 @@ const FavoritedListingCard = ({ item, onRemoveFavorite }) => {
               {item.bedCount} beds
             </Chip>
             <Chip 
-              icon="shower" 
+              icon={() => <MaterialCommunityIcons name="shower" size={16} color={theme.colors.text} />}
               style={styles.listingChip} 
               textStyle={[styles.chipText, { color: theme.colors.text }]}
               theme={{ colors: { surface: theme.colors.surface } }}
@@ -439,7 +439,7 @@ export function ProfilePage() {
             onPress={() => setActiveTab('favorites')}
           >
             <MaterialCommunityIcons name="heart" size={24} color={theme.colors.text} />
-            <ThemedText style={styles.navButtonText}>Favorited Listings</ThemedText>
+            <ThemedText style={styles.navButtonText}>Saved</ThemedText>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.navButton, activeTab === 'myListings' && styles.activeNavButton]}
@@ -456,14 +456,14 @@ export function ProfilePage() {
             <Card style={styles.listingsCard}>
               <Card.Content>
                 <View style={styles.sectionHeader}>
-                  <ThemedText type="subtitle">Favorited Listings</ThemedText>
+                  <ThemedText type="subtitle">Saved</ThemedText>
                   <Chip style={styles.countChip} textStyle={{ color: theme.colors.text }}>
                     {favoritedListings.length}
                   </Chip>
                 </View>
                 {favoritedListings.length === 0 ? (
                   <View style={styles.emptyContainer}>
-                    <ThemedText>No favorited listings yet</ThemedText>
+                    <ThemedText>No saved listings yet</ThemedText>
                     <Button 
                       mode="outlined" 
                       onPress={() => {}} 
@@ -574,6 +574,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 16,
+    paddingHorizontal: 8,
   },
   navButton: {
     flex: 1,
@@ -585,6 +586,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
     borderRadius: 8,
     elevation: 2,
+    minWidth: 120,
   },
   activeNavButton: {
     backgroundColor: theme.colors.primaryContainer,
