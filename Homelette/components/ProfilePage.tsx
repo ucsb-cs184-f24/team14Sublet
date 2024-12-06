@@ -398,10 +398,21 @@ export function ProfilePage() {
           </Card.Content>
 
           <Card.Actions>
-            <Button mode="contained" onPress={handleEditPress}>
+            <Button 
+              mode="contained" 
+              onPress={handleEditPress}
+              buttonColor={theme.colors.primary}
+              textColor={theme.colors.text}
+              style={styles.actionButton}
+            >
               Edit Profile
             </Button>
-            <Button mode="outlined" onPress={handleSignOut}>
+            <Button 
+              mode="outlined" 
+              onPress={handleSignOut}
+              textColor={theme.colors.text}
+              style={[styles.actionButton, styles.signOutButton]}
+            >
               Sign Out
             </Button>
           </Card.Actions>
@@ -577,5 +588,11 @@ const styles = StyleSheet.create({
   },
   scrollViewContent: {
     paddingBottom: 32,
+  },
+  actionButton: {
+    marginHorizontal: 8,
+  },
+  signOutButton: {
+    borderColor: theme.colors.text,
   },
 });
