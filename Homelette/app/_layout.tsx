@@ -4,15 +4,14 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import Octicons from "@expo/vector-icons/Octicons";
 import { useAuth } from "@/hooks/useAuth";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-
 export default function RootLayout() {
   const { user } = useAuth();
 
   return (
-    <SafeAreaProvider>
-      <SafeAreaView style={{ flex: 1 }}>
-        <PaperProvider>
-          {user ? (
+    <PaperProvider>
+      {user ? (
+        <SafeAreaProvider>
+          <SafeAreaView style={{ flex: 1 }}>
             <Tabs screenOptions={{ tabBarActiveTintColor: "#EBC968", headerShown: false }}>
               <Tabs.Screen
                 name="index"
@@ -29,6 +28,15 @@ export default function RootLayout() {
                   title: "Post",
                   tabBarIcon: ({ color, size }) => (
                     <Octicons name="diff-added" size={size} color={color} />
+                  ),
+                }}
+              />
+              <Tabs.Screen
+                name="rent"
+                options={{
+                  title: "Rent",
+                  tabBarIcon: ({ color, size }) => (
+                    <Ionicons name="business" size={size} color={color} />
                   ),
                 }}
               />
@@ -51,13 +59,13 @@ export default function RootLayout() {
                 }}
               />
             </Tabs>
-          ) : (
-            <Stack>
-              <Stack.Screen name="index" options={{ headerShown: false }} />
-            </Stack>
-          )}
-        </PaperProvider>
-      </SafeAreaView>
-    </SafeAreaProvider>
+          </SafeAreaView>
+        </SafeAreaProvider>
+      ) : (
+        <Stack>
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+        </Stack>
+      )}
+  </PaperProvider>
   );
 }
