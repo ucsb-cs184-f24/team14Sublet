@@ -17,6 +17,7 @@ import {
   addDoc,
   updateDoc,
   arrayUnion,
+  arrayRemove,
 } from "firebase/firestore";
 
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
@@ -169,10 +170,10 @@ export async function getListings() {
         continue;
       }
 
-      let propertyRef = doc(firestore, "properties", listing['property_id']);
-      console.log(listing['property_id'])
-      let propertySnap = await (getDoc(propertyRef));
-      let property = propertySnap.data()
+      let propertyRef = doc(firestore, "properties", listing["property_id"]);
+      console.log(listing["property_id"]);
+      let propertySnap = await getDoc(propertyRef);
+      let property = propertySnap.data();
 
       // Skip empty properties
       if (property == null || Object.entries(property).length === 0) {
@@ -180,23 +181,26 @@ export async function getListings() {
       }
 
       // let imageUrl = await fetchStorage(property['image_url']);
-      let imageUrl = property['image_url'];
+      let imageUrl = property["image_url"];
       let propertyAddress = "";
-      if (typeof (property['address']) === 'object' && property['address']['street_address'] != null) {
-        propertyAddress = property['address']['street_address'];
+      if (
+        typeof property["address"] === "object" &&
+        property["address"]["street_address"] != null
+      ) {
+        propertyAddress = property["address"]["street_address"];
       }
 
       result.push({
         id: index,
         property: propertyAddress,
-        rent: listing['price'],
-        startDate: listing['start_date'],
-        endDate: listing['end_date'],
+        rent: listing["price"],
+        startDate: listing["start_date"],
+        endDate: listing["end_date"],
         image: imageUrl,
-        bedCount: property['bedrooms'],
-        bathCount: property['bathrooms'],
-        area: property['area'],
-        authorId: listing['author_id']
+        bedCount: property["bedrooms"],
+        bathCount: property["bathrooms"],
+        area: property["area"],
+        authorId: listing["author_id"],
       });
 
       index++;
@@ -214,14 +218,14 @@ export async function getInterestedLeases() {
     const docRef = doc(firestore, "users", uid);
     const docSnap = await getDoc(docRef);
 
-    let result = []
+    let result = [];
 
     if (docSnap.exists()) {
-      listings = docSnap.data()['interested_listing_ids'];
+      listings = docSnap.data()["interested_listing_ids"];
       console.log(listings);
       for (i in listings) {
         let listingRef = doc(firestore, "listings", listings[i]);
-        let listingSnap = await (getDoc(listingRef));
+        let listingSnap = await getDoc(listingRef);
         let listing = listingSnap.data();
 
         // Skip empty listings
@@ -229,10 +233,10 @@ export async function getInterestedLeases() {
           continue;
         }
 
-        let propertyRef = doc(firestore, "properties", listing['property_id']);
-        console.log(listing['property_id'])
-        let propertySnap = await (getDoc(propertyRef));
-        let property = propertySnap.data()
+        let propertyRef = doc(firestore, "properties", listing["property_id"]);
+        console.log(listing["property_id"]);
+        let propertySnap = await getDoc(propertyRef);
+        let property = propertySnap.data();
 
         // Skip empty properties
         if (property == null || Object.entries(property).length === 0) {
@@ -240,25 +244,27 @@ export async function getInterestedLeases() {
         }
 
         // let imageUrl = await fetchStorage(property['image_url']);
-        let imageUrl = property['image_url'];
-        if (typeof (property['address']) === 'object' && property['address']['street_address'] != null) {
-          propertyAddress = property['address']['street_address'];
+        let imageUrl = property["image_url"];
+        if (
+          typeof property["address"] === "object" &&
+          property["address"]["street_address"] != null
+        ) {
+          propertyAddress = property["address"]["street_address"];
         }
 
         result.push({
           id: i,
           property: propertyAddress,
-          rent: listing['price'],
-          startDate: listing['start_date'],
-          endDate: listing['end_date'],
+          rent: listing["price"],
+          startDate: listing["start_date"],
+          endDate: listing["end_date"],
           image: imageUrl,
-          bedCount: property['bedrooms'],
-          bathCount: property['bathrooms'],
-          area: property['area']
+          bedCount: property["bedrooms"],
+          bathCount: property["bathrooms"],
+          area: property["area"],
         });
       }
-    }
-    else {
+    } else {
       console.log("NOT FOUND");
     }
     console.log(result);
@@ -284,8 +290,7 @@ export async function getConversation(conversation_id: string) {
 
       console.log(conversation_data);
       return conversation_data;
-    }
-    else {
+    } else {
       console.log("NOT FOUND");
     }
     console.log(result);
@@ -304,7 +309,7 @@ export const updateUserProfile = async (
     bio?: string;
     major?: string;
     graduationYear?: string;
-  }
+  },
 ) => {
   try {
     const userRef = doc(firestore, "users", userId);
@@ -314,7 +319,12 @@ export const updateUserProfile = async (
   }
 };
 
-export const sendNewMessage = async (senderId: string, targetId: string, text: string, title: string) => {
+export const sendNewMessage = async (
+  senderId: string,
+  targetId: string,
+  text: string,
+  title: string,
+) => {
   try {
     console.log(senderId, targetId, text, title);
 
@@ -333,62 +343,74 @@ export const sendNewMessage = async (senderId: string, targetId: string, text: s
       text: text,
       timestamp: Date.now(),
       uid: senderId,
-    }
+    };
 
     let conversationRef;
     let conversation;
     let conversationExists = false;
-    conversationRef = doc(firestore, "conversations", `${senderId}_${targetId}`); // Id format: user1Id_user2Id
+    conversationRef = doc(
+      firestore,
+      "conversations",
+      `${senderId}_${targetId}`,
+    ); // Id format: user1Id_user2Id
     conversationDoc = await getDoc(conversationRef);
     conversationExists = conversationDoc.exists();
-    if (!conversationExists) { // Check for conversation id
-      conversationRef = doc(firestore, "conversations", `${targetId}_${senderId}`); // check reverse format
+    if (!conversationExists) {
+      // Check for conversation id
+      conversationRef = doc(
+        firestore,
+        "conversations",
+        `${targetId}_${senderId}`,
+      ); // check reverse format
       conversationDoc = await getDoc(conversationRef);
       conversationExists = conversationDoc.exists();
     }
     if (!conversationExists) {
-      await setDoc(doc(firestore, "conversations", `${senderId}_${targetId}`), { messages: [message] });
+      await setDoc(doc(firestore, "conversations", `${senderId}_${targetId}`), {
+        messages: [message],
+      });
 
       let senderData = senderSnap.data();
       let targetData = targetSnap.data();
 
-      if (senderData['conversations'] == null) {
+      if (senderData["conversations"] == null) {
         await updateDoc(senderRef, {
-          conversations: [{
-            conversation_id: `${senderId}_${targetId}`,
-            conversation_title: title,
-          }]
+          conversations: [
+            {
+              conversation_id: `${senderId}_${targetId}`,
+              conversation_title: title,
+            },
+          ],
         });
-      }
-      else {
+      } else {
         await updateDoc(senderRef, {
           conversations: arrayUnion({
             conversation_id: `${senderId}_${targetId}`,
             conversation_title: title,
-          })
+          }),
         });
       }
 
-      if (targetData['conversations'] == null) {
+      if (targetData["conversations"] == null) {
         await updateDoc(targetRef, {
-          conversations: [{
-            conversation_id: `${senderId}_${targetId}`,
-            conversation_title: title,
-          }]
+          conversations: [
+            {
+              conversation_id: `${senderId}_${targetId}`,
+              conversation_title: title,
+            },
+          ],
         });
-      }
-      else {
+      } else {
         await updateDoc(targetRef, {
           conversations: arrayUnion({
             conversation_id: `${senderId}_${targetId}`,
             conversation_title: title,
-          })
+          }),
         });
       }
-    }
-    else {
+    } else {
       await updateDoc(conversationRef, {
-        messages: arrayUnion(message)
+        messages: arrayUnion(message),
       });
     }
 
@@ -396,17 +418,21 @@ export const sendNewMessage = async (senderId: string, targetId: string, text: s
   } catch (error) {
     throw error;
   }
-}
+};
 
-export const sendMessage = async (senderId: string, conversation_id: string, text: string) => {
+export const sendMessage = async (
+  senderId: string,
+  conversation_id: string,
+  text: string,
+) => {
   let message = {
     is_image: false, // Add support later
     text: text,
     timestamp: Date.now(),
     uid: senderId,
-  }
+  };
 
-  console.log("poiu")
+  console.log("poiu");
 
   let conversationRef;
   let conversation;
@@ -417,15 +443,54 @@ export const sendMessage = async (senderId: string, conversation_id: string, tex
   if (!conversationExists) {
     console.log("Conversation not found! Error");
     return;
-  }
-  else {
-    console.log('fgh')
+  } else {
+    console.log("fgh");
     await updateDoc(conversationRef, {
-      messages: arrayUnion(message)
+      messages: arrayUnion(message),
     });
   }
 
+  console.log(
+    `${senderId} sent message to conversation ${conversation_id}: ${text}`,
+  );
+};
 
+export const addListingToInterested = async (
+  userID: string,
+  listingID: string,
+) => {
+  try {
+    const userRef = doc(firestore, "users", userID);
+    const userSnap = await getDoc(userRef);
 
-  console.log(`${senderId} sent message to conversation ${conversation_id}: ${text}`);
-}
+    if (userSnap.exists()) {
+      await updateDoc(userRef, {
+        interested_listing_ids: arrayUnion(listingID),
+      });
+    } else {
+      console.log("User not found");
+    }
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const removeListingFromInterested = async (
+  userID: string,
+  listingID: string,
+) => {
+  try {
+    const userRef = doc(firestore, "users", userID);
+    const userSnap = await getDoc(userRef);
+
+    if (userSnap.exists()) {
+      await updateDoc(userRef, {
+        interested_listing_ids: arrayRemove(listingID),
+      });
+    } else {
+      console.log("User not found");
+    }
+  } catch (error) {
+    throw error;
+  }
+};
