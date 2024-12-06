@@ -973,7 +973,7 @@ export function ProfilePage() {
                     <ThemedText>No saved listings yet</ThemedText>
                     <Button 
                       mode="outlined" 
-                      onPress={() => {}} 
+                      onPress={() => navigation.navigate("index")} 
                       style={styles.exploreButton}
                       textColor={theme.colors.text}
                     >
