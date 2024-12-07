@@ -32,11 +32,9 @@ expo start
 ```
 * Follow the instructions provided by Expo to run the app on your connected device or an emulator.
 
-### Installation of the APK (v1.0.0-MVP)
+### Installation of the APK (v1.1.0-project-demo)
 
-* To install the APK directly on your Android device, download it using this link: [Homelette APK](https://expo.dev/artifacts/eas/74zKP9485na2ueiz5bEMWy.apk)
-
-* Download Homelette APK
+* To install the APK directly on your Android device, download it using this link: [Homelette APK](https://expo.dev/artifacts/eas/aA2wUHycaxGAM3wdMTGbYM.apk)
 
 * Once downloaded, ensure that your device allows installations from unknown sources. Navigate to the downloaded APK file and tap to install.
 
@@ -49,9 +47,6 @@ expo start
 * Profile details can be viewed on the Profile page
 
 ### Known Problems
-
-* Attempting to modify profile details will not work (v1.0.0)
-* The user must sign out and sign in again in order to see a new lease they posted (v1.0.0)
 
 # Tech Stack
 
@@ -93,3 +88,7 @@ expo start
 - Allen Qiu - @aqiu04
 - Amy Wang - @awaang
 - Jason Vu - @Firoc
+
+# Deployment
+
+[APK for our app here](https://expo.dev/artifacts/eas/aA2wUHycaxGAM3wdMTGbYM.apk)
