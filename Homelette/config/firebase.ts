@@ -157,7 +157,7 @@ export async function getListings() {
     // Example code block modified from official Firebase docs
     const querySnapshot = await getDocs(collection(firestore, "listings"));
     querySnapshot.forEach((document) => {
-      data.push(document.data());
+      data.push({ ...document.data(), listing_id: document.id });
     });
 
     let index = 0;
@@ -187,7 +187,8 @@ export async function getListings() {
       }
 
       result.push({
-        id: index,
+        id: listing.listing_id,  // Use the actual Firestore document ID
+        property_id: listing['property_id'],  // Include property_id for reference
         property: propertyAddress,
         rent: listing['price'],
         startDate: listing['start_date'],

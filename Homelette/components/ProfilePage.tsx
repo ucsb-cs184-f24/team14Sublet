@@ -1,48 +1,15 @@
-import React from "react";
-import { useState, useEffect } from "react";
-import { View, ScrollView, Alert, Text, Image, Modal, TouchableOpacity, StyleSheet } from "react-native";
+import React, { useState, useEffect, useRef } from "react";
+import { View, ScrollView, Alert, Text, Image, Modal, TouchableOpacity, StyleSheet, Animated, Easing, RefreshControl } from "react-native";
 import { Card, Title, Paragraph, Button, TextInput, Surface, Chip, IconButton, Portal, Dialog } from "react-native-paper";
 import { ThemedText } from "./ThemedText";
 import { firestore } from "../config/firebase";
-import { doc, getDoc, collection, query, where, getDocs, deleteDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, collection, query, where, getDocs, deleteDoc, updateDoc, arrayRemove } from "firebase/firestore";
 import { useAuth } from "@/hooks/useAuth";
 import { updateUserProfile } from "../config/firebase";
 import { signOut } from "firebase/auth";
 import { auth } from "@/config/firebase";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from "@react-navigation/native";
-
-// Mock data for favorited listings
-const mockFavoritedListings = [
-  {
-    id: '1',
-    type: 'Studio Apartment',
-    address: {
-      street_address: '2650 Durant Avenue',
-      city: 'Berkeley',
-      state: 'CA',
-      zip_code: '94704'
-    },
-    bedrooms: 0,
-    bathrooms: 1,
-    area: 450,
-    image_url: null
-  },
-  {
-    id: '2',
-    type: '2 Bedroom Apartment',
-    address: {
-      street_address: '2728 Dwight Way',
-      city: 'Berkeley',
-      state: 'CA',
-      zip_code: '94704'
-    },
-    bedrooms: 2,
-    bathrooms: 1,
-    area: 750,
-    image_url: null
-  }
-];
 
 // Color theme matching RentPage.tsx
 const theme = {
@@ -61,10 +28,13 @@ const FavoritedListingCard = ({ item, onRemoveFavorite }) => {
   return (
     <Surface elevation={2} style={styles.listingCard}>
       <View style={styles.listingContent}>
-        <Image source={{ uri: item.image }} style={styles.listingImage} />
+        <Image 
+          source={item.property.image_url ? { uri: item.property.image_url } : require("../assets/images/default-property.png")} 
+          style={styles.listingImage} 
+        />
         <View style={styles.listingDetails}>
-          <Title style={styles.listingTitle}>${item.rent}/mo</Title>
-          <Paragraph style={styles.listingAddress}>{item.address}</Paragraph>
+          <Title style={styles.listingTitle}>${item.price}/mo</Title>
+          <Paragraph style={styles.listingAddress}>{item.property.address?.street_address || 'No address'}</Paragraph>
           <View style={styles.listingChips}>
             <Chip 
               icon={() => <MaterialCommunityIcons name="bed" size={16} color={theme.colors.text} />}
@@ -72,7 +42,7 @@ const FavoritedListingCard = ({ item, onRemoveFavorite }) => {
               textStyle={[styles.chipText, { color: theme.colors.text }]}
               theme={{ colors: { surface: theme.colors.surface } }}
             >
-              {item.bedCount} beds
+              {item.property.bedrooms} beds
             </Chip>
             <Chip 
               icon={() => <MaterialCommunityIcons name="shower" size={16} color={theme.colors.text} />}
@@ -80,7 +50,7 @@ const FavoritedListingCard = ({ item, onRemoveFavorite }) => {
               textStyle={[styles.chipText, { color: theme.colors.text }]}
               theme={{ colors: { surface: theme.colors.surface } }}
             >
-              {item.bathCount} baths
+              {item.property.bathrooms} baths
             </Chip>
           </View>
           <Button
@@ -453,6 +423,46 @@ const EditListingModal = ({ visible, onDismiss, property, onSave }) => {
   );
 };
 
+// Animated Egg Component
+const WigglingEgg = () => {
+  const rotation = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(rotation, {
+          toValue: 1,
+          duration: 250, // shorter duration for a snappier motion
+          useNativeDriver: true,
+          easing: Easing.inOut(Easing.ease),
+        }),
+        Animated.timing(rotation, {
+          toValue: -1,
+          duration: 250, // shorter duration here too
+          useNativeDriver: true,
+          easing: Easing.inOut(Easing.ease),
+        }),
+      ])
+    ).start();
+  }, [rotation]);
+
+  // Increase the rotation angle here
+  const rotate = rotation.interpolate({
+    inputRange: [-1, 1],
+    outputRange: ["-15deg", "15deg"], // more dramatic rotation
+  });
+
+  return (
+    <Animated.View style={{ transform: [{ rotate }] }}>
+      <IconButton
+        icon="egg"
+        size={172}
+        iconColor="#FFD700"
+      />
+    </Animated.View>
+  );
+};
+
 // Property Card Component
 const PropertyCard = ({ property, onEdit, onDelete }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -681,7 +691,9 @@ export function ProfilePage() {
   const navigation = useNavigation();
   const [userData, setUserData] = useState<any>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [favoritedListings, setFavoritedListings] = useState(mockFavoritedListings);
+  const [favoritedListings, setFavoritedListings] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState('profile');
   const [editForm, setEditForm] = useState<EditFormData>({
     first: '',
@@ -695,57 +707,83 @@ export function ProfilePage() {
   const [isLoadingProperties, setIsLoadingProperties] = useState(false);
   const [editingProperty, setEditingProperty] = useState(null);
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      if (user) {
-        const userDocRef = doc(firestore, "users", user.uid);
-        const userDocSnap = await getDoc(userDocRef);
-        if (userDocSnap.exists()) {
-          const userData = userDocSnap.data();
-          setUserData(userData);
-          console.log(userData);
-          
-          // Fetch properties
-          const fetchUserProperties = async () => {
-            if (!user) return;
-            
-            setIsLoadingProperties(true);
-            try {
-              // Get user's listing IDs
-              const userDocRef = doc(firestore, "users", user.uid);
-              const userDoc = await getDoc(userDocRef);
-              const listingIds = userDoc.data()?.listing_ids || [];
-              
-              // Fetch each property
-              const properties = [];
-              for (const id of listingIds) {
-                const propertyRef = doc(firestore, "properties", id);
-                const propertyDoc = await getDoc(propertyRef);
-                if (propertyDoc.exists()) {
-                  properties.push({
-                    id: propertyDoc.id,
-                    ...propertyDoc.data()
-                  });
-                }
-              }
-              
-              setUserProperties(properties);
-            } catch (error) {
-              console.error("Error fetching properties:", error);
-              Alert.alert("Error", "Failed to fetch your properties. Please try again later.");
-            } finally {
-              setIsLoadingProperties(false);
-            }
-          };
-          fetchUserProperties();
-        } else {
-          console.log("No such document!");
-        }
-      }
-    };
+  const fetchUserData = async () => {
+    if (!auth.currentUser) return;
 
+    try {
+      const userDoc = await getDoc(doc(firestore, 'users', auth.currentUser.uid));
+      const userData = userDoc.data();
+      setUserData(userData);
+
+      // Fetch favorited listings
+      if (userData?.interested_listing_ids?.length > 0) {
+        const listingPromises = userData.interested_listing_ids.map(async (listingId: string) => {
+          try {
+            // Get listing document
+            const listingDoc = await getDoc(doc(firestore, 'listings', listingId));
+            if (!listingDoc.exists()) return null;
+            
+            const listingData = listingDoc.data();
+            
+            // Get associated property document if it exists
+            if (listingData?.property_id) {
+              const propertyDoc = await getDoc(doc(firestore, 'properties', listingData.property_id));
+              if (!propertyDoc.exists()) return null;
+              
+              const propertyData = propertyDoc.data();
+              
+              // Combine listing and property data
+              return {
+                id: listingId,
+                ...listingData,
+                property: {
+                  ...propertyData,
+                  id: listingData.property_id
+                }
+              };
+            }
+            
+            // If no property_id, just return listing data
+            return {
+              id: listingId,
+              ...listingData
+            };
+          } catch (error) {
+            console.error(`Error fetching listing ${listingId}:`, error);
+            return null;
+          }
+        });
+
+        const listings = (await Promise.all(listingPromises)).filter(listing => listing !== null);
+        setFavoritedListings(listings);
+      } else {
+        setFavoritedListings([]);
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
     fetchUserData();
-  }, [user]);
+  }, [auth.currentUser?.uid]);
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    fetchUserData();
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <WigglingEgg />
+        <Text style={styles.loadingText}>Loading...</Text>
+      </View>
+    );
+  }
 
   const handleEditPress = () => {
     setEditForm({
@@ -794,8 +832,29 @@ export function ProfilePage() {
     }
   };
 
-  const handleRemoveFavorite = (listingId: string) => {
-    setFavoritedListings((prev) => prev.filter((listing) => listing.id !== listingId));
+  const handleRemoveFavorite = async (listingId: string) => {
+    if (!auth.currentUser) return;
+
+    try {
+      const userId = auth.currentUser.uid;
+      const userRef = doc(firestore, 'users', userId);
+      const listingRef = doc(firestore, 'listings', listingId);
+
+      // Remove listing from user's favorites
+      await updateDoc(userRef, {
+        interested_listing_ids: arrayRemove(listingId)
+      });
+
+      // Remove user from listing's interested users
+      await updateDoc(listingRef, {
+        interested_user_ids: arrayRemove(userId)
+      });
+
+      // Update local state
+      setFavoritedListings(prev => prev.filter(listing => listing.id !== listingId));
+    } catch (error) {
+      console.error("Error removing favorite:", error);
+    }
   };
 
   const handleEditProperty = (property) => {
@@ -864,7 +923,16 @@ export function ProfilePage() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.scrollViewContent}>
+    <ScrollView 
+      style={styles.container} 
+      contentContainerStyle={styles.scrollViewContent}
+      refreshControl={
+        <RefreshControl 
+          refreshing={refreshing} 
+          onRefresh={onRefresh} 
+        />
+      }
+    >
       {/* Profile Section */}
       <View style={styles.profileSection}>
         <Card style={styles.profileCard}>
@@ -995,7 +1063,7 @@ export function ProfilePage() {
                   </View>
                 ) : (
                   favoritedListings.map((listing) => (
-                    <SavedPropertyCard key={listing.id} property={listing} onRemove={handleRemoveFavorite} />
+                    <FavoritedListingCard key={listing.id} item={listing} onRemoveFavorite={handleRemoveFavorite} />
                   ))
                 )}
               </Card.Content>
@@ -1438,5 +1506,16 @@ const styles = StyleSheet.create({
   },
   dialogButton: {
     minWidth: 100,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: theme.colors.background,
+  },
+  loadingText: {
+    fontSize: 18,
+    color: theme.colors.text,
+    marginTop: 16,
   },
 });

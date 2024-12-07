@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, View, Dimensions } from "react-native";
-import { getListings, auth, sendNewMessage } from "@/config/firebase";
+import { StyleSheet, View, Dimensions, RefreshControl } from "react-native";
+import { getListings, auth, sendNewMessage, firestore } from "@/config/firebase";
+import { doc, updateDoc, arrayUnion, arrayRemove, getDoc, collection, getDocs } from "firebase/firestore";
 import MapView, { Marker } from "react-native-maps";
 import {
   Card,
@@ -110,7 +111,7 @@ const PropertyCard = ({
   item: Property;
   isFavorite: boolean;
   listingAuthorId: string;
-  onToggleFavorite: (id: string) => void;
+  onToggleFavorite: (id: string | number) => void;
 }) => {
   const [isVisible, setVisible] = useState(false);
   const [message, setMessage] = useState("");
@@ -315,52 +316,204 @@ const FilterModal = ({
 export function RentPage() {
   const [data, setData] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [filterVisible, setFilterVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const result = await getListings();
+  const fetchData = async () => {
+    try {
+      const result = await getListings();
+      console.log("Fetched listings:", result);
+      
+      const formattedData = result.map((item: any) => ({
+        id: item.id,
+        address: item.property, // Rename property to address
+        rent: item.rent,
+        startDate: item.startDate,
+        endDate: item.endDate,
+        image: item.image,
+        bedCount: item.bedCount,
+        bathCount: item.bathCount,
+        area: item.area,
+        latitude: item.latitude,
+        longitude: item.longitude,
+        authorId: item.authorId,
+      }));
 
-        // Map the data to match the Property type
-        const formattedData = result.map((item: any) => ({
-          id: item.id,
-          address: item.property, // Rename property to address
-          rent: item.rent,
-          startDate: item.startDate,
-          endDate: item.endDate,
-          image: item.image,
-          bedCount: item.bedCount,
-          bathCount: item.bathCount,
-          area: item.area,
-          latitude: item.latitude,
-          longitude: item.longitude,
-          authorId: item.authorId,
-        }));
+      console.log("Formatted data with real IDs:", formattedData);
+      setData(formattedData);
 
-        setData(formattedData);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setLoading(false);
+      // Fetch user's favorites
+      if (auth.currentUser) {
+        const userDoc = await getDoc(doc(firestore, 'users', auth.currentUser.uid));
+        const userData = userDoc.data();
+        console.log("User data:", userData);
+        
+        if (userData?.interested_listing_ids) {
+          console.log("Setting favorites:", userData.interested_listing_ids);
+          setFavorites(new Set(userData.interested_listing_ids));
+        } else {
+          console.log("No interested_listing_ids found, setting empty set");
+          setFavorites(new Set());
+        }
       }
-    };
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
     fetchData();
   }, []);
 
-  const toggleFavorite = (id: string) => {
-    setFavorites((prev) => {
-      const newFavorites = new Set(prev);
-      if (newFavorites.has(id)) {
-        newFavorites.delete(id);
-      } else {
-        newFavorites.add(id);
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    fetchData();
+  }, []);
+
+  const toggleFavorite = async (listingId: string | number) => {
+    // Convert listingId to string if it's a number
+    const listingIdString = String(listingId);
+    
+    console.log("Toggling favorite for listing:", listingIdString);
+    if (!auth.currentUser) {
+      console.log("No user logged in");
+      return;
+    }
+
+    const userId = auth.currentUser.uid;
+    console.log("Current user ID:", userId);
+
+    try {
+      // Log the references before creating them
+      console.log("Creating refs for user and listing:", { userId, listingId: listingIdString });
+      const userRef = doc(firestore, 'users', userId);
+      const listingRef = doc(firestore, 'listings', listingIdString);
+
+      // Check if favorites is defined
+      console.log("Checking favorites state:", { 
+        favoritesExists: !!favorites,
+        favoritesType: typeof favorites,
+        isSet: favorites instanceof Set
+      });
+
+      // Safely check if listing is favorited
+      let isFavorited = false;
+      try {
+        isFavorited = favorites?.has(listingIdString) || false;
+      } catch (error) {
+        console.error("Error checking favorites:", error);
+        // Reset favorites if it's in an invalid state
+        setFavorites(new Set());
       }
-      return newFavorites;
-    });
+      console.log("Favorited status:", isFavorited);
+
+      // Get user document
+      console.log("Fetching user document");
+      const userDoc = await getDoc(userRef);
+      if (!userDoc.exists()) {
+        console.error("User document doesn't exist!");
+        return;
+      }
+      const userData = userDoc.data();
+      console.log("User data:", userData);
+
+      // Get listing document
+      console.log("Fetching listing document");
+      const listingDoc = await getDoc(listingRef);
+      if (!listingDoc.exists()) {
+        console.error("Listing document doesn't exist!");
+        return;
+      }
+      const listingData = listingDoc.data();
+      console.log("Listing data:", listingData);
+
+      // Prepare the arrays if they don't exist
+      const updates = [];
+      
+      if (!userData?.interested_listing_ids) {
+        console.log("Initializing user's interested_listing_ids");
+        updates.push(updateDoc(userRef, { interested_listing_ids: [] }));
+      }
+
+      if (!listingData?.interested_user_ids) {
+        console.log("Initializing listing's interested_user_ids");
+        updates.push(updateDoc(listingRef, { interested_user_ids: [] }));
+      }
+
+      // Wait for any initialization updates
+      if (updates.length > 0) {
+        console.log("Performing initialization updates");
+        await Promise.all(updates);
+      }
+
+      // Update user document
+      console.log("Updating user's interested_listing_ids");
+      await updateDoc(userRef, {
+        interested_listing_ids: isFavorited 
+          ? arrayRemove(listingIdString)
+          : arrayUnion(listingIdString)
+      });
+
+      // Update listing document
+      console.log("Updating listing's interested_user_ids");
+      await updateDoc(listingRef, {
+        interested_user_ids: isFavorited
+          ? arrayRemove(userId)
+          : arrayUnion(userId)
+      });
+
+      // Update local state
+      console.log("Updating local favorites state");
+      setFavorites(prev => {
+        // Ensure prev is a Set, if not create a new one
+        const currentSet = (prev instanceof Set) ? prev : new Set();
+        const newFavorites = new Set(currentSet);
+        
+        if (isFavorited) {
+          newFavorites.delete(listingIdString);
+        } else {
+          newFavorites.add(listingIdString);
+        }
+        
+        console.log("New favorites state:", Array.from(newFavorites));
+        return newFavorites;
+      });
+
+      // Force a re-render by updating data state
+      setData(prevData => {
+        const newData = [...prevData];
+        const index = newData.findIndex(item => String(item.id) === listingIdString);
+        if (index !== -1) {
+          newData[index] = { ...newData[index] };
+        }
+        return newData;
+      });
+
+      console.log("Favorite toggle completed successfully");
+    } catch (error) {
+      // Log the full error details
+      console.error("Error in toggleFavorite:", {
+        error,
+        errorMessage: error.message,
+        errorStack: error.stack,
+        userId,
+        listingId: listingIdString,
+        favorites: favorites ? Array.from(favorites) : null
+      });
+    }
+  };
+
+  const isFavorited = (listingId: string | number): boolean => {
+    // Convert listingId to string if it's a number
+    const listingIdString = String(listingId);
+    // Ensure favorites is defined before calling has()
+    return favorites ? favorites.has(listingIdString) : false;
   };
 
   const renderContent = () => {
@@ -396,13 +549,18 @@ export function RentPage() {
         renderItem={({ item }) => (
           <PropertyCard
             item={item}
-            isFavorite={favorites.has(item.id)}
+            isFavorite={isFavorited(item.id)}
+            listingAuthorId={item.authorId}
             onToggleFavorite={toggleFavorite}
           />
         )}
-        estimatedItemSize={350}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContainer}
+        estimatedItemSize={200}
+        refreshControl={
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={onRefresh}
+          />
+        }
       />
     );
   };
