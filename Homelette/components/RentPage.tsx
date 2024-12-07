@@ -25,6 +25,7 @@ import {
 import { FlashList } from "@shopify/flash-list";
 import axios from "axios";
 import { useAuth } from "@/hooks/useAuth";
+import LoadingEgg from "@/components/LoadingEgg";
 
 // Mock data for properties
 
@@ -560,13 +561,9 @@ export function RentPage() {
   if (loading) {
     return (
       <PaperProvider theme={theme}>
-        <Card style={styles.card} elevation={2}>
-          <Card.Content>
-            <View>
-              <Title style={styles.rent}>Loading...</Title>
-            </View>
-          </Card.Content>
-        </Card>
+        <View style={[styles.container, styles.loadingContainer]}>
+          <LoadingEgg size={80} />
+        </View>
       </PaperProvider>
     );
   }
@@ -819,5 +816,9 @@ const styles = StyleSheet.create({
   },
   segmentedButtonBackground: {
     backgroundColor: theme.colors.primaryContainer, // Custom background for segmented buttons
+  },
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
