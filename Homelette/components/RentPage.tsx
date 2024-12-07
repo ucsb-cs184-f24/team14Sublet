@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, View, Dimensions, RefreshControl, Alert } from "react-native";
+import { StyleSheet, View, Dimensions, RefreshControl, Alert, Image } from "react-native";
 import { getListings, auth, sendNewMessage, firestore } from "@/config/firebase";
 import { doc, updateDoc, arrayUnion, arrayRemove, getDoc, collection, getDocs } from "firebase/firestore";
-import MapView, { Marker } from "react-native-maps";
+import MapView, { Marker, Callout } from "react-native-maps";
 import {
   Card,
   Title,
@@ -23,9 +23,12 @@ import {
   TextInput,
 } from "react-native-paper";
 import { FlashList } from "@shopify/flash-list";
+import axios from "axios";
 import { useAuth } from "@/hooks/useAuth";
 
 // Mock data for properties
+
+/* // - don't need this mock data
 const leases = [
   {
     id: "1",
@@ -61,6 +64,28 @@ const leases = [
     area: 900,
   },
 ];
+*/
+
+// helper function to get longitude / latitude:
+
+const getCoordinatesFromAddress = async (address: string): Promise<{ latitude: number, longitude: number } | null> => {
+  const apiKey = "AIzaSyCVsuSPlVbAHwQNkMS6ui8Pni2NJQ_UMb8"; // probably need to secure this later
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}`;
+
+  try {
+    const response = await axios.get(url);
+    if (response.data.status === "OK") {
+      const { lat, lng } = response.data.results[0].geometry.location;
+      return { latitude: lat, longitude: lng };
+    } else {
+      console.error("Geocoding failed: ", response.data.status);
+      return null;
+    }
+  } catch (error) {
+    console.error("Error fetching geocoding data:", error);
+    return null;
+  }
+};
 
 // Custom theme for React Native Paper
 const theme = {
@@ -123,8 +148,8 @@ const PropertyCard = ({
   }, [isFavorite]);
 
   const handleFavoritePress = () => {
-    setLocalFavorite(!localFavorite); 
-    onToggleFavorite(item.id); 
+    setLocalFavorite(!localFavorite);
+    onToggleFavorite(item.id);
   };
 
   const handleSendMessage = (
@@ -374,6 +399,7 @@ export function RentPage() {
     }
   };
 
+
   const toggleFavorite = async (id: string) => {
     if (!user) {
       Alert.alert("Error", "Please sign in to save listings");
@@ -418,6 +444,38 @@ export function RentPage() {
   };
 
   useEffect(() => {
+    const fetchData = async () => { // this is getting the data for me
+      try {
+        const result = await getListings();
+
+        // Map the data to match the Property type
+        const formattedData: Property[] = await Promise.all(
+          result.map(async (item: any): Promise<Property> => {
+            const coordinates = await getCoordinatesFromAddress(item.property);
+
+            return {
+              id: item.id,
+              address: item.property,
+              rent: item.rent,
+              startDate: item.startDate,
+              endDate: item.endDate,
+              image: item.image,
+              bedCount: item.bedCount,
+              bathCount: item.bathCount,
+              area: item.area,
+              latitude: coordinates?.latitude,
+              longitude: coordinates?.longitude,
+              authorId: item.authorId,
+            };
+          })
+        );
+        setData(formattedData);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchData();
   }, [user]);
 
@@ -438,8 +496,8 @@ export function RentPage() {
         <MapView
           style={styles.map}
           initialRegion={{
-            latitude: 37.78825,
-            longitude: -122.4324,
+            latitude: 34.4133,
+            longitude: -119.8610,
             latitudeDelta: 0.0922,
             longitudeDelta: 0.0421,
           }}
@@ -448,12 +506,27 @@ export function RentPage() {
             <Marker
               key={item.id}
               coordinate={{
-                latitude: item.latitude || 37.78825,
-                longitude: item.longitude || -122.4324,
+                latitude: item.latitude,
+                longitude: item.longitude,
               }}
-              title={item.address}
-              description={`$${item.rent}/month`}
-            />
+            >
+              {/* Callout inside Marker - this is to change the text when clicking on marker*/}
+              <Callout>
+                <View style={{ width: 150, alignItems: "center", padding: 5 }}>
+                  <View style={{ width: 100, height: 100 }}>
+                    <Image
+                      source={{
+                        uri: item.image
+                      }}
+                      style={{ width: '100%', height: '100%' }}
+                      resizeMode="cover"
+                    />
+                  </View>
+                  <Text style={{ fontWeight: 'bold', marginTop: 5 }}>{item.address}</Text>
+                  <Text>${item.rent}/month</Text>
+                </View>
+              </Callout>
+            </Marker>
           ))}
         </MapView>
       );
