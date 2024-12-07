@@ -314,21 +314,17 @@ export default function PostRentalScreen() {
                 value={streetAddress}
                 onChangeText={setStreetAddress}
                 mode="outlined"
-                outlineColor="#CCCCCC"
-                activeOutlineColor="#999999"
-                left={<TextInput.Icon icon="road" color="#FFD700" />}
-                theme={{ colors: { text: '#000000', placeholder: '#000000' } }}
+                outlineColor="#FFD700"
+                activeOutlineColor="#FFD700"
               />
               <TextInput
                 style={[styles.input, { flex: 1 }]}
-                label="Unit"
+                label="Apt/Unit"
                 value={aptNumber}
                 onChangeText={setAptNumber}
                 mode="outlined"
-                outlineColor="#CCCCCC"
-                activeOutlineColor="#999999"
-                left={<TextInput.Icon icon="pound" color="#FFD700" />}
-                theme={{ colors: { text: '#000000', placeholder: '#000000' } }}
+                outlineColor="#FFD700"
+                activeOutlineColor="#FFD700"
               />
             </View>
 
@@ -339,10 +335,8 @@ export default function PostRentalScreen() {
                 value={city}
                 onChangeText={setCity}
                 mode="outlined"
-                outlineColor="#CCCCCC"
-                activeOutlineColor="#999999"
-                left={<TextInput.Icon icon="city" color="#FFD700" />}
-                theme={{ colors: { text: '#000000', placeholder: '#000000' } }}
+                outlineColor="#FFD700"
+                activeOutlineColor="#FFD700"
               />
               <TextInput
                 style={[styles.input, { flex: 1 }]}
@@ -350,10 +344,8 @@ export default function PostRentalScreen() {
                 value={state}
                 onChangeText={setState}
                 mode="outlined"
-                outlineColor="#CCCCCC"
-                activeOutlineColor="#999999"
-                left={<TextInput.Icon icon="flag" color="#FFD700" />}
-                theme={{ colors: { text: '#000000', placeholder: '#000000' } }}
+                outlineColor="#FFD700"
+                activeOutlineColor="#FFD700"
               />
             </View>
 
@@ -364,11 +356,9 @@ export default function PostRentalScreen() {
                 value={zip}
                 onChangeText={setZip}
                 mode="outlined"
-                outlineColor="#CCCCCC"
-                activeOutlineColor="#999999"
+                outlineColor="#FFD700"
+                activeOutlineColor="#FFD700"
                 keyboardType="numeric"
-                left={<TextInput.Icon icon="mailbox" color="#FFD700" />}
-                theme={{ colors: { text: '#000000', placeholder: '#000000' } }}
               />
               <TextInput
                 style={[styles.input, { flex: 1 }]}
@@ -376,11 +366,9 @@ export default function PostRentalScreen() {
                 value={area}
                 onChangeText={setArea}
                 mode="outlined"
-                outlineColor="#CCCCCC"
-                activeOutlineColor="#999999"
+                outlineColor="#FFD700"
+                activeOutlineColor="#FFD700"
                 keyboardType="numeric"
-                left={<TextInput.Icon icon="ruler-square" color="#FFD700" />}
-                theme={{ colors: { text: '#000000', placeholder: '#000000' } }}
               />
             </View>
           </View>
@@ -397,11 +385,9 @@ export default function PostRentalScreen() {
                 value={bedCount}
                 onChangeText={setBedCount}
                 mode="outlined"
-                outlineColor="#CCCCCC"
-                activeOutlineColor="#999999"
+                outlineColor="#FFD700"
+                activeOutlineColor="#FFD700"
                 keyboardType="numeric"
-                left={<TextInput.Icon icon="bed" color="#FFD700" />}
-                theme={{ colors: { text: '#000000', placeholder: '#000000' } }}
               />
               <TextInput
                 style={[styles.input, { flex: 1 }]}
@@ -409,11 +395,9 @@ export default function PostRentalScreen() {
                 value={bathCount}
                 onChangeText={setBathCount}
                 mode="outlined"
-                outlineColor="#CCCCCC"
-                activeOutlineColor="#999999"
+                outlineColor="#FFD700"
+                activeOutlineColor="#FFD700"
                 keyboardType="numeric"
-                left={<TextInput.Icon icon="shower" color="#FFD700" />}
-                theme={{ colors: { text: '#000000', placeholder: '#000000' } }}
               />
             </View>
 
@@ -424,11 +408,9 @@ export default function PostRentalScreen() {
                 value={price}
                 onChangeText={setPrice}
                 mode="outlined"
-                outlineColor="#CCCCCC"
-                activeOutlineColor="#999999"
+                outlineColor="#FFD700"
+                activeOutlineColor="#FFD700"
                 keyboardType="numeric"
-                left={<TextInput.Icon icon="cash" color="#FFD700" />}
-                theme={{ colors: { text: '#000000', placeholder: '#000000' } }}
               />
               <TextInput
                 style={[styles.input, { flex: 1 }]}
@@ -436,25 +418,21 @@ export default function PostRentalScreen() {
                 value={type}
                 onChangeText={setType}
                 mode="outlined"
-                outlineColor="#CCCCCC"
-                activeOutlineColor="#999999"
-                left={<TextInput.Icon icon="home" color="#FFD700" />}
-                theme={{ colors: { text: '#000000', placeholder: '#000000' } }}
+                outlineColor="#FFD700"
+                activeOutlineColor="#FFD700"
               />
             </View>
 
             <TextInput
               style={[styles.input, styles.multilineInput]}
-              label="Property Description"
+              label="Description"
               value={description}
               onChangeText={setDescription}
               mode="outlined"
-              outlineColor="#CCCCCC"
-              activeOutlineColor="#999999"
+              outlineColor="#FFD700"
+              activeOutlineColor="#FFD700"
               multiline
               numberOfLines={4}
-              left={<TextInput.Icon icon="text" color="#FFD700" />}
-              theme={{ colors: { text: '#000000', placeholder: '#000000' } }}
             />
           </View>
 
@@ -465,97 +443,119 @@ export default function PostRentalScreen() {
           <View style={styles.inputGroup}>
             <View style={styles.dateInputContainer}>
               <TextInput
-                style={[styles.input, styles.dateInput]}
+                style={styles.dateInput}
                 label="Start Date"
                 value={startDate}
+                mode="outlined"
+                outlineColor="#FFD700"
+                activeOutlineColor="#FFD700"
+                right={<TextInput.Icon icon="calendar" />}
                 onPressIn={() => toggleDatePicker('start')}
-                mode="outlined"
-                outlineColor="#CCCCCC"
-                activeOutlineColor="#999999"
                 editable={false}
-                left={<TextInput.Icon icon="calendar-start" color="#FFD700" />}
-                placeholder="YYYY-MM-DD"
-                theme={{ colors: { text: '#000000', placeholder: '#000000' } }}
               />
-            </View>
-            <View style={styles.dateInputContainer}>
-              <TextInput
-                style={[styles.input, styles.dateInput]}
-                label="End Date"
-                value={endDate}
-                onPressIn={() => toggleDatePicker('end')}
-                mode="outlined"
-                outlineColor="#CCCCCC"
-                activeOutlineColor="#999999"
-                editable={false}
-                left={<TextInput.Icon icon="calendar-end" color="#FFD700" />}
-                placeholder="YYYY-MM-DD"
-                theme={{ colors: { text: '#000000', placeholder: '#000000' } }}
-              />
-            </View>
-
-            {(showStartPicker || showEndPicker) && (
-              <View style={styles.datePickerContainer}>
-                <View style={styles.datePickerHeader}>
-                  <Text style={styles.datePickerTitle}>
-                    Select {showStartPicker ? 'Start' : 'End'} Date
-                  </Text>
-                  <TouchableOpacity 
-                    onPress={() => toggleDatePicker(showStartPicker ? 'start' : 'end')}
-                    style={styles.closeButton}
-                  >
-                    <MaterialCommunityIcons 
-                      name="close" 
-                      size={24} 
-                      color="#FFD700" 
-                    />
-                  </TouchableOpacity>
-                </View>
-                {Platform?.OS === 'ios' ? (
-                  <>
-                    <DateTimePicker
-                      value={date}
-                      mode="date"
-                      display="spinner"
-                      onChange={(event, selectedDate) => {
-                        onChangeDatePicker(showStartPicker ? 'start' : 'end', event, selectedDate);
-                      }}
-                      minimumDate={new Date()}
-                      style={styles.datePicker}
-                    />
+              {showStartPicker && (
+                <View style={styles.datePickerContainer}>
+                  <View style={styles.datePickerHeader}>
+                    <Text style={styles.datePickerTitle}>Select Start Date</Text>
+                    <Button
+                      style={styles.closeButton}
+                      mode="text"
+                      textColor="#000000"
+                      onPress={() => toggleDatePicker('start')}
+                    >
+                      Close
+                    </Button>
+                  </View>
+                  <DateTimePicker
+                    mode="date"
+                    display="spinner"
+                    value={date}
+                    onChange={(event, selectedDate) => onChangeDatePicker('start', event, selectedDate)}
+                    style={styles.datePicker}
+                    minimumDate={new Date('2024-9-1')}
+                  />
+                  {Platform.OS === 'ios' && (
                     <View style={styles.datePickerButtons}>
                       <Button
-                        mode="outlined"
-                        onPress={() => toggleDatePicker(showStartPicker ? 'start' : 'end')}
                         style={[styles.datePickerButton, styles.cancelButton]}
+                        mode="outlined"
                         textColor="#666666"
+                        onPress={() => toggleDatePicker('start')}
                       >
                         Cancel
                       </Button>
                       <Button
-                        mode="contained"
-                        onPress={() => confirmIOSDate(showStartPicker ? 'start' : 'end')}
                         style={[styles.datePickerButton, styles.confirmButton]}
+                        mode="contained"
                         buttonColor="#FFD700"
                         textColor="#000000"
+                        onPress={() => confirmIOSDate('start')}
                       >
                         Confirm
                       </Button>
                     </View>
-                  </>
-                ) : (
+                  )}
+                </View>
+              )}
+            </View>
+
+            <View style={styles.dateInputContainer}>
+              <TextInput
+                style={styles.dateInput}
+                label="End Date"
+                value={endDate}
+                mode="outlined"
+                outlineColor="#FFD700"
+                activeOutlineColor="#FFD700"
+                right={<TextInput.Icon icon="calendar" />}
+                onPressIn={() => toggleDatePicker('end')}
+                editable={false}
+              />
+              {showEndPicker && (
+                <View style={styles.datePickerContainer}>
+                  <View style={styles.datePickerHeader}>
+                    <Text style={styles.datePickerTitle}>Select End Date</Text>
+                    <Button
+                      style={styles.closeButton}
+                      mode="text"
+                      textColor="#FFD700"
+                      onPress={() => toggleDatePicker('end')}
+                    >
+                      Close
+                    </Button>
+                  </View>
                   <DateTimePicker
-                    value={date}
                     mode="date"
-                    display="default"
-                    onChange={(event, selectedDate) => {
-                      onChangeDatePicker(showStartPicker ? 'start' : 'end', event, selectedDate);
-                    }}
-                    minimumDate={new Date()}
+                    display="spinner"
+                    value={date}
+                    onChange={(event, selectedDate) => onChangeDatePicker('end', event, selectedDate)}
+                    style={styles.datePicker}
+                    minimumDate={new Date('2024-9-1')}
                   />
-                )}
-              </View>
-            )}
+                  {Platform.OS === 'ios' && (
+                    <View style={styles.datePickerButtons}>
+                      <Button
+                        style={[styles.datePickerButton, styles.cancelButton]}
+                        mode="outlined"
+                        textColor="#666666"
+                        onPress={() => toggleDatePicker('end')}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        style={[styles.datePickerButton, styles.confirmButton]}
+                        mode="contained"
+                        buttonColor="#FFD700"
+                        textColor="#000000"
+                        onPress={() => confirmIOSDate('end')}
+                      >
+                        Confirm
+                      </Button>
+                    </View>
+                  )}
+                </View>
+              )}
+            </View>
           </View>
 
           <Button
