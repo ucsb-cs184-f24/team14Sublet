@@ -298,19 +298,21 @@ const FilterModal = ({
         <Text style={styles.filterLabel}>Price Range</Text>
         <View style={styles.priceInputs}>
           <Searchbar
-            placeholder="Min $"
+            placeholder="Min"
             value={minPrice}
             onChangeText={setMinPrice}
             style={styles.priceInput}
             keyboardType="numeric"
+            icon="currency-usd"
           />
           <Text>-</Text>
           <Searchbar
-            placeholder="Max $"
+            placeholder="Max"
             value={maxPrice}
             onChangeText={setMaxPrice}
             style={styles.priceInput}
             keyboardType="numeric"
+            icon="currency-usd"
           />
         </View>
 
