@@ -21,7 +21,16 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.homelette.app"
+      "package": "com.homelette.app",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyCVsuSPlVbAHwQNkMS6ui8Pni2NJQ_UMb8"
+        }
+      },
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -39,7 +48,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "450e68b2-64bc-4b8e-a484-0df3ade162e1"
+        "projectId": "6cad9eef-207e-4589-9f5c-4b0ed35943c2"
       }
     }
   }
