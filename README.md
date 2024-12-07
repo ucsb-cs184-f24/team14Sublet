@@ -93,3 +93,7 @@ expo start
 - Allen Qiu - @aqiu04
 - Amy Wang - @awaang
 - Jason Vu - @Firoc
+
+# Deployment
+
+[APK for our app here](https://expo.dev/artifacts/eas/aA2wUHycaxGAM3wdMTGbYM.apk)
