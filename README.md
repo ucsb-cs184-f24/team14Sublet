@@ -34,7 +34,7 @@ expo start
 
 ### Installation of the APK (v1.1.0-project-demo)
 
-* To install the APK directly on your Android device, download it using this link: [Homelette APK](https://expo.dev/artifacts/eas/aA2wUHycaxGAM3wdMTGbYM.apk)
+* To install the APK directly on your Android device, download it using this link: [Homelette APK](https://expo.dev/artifacts/eas/rTAiYZMqd6jLN9P91UXCPu.apk)
 
 * Once downloaded, ensure that your device allows installations from unknown sources. Navigate to the downloaded APK file and tap to install.
 
@@ -91,4 +91,4 @@ expo start
 
 # Deployment
 
-[APK for our app here](https://expo.dev/artifacts/eas/aA2wUHycaxGAM3wdMTGbYM.apk)
+[APK for our app here](https://expo.dev/artifacts/eas/rTAiYZMqd6jLN9P91UXCPu.apk)
