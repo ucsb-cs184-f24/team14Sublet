@@ -4,45 +4,13 @@ import { View, ScrollView, Alert, Text, Image, Modal, TouchableOpacity, StyleShe
 import { Card, Title, Paragraph, Button, TextInput, Surface, Chip, IconButton, Portal, Dialog } from "react-native-paper";
 import { ThemedText } from "./ThemedText";
 import { firestore } from "../config/firebase";
-import { doc, getDoc, collection, query, where, getDocs, deleteDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, collection, query, where, getDocs, deleteDoc, updateDoc, arrayRemove } from "firebase/firestore";
 import { useAuth } from "@/hooks/useAuth";
 import { updateUserProfile } from "../config/firebase";
 import { signOut } from "firebase/auth";
 import { auth } from "@/config/firebase";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from "@react-navigation/native";
-
-// Mock data for favorited listings
-const mockFavoritedListings = [
-  {
-    id: '1',
-    type: 'Studio Apartment',
-    address: {
-      street_address: '2650 Durant Avenue',
-      city: 'Berkeley',
-      state: 'CA',
-      zip_code: '94704'
-    },
-    bedrooms: 0,
-    bathrooms: 1,
-    area: 450,
-    image_url: null
-  },
-  {
-    id: '2',
-    type: '2 Bedroom Apartment',
-    address: {
-      street_address: '2728 Dwight Way',
-      city: 'Berkeley',
-      state: 'CA',
-      zip_code: '94704'
-    },
-    bedrooms: 2,
-    bathrooms: 1,
-    area: 750,
-    image_url: null
-  }
-];
 
 // Color theme matching RentPage.tsx
 const theme = {
@@ -681,7 +649,7 @@ export function ProfilePage() {
   const navigation = useNavigation();
   const [userData, setUserData] = useState<any>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [favoritedListings, setFavoritedListings] = useState(mockFavoritedListings);
+  const [favoritedListings, setFavoritedListings] = useState([]);
   const [activeTab, setActiveTab] = useState('profile');
   const [editForm, setEditForm] = useState<EditFormData>({
     first: '',
@@ -696,6 +664,84 @@ export function ProfilePage() {
   const [editingProperty, setEditingProperty] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
 
+  const fetchUserProperties = async () => {
+    if (!user) return;
+    
+    setIsLoadingProperties(true);
+    try {
+      // Get user's listing IDs
+      const userDocRef = doc(firestore, "users", user.uid);
+      const userDoc = await getDoc(userDocRef);
+      const listingIds = userDoc.data()?.listing_ids || [];
+      
+      // Fetch each property
+      const properties = [];
+      for (const id of listingIds) {
+        const propertyRef = doc(firestore, "properties", id);
+        const propertyDoc = await getDoc(propertyRef);
+        if (propertyDoc.exists()) {
+          properties.push({
+            id: propertyDoc.id,
+            ...propertyDoc.data()
+          });
+        }
+      }
+      
+      setUserProperties(properties);
+    } catch (error) {
+      console.error("Error fetching properties:", error);
+      Alert.alert("Error", "Failed to fetch your properties. Please try again later.");
+    } finally {
+      setIsLoadingProperties(false);
+    }
+  };
+
+  const fetchFavoritedListings = async () => {
+    if (!user) return;
+    try {
+      const userDoc = await getDoc(doc(firestore, "users", user.uid));
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        const listingIds = userData.interested_listing_ids || [];
+        
+        const listings = [];
+        for (const id of listingIds) {
+          const listingDoc = await getDoc(doc(firestore, "listings", id));
+          if (listingDoc.exists()) {
+            const listingData = listingDoc.data();
+            // Get the property data
+            const propertyDoc = await getDoc(doc(firestore, "properties", listingData.property_id));
+            if (propertyDoc.exists()) {
+              const propertyData = propertyDoc.data();
+              // Transform the data to match the expected structure
+              listings.push({
+                id: listingDoc.id,
+                type: propertyData.type || 'Apartment',
+                address: propertyData.address || {
+                  street_address: propertyData.street_address || '',
+                  city: propertyData.city || '',
+                  state: propertyData.state || '',
+                  zip_code: propertyData.zip_code || ''
+                },
+                bedrooms: propertyData.bedrooms || 0,
+                bathrooms: propertyData.bathrooms || 0,
+                area: propertyData.area || 0,
+                image_url: propertyData.image_url || null,
+                rent: listingData.price || 0,
+                startDate: listingData.start_date,
+                endDate: listingData.end_date
+              });
+            }
+          }
+        }
+        setFavoritedListings(listings);
+      }
+    } catch (error) {
+      console.error("Error fetching favorited listings:", error);
+      Alert.alert("Error", "Failed to fetch saved listings");
+    }
+  };
+
   const fetchUserData = async () => {
     if (user) {
       const userDocRef = doc(firestore, "users", user.uid);
@@ -703,41 +749,12 @@ export function ProfilePage() {
       if (userDocSnap.exists()) {
         const userData = userDocSnap.data();
         setUserData(userData);
-        console.log(userData);
         
-        // Fetch properties
-        const fetchUserProperties = async () => {
-          if (!user) return;
-          
-          setIsLoadingProperties(true);
-          try {
-            // Get user's listing IDs
-            const userDocRef = doc(firestore, "users", user.uid);
-            const userDoc = await getDoc(userDocRef);
-            const listingIds = userDoc.data()?.listing_ids || [];
-            
-            // Fetch each property
-            const properties = [];
-            for (const id of listingIds) {
-              const propertyRef = doc(firestore, "properties", id);
-              const propertyDoc = await getDoc(propertyRef);
-              if (propertyDoc.exists()) {
-                properties.push({
-                  id: propertyDoc.id,
-                  ...propertyDoc.data()
-                });
-              }
-            }
-            
-            setUserProperties(properties);
-          } catch (error) {
-            console.error("Error fetching properties:", error);
-            Alert.alert("Error", "Failed to fetch your properties. Please try again later.");
-          } finally {
-            setIsLoadingProperties(false);
-          }
-        };
-        fetchUserProperties();
+        // Fetch properties and favorited listings
+        await Promise.all([
+          fetchUserProperties(),
+          fetchFavoritedListings()
+        ]);
       } else {
         console.log("No such document!");
       }
@@ -807,8 +824,26 @@ export function ProfilePage() {
     }
   };
 
-  const handleRemoveFavorite = (listingId: string) => {
-    setFavoritedListings((prev) => prev.filter((listing) => listing.id !== listingId));
+  const handleRemoveFavorite = async (listingId: string) => {
+    if (!user) return;
+    
+    try {
+      const userRef = doc(firestore, "users", user.uid);
+      const listingRef = doc(firestore, "listings", listingId);
+
+      await updateDoc(userRef, {
+        interested_listing_ids: arrayRemove(listingId)
+      });
+      await updateDoc(listingRef, {
+        interested_user_ids: arrayRemove(user.uid)
+      });
+
+      // Update local state
+      setFavoritedListings(prev => prev.filter(listing => listing.id !== listingId));
+    } catch (error) {
+      console.error("Error removing favorite:", error);
+      Alert.alert("Error", "Failed to remove listing from saved items");
+    }
   };
 
   const handleEditProperty = (property) => {
@@ -817,38 +852,7 @@ export function ProfilePage() {
 
   const handleSaveProperty = async () => {
     // Refresh the properties list after saving
-    const fetchUserProperties = async () => {
-      if (!user) return;
-      
-      setIsLoadingProperties(true);
-      try {
-        // Get user's listing IDs
-        const userDocRef = doc(firestore, "users", user.uid);
-        const userDoc = await getDoc(userDocRef);
-        const listingIds = userDoc.data()?.listing_ids || [];
-        
-        // Fetch each property
-        const properties = [];
-        for (const id of listingIds) {
-          const propertyRef = doc(firestore, "properties", id);
-          const propertyDoc = await getDoc(propertyRef);
-          if (propertyDoc.exists()) {
-            properties.push({
-              id: propertyDoc.id,
-              ...propertyDoc.data()
-            });
-          }
-        }
-        
-        setUserProperties(properties);
-      } catch (error) {
-        console.error("Error fetching properties:", error);
-        Alert.alert("Error", "Failed to fetch your properties. Please try again later.");
-      } finally {
-        setIsLoadingProperties(false);
-      }
-    };
-    fetchUserProperties();
+    await fetchUserProperties();
   };
 
   const handleDeleteProperty = async (propertyId) => {
