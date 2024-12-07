@@ -8,6 +8,7 @@ import {
   Platform,
   Animated,
   Image,
+  KeyboardAvoidingView,
 } from "react-native";
 import {
   Card,
@@ -36,7 +37,8 @@ import {
   sendMessage,
 } from "@/config/firebase";
 import { FlashList } from "@shopify/flash-list";
-import { onSnapshot, doc } from "firebase/firestore";
+import { onSnapshot, doc, updateDoc } from "firebase/firestore";
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const theme = {
   ...DefaultTheme,
@@ -57,6 +59,7 @@ const theme = {
 interface Conversation {
   id: string;
   title: string;
+  timestamp: string;
 }
 
 interface Message {
@@ -163,9 +166,9 @@ export function ChatListPage() {
           const formattedData = result.map((item: any) => ({
             text: item["text"],
             uid: item["uid"],
+            timestamp: formatTimestamp(item["timestamp"]),
           }));
-          setChat(result);
-          console.log(result);
+          setChat(formattedData);
         }
       } else {
         console.log("Not found");
@@ -189,79 +192,115 @@ export function ChatListPage() {
     sendMessage(senderId, conversationId, text);
   };
 
+  const formatTimestamp = (timestamp: any) => {
+    if (!timestamp) return '';
+    
+    const date = new Date(timestamp);
+    const now = new Date();
+    
+    // if the message is from today, only show the time
+    if (date.toDateString() === now.toDateString()) {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+    
+    // if the message is from yesterday
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    if (date.toDateString() === yesterday.toDateString()) {
+      return 'Yesterday';
+    }
+    
+    // if the message is from this week, show the day of the week
+    const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    if (now.getTime() - date.getTime() < 7 * 24 * 60 * 60 * 1000) {
+      return weekDays[date.getDay()];
+    }
+    
+    // otherwise, show the date
+    return date.toLocaleDateString([], {
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+
   const ConversationCard = ({
     conversation,
   }: {
     conversation: Conversation;
   }) => (
-    <View style={{ backgroundColor: "#FFFFFF", marginBottom: 10 }}>
-      <TouchableRipple
-        key={conversation.id}
-        rippleColor="rgba(100, 100, 0, .32)"
-        onPress={() => handleOpenConversation(conversation)}
-      >
-        {/* <Card style={styles.card} elevation={3}> */}
-        <Card.Content style={styles.cardContent}>
-          <Text style={styles.conversation}>{conversation.title}</Text>
-        </Card.Content>
-        {/* </Card> */}
-      </TouchableRipple>
-    </View>
+    <TouchableRipple
+      onPress={() => handleOpenConversation(conversation)}
+      rippleColor="rgba(0, 0, 0, .05)"
+    >
+      <View style={styles.conversationItem}>
+        <View style={styles.avatarContainer}>
+          <View style={styles.avatarIconContainer}>
+            <MaterialCommunityIcons 
+              name="account-group"
+              size={30} 
+              color="#666666"
+            />
+          </View>
+        </View>
+        <View style={styles.conversationContent}>
+          <View style={styles.conversationHeader}>
+            <Text style={styles.conversationTitle}>{conversation.title}</Text>
+            <Text style={styles.timeStamp}>{conversation.timestamp}</Text>
+          </View>
+        </View>
+      </View>
+    </TouchableRipple>
   );
 
   const ChatMessage = ({ message }: { message: Message }) => {
-    const [imageLink, setImageLink] = useState(
-      "https://via.placeholder.com/100",
-    );
+    const [imageLink, setImageLink] = useState("https://via.placeholder.com/100");
 
     useEffect(() => {
       const userRef = doc(firestore, "users", message.uid);
-
       const fetchData = onSnapshot(userRef, (snapshot) => {
-        if (snapshot.exists()) {
-          if (snapshot.data()["profilePictureURL"] != null) {
-            setImageLink(snapshot.data()["profilePictureURL"]);
-          }
-        } else {
-          console.log("Image link not found");
+        if (snapshot.exists() && snapshot.data()["profilePictureURL"]) {
+          setImageLink(snapshot.data()["profilePictureURL"]);
         }
       });
-
       return () => fetchData();
     }, []);
 
     if (message.uid == auth.currentUser.uid) {
       return (
-        <View style={{ flexDirection: "column" }}>
-          <Image
-            source={{ uri: imageLink }}
-            style={{
-              width: 20,
-              height: 20,
-              borderRadius: 10,
-              alignSelf: "flex-end",
-            }}
-          />
-          <View style={styles.messageRight}>
-            <Text style={styles.messageText}>{message.text}</Text>
+        <View style={styles.messageRowRight}>
+          <View style={styles.messageContentRight}>
+            <View style={styles.messageRight}>
+              <Text style={styles.messageText}>{message.text}</Text>
+            </View>
+            <View style={styles.messageTimeContainer}>
+              <Text style={styles.messageTime}>{message.timestamp}</Text>
+            </View>
+          </View>
+          <View style={styles.messageAvatarRight}>
+            <Image
+              source={{ uri: imageLink }}
+              style={styles.messageAvatar}
+            />
           </View>
         </View>
       );
     }
 
     return (
-      <View style={{ flexDirection: "column" }}>
-        <Image
-          source={{ uri: imageLink }}
-          style={{
-            width: 20,
-            height: 20,
-            borderRadius: 10,
-            alignSelf: "flex-start",
-          }}
-        />
-        <View style={styles.messageLeft}>
-          <Text style={styles.messageText}>{message.text}</Text>
+      <View style={styles.messageRowLeft}>
+        <View style={styles.messageAvatarLeft}>
+          <Image
+            source={{ uri: imageLink }}
+            style={styles.messageAvatar}
+          />
+        </View>
+        <View style={styles.messageContentLeft}>
+          <View style={styles.messageLeft}>
+            <Text style={styles.messageText}>{message.text}</Text>
+          </View>
+          <View style={styles.messageTimeContainer}>
+            <Text style={styles.messageTime}>{message.timestamp}</Text>
+          </View>
         </View>
       </View>
     );
@@ -270,380 +309,481 @@ export function ChatListPage() {
   const ChatWindow = () => {
     const [message, setMessage] = useState("");
 
-    // let dummyMessage: Message = { text: "abc", uid: "a" };
-    // let dummyData = [
-    //   dummyMessage,
-    //   dummyMessage,
-    //   dummyMessage,
-    //   dummyMessage,
-    //   { text: "aaaaa", uid: auth.currentUser.uid },
-    //   dummyMessage,
-    //   dummyMessage,
-    //   dummyMessage,
-    //   dummyMessage,
-    //   dummyMessage,
-    //   dummyMessage,
-    //   dummyMessage,
-    // ];
-
-    if (loadingChat) {
-      return (
-        <View style={styles.modalContainer}>
-          <Text style={styles.modalTitle}>{currentConversation.title}</Text>
+    return (
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.chatWindowContainer}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 140 : 0}
+      >
+        <View style={styles.messagesContainer}>
           <FlashList
             data={chat}
-            renderItem={({ item }) => (
-              <ChatMessage message={item}></ChatMessage>
-            )}
+            renderItem={({ item }) => <ChatMessage message={item} />}
             estimatedItemSize={200}
+            contentContainerStyle={styles.chatListContainer}
+            style={styles.chatListStyle}
+            inverted={false}
+            showsVerticalScrollIndicator={true}
           />
-
-          <View
-            style={{
-              alignSelf: "stretch",
-              flexDirection: "row",
-              gap: 8,
-              justifyContent: "center",
-              marginTop: 10,
-              marginHorizontal: 10,
-            }}
-          >
-            <TextInput
-              style={styles.messageInput}
-              placeholder={`Your message here`}
-              value={message}
-              onChangeText={setMessage}
-            />
-            <Button
-              mode="contained"
-              onPress={() => {
-                // handleSendMessage(
-                //   auth.currentUser?.uid,
-                //   currentConversation.id,
-                //   message,
-                // );
-                console.log(message);
-              }}
-              style={{
-                height: "100%",
-                paddingVertical: 6,
-                width: "25%",
-              }}
-            >
-              <Text style={{ fontSize: 14 }}>Send</Text>
-            </Button>
-          </View>
         </View>
-      );
-    }
 
-    return (
-      <View style={styles.modalContainer}>
-        <Text style={styles.modalTitle}>{currentConversation.title}</Text>
-        <FlashList
-          data={chat}
-          renderItem={({ item }) => <ChatMessage message={item}></ChatMessage>}
-          estimatedItemSize={200}
-        />
-
-        <View
-          style={{
-            alignSelf: "stretch",
-            flexDirection: "row",
-            gap: 8,
-            justifyContent: "center",
-            marginTop: 10,
-            marginHorizontal: 10,
-          }}
-        >
+        <View style={styles.inputSection}>
           <TextInput
-            style={styles.messageInput}
-            placeholder={`Your message here`}
+            style={styles.chatInput}
+            placeholder="Type a message..."
             value={message}
             onChangeText={setMessage}
+            multiline
+            maxLength={500}
           />
-          <Button
-            mode="contained"
+          <TouchableRipple
             onPress={() => {
-              handleSendMessage(
-                auth.currentUser?.uid,
-                currentConversation.id,
-                message,
-              );
-              console.log(message);
+              if (message.trim()) {
+                handleSendMessage(
+                  auth.currentUser?.uid,
+                  currentConversation.id,
+                  message,
+                );
+                setMessage('');
+                Keyboard.dismiss();
+              }
             }}
-            style={{
-              height: "100%",
-              paddingVertical: 6,
-              width: "25%",
-              backgroundColor: theme.colors.primary,
-            }}
+            style={styles.sendButtonContainer}
           >
-            <Text style={{ fontSize: 12, color: "#000000" }}>Send</Text>
-          </Button>
+            <MaterialCommunityIcons
+              name="send"
+              size={24}
+              color="#000000"
+            />
+          </TouchableRipple>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     );
   };
 
-  if (loading) {
-    return (
-      <PaperProvider theme={theme}>
-        <Card style={styles.card} elevation={2}>
-          <Card.Content>
-            <View>
-              <Title style={styles.loading}>Loading...</Title>
-            </View>
-          </Card.Content>
-        </Card>
-      </PaperProvider>
-    );
-  } else if (data.length == 0) {
-    return (
-      <Card.Content style={styles.cardContent}>
-        <Text style={styles.conversation}>No conversations found</Text>
-      </Card.Content>
-    );
-  }
-
   return (
-    <Animated.View
-      style={[
-        {
-          height: Dimensions.get("screen").height - 100,
-          width: Dimensions.get("screen").width,
-          flex: 1,
-        },
-        { transform: [{ translateY: shift }] },
-      ]}
-    >
-      <FlashList
-        data={data}
-        renderItem={({ item }) => (
-          <ConversationCard conversation={item}></ConversationCard>
-        )}
-        estimatedItemSize={200}
-      />
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Chats</Text>
+      </View>
+
+      {loading ? (
+        <View style={styles.centerContainer}>
+          <MaterialCommunityIcons 
+            name="message-processing"
+            size={50}
+            color={theme.colors.primary}
+            style={styles.loadingIcon}
+          />
+          <Text style={styles.statusText}>Loading messages...</Text>
+        </View>
+      ) : data.length === 0 ? (
+        <View style={styles.centerContainer}>
+          <MaterialCommunityIcons 
+            name="message-text-outline"
+            size={50}
+            color={theme.colors.primary}
+            style={styles.loadingIcon}
+          />
+          <Text style={styles.statusText}>No conversations yet</Text>
+          <Text style={styles.subStatusText}>
+            Your messages will appear here
+          </Text>
+        </View>
+      ) : (
+        <FlashList
+          data={data}
+          renderItem={({ item }) => (
+            <ConversationCard conversation={item} />
+          )}
+          estimatedItemSize={80}
+        />
+      )}
+
       <Modal
-        animationType="slide"
-        transparent={true}
         visible={isVisible}
         onDismiss={() => {
           setVisible(false);
           setConversation({});
         }}
-        style={{ flex: 1 }}
+        contentContainerStyle={styles.modalContainer}
       >
-        <ChatWindow></ChatWindow>
+        <View style={styles.chatHeader}>
+          <IconButton
+            icon="arrow-left"
+            size={24}
+            onPress={() => setVisible(false)}
+            style={styles.backButton}
+          />
+          <Text style={styles.chatTitle}>{currentConversation.title}</Text>
+        </View>
+        <ChatWindow />
       </Modal>
-    </Animated.View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
+    backgroundColor: '#FFFFFF',
   },
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-    backgroundColor: theme.colors.surface,
+    backgroundColor: theme.colors.primary,
+    padding: 10,
+    paddingTop: Platform.OS === 'ios' ? 16 : 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.1)',
   },
-  searchbar: {
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    textAlign: 'center',
+    color: '#000000',
+  },
+  conversationItem: {
+    flexDirection: 'row',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.1)',
+    backgroundColor: '#FFFFFF',
+  },
+  avatarContainer: {
+    marginRight: 16,
+  },
+  avatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+  },
+  conversationContent: {
     flex: 1,
-    marginRight: 8,
-    backgroundColor: theme.colors.surface,
+    justifyContent: 'center',
   },
-  viewToggle: {
-    margin: 16,
+  conversationHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  listContainer: {
-    padding: 16,
-  },
-  card: {
-    marginBottom: 2,
-    borderRadius: 12,
-    backgroundColor: theme.colors.primaryContainer,
-  },
-  imageContainer: {
-    position: "relative",
-  },
-  cardImage: {
-    height: 200,
-  },
-  favoriteButton: {
-    position: "absolute",
-    top: 8,
-    right: 8,
-    backgroundColor: theme.colors.surface,
-    opacity: 0.9,
-  },
-  cardContent: {
-    padding: 30,
-    // backgroundColor: theme.colors.surface,
-  },
-  priceRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  loading: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: theme.colors.text,
-  },
-  conversation: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: theme.colors.text,
-  },
-  detailsContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    marginTop: 8,
-  },
-  address: {
-    marginTop: 8,
+  conversationTitle: {
     fontSize: 16,
-    color: theme.colors.text,
+    fontWeight: '600',
+    color: '#000000',
   },
-  dates: {
-    marginTop: 4,
-    fontSize: 14,
-    color: theme.colors.text + "99",
-  },
-  map: {
-    flex: 1,
-    height: Dimensions.get("window").height - 200,
+  timeStamp: {
+    fontSize: 12,
+    color: '#666666',
   },
   modalContainer: {
-    // flexDirection: "column",
-    // flex: 1,
     backgroundColor: theme.colors.surface,
-    padding: 20,
-    margin: 20,
-    borderRadius: 12,
-    height: Dimensions.get("window").height - 200,
-    // width: Dimensions.get("screen").width - 40,
+    marginTop: 50,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
   },
-  modalTitle: {
-    textAlign: "center",
-    marginBottom: 16,
-    fontSize: 24,
-    color: "#000000",
-  },
-  divider: {
-    marginVertical: 16,
-  },
-  filterLabel: {
-    fontSize: 16,
-    marginVertical: 8,
-  },
-  priceInputs: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginBottom: 16,
-  },
-  priceInput: {
-    flex: 1,
-    height: 40,
-    backgroundColor: theme.colors.primaryContainer,
-  },
-  modalActions: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    gap: 8,
-    marginTop: 16,
-  },
-  fab: {
-    position: "absolute",
-    margin: 16,
-    right: 0,
-    bottom: 0,
+  chatHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
     backgroundColor: theme.colors.primary,
+    borderTopLeftRadius: 15,
+    borderTopRightRadius: 15,
   },
-  messageButton: {
-    backgroundColor: theme.colors.secondary + "20",
+  backButton: {
+    marginRight: 16,
   },
-  messageLeft: {
-    backgroundColor: theme.colors.chatButton,
-    borderRadius: 20,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    alignSelf: "flex-start",
-    marginBottom: 10,
+  chatTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#000000',
   },
-  messageRight: {
-    backgroundColor: theme.colors.chatButton,
-    borderRadius: 20,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    alignSelf: "flex-end",
-    marginBottom: 10,
-  },
-  messageText: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: theme.colors.onBackground,
+  messageContainer: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: '#F0F0F0',
   },
   messageInput: {
-    width: "85%",
+    backgroundColor: '#FFFFFF',
+    borderRadius: 25,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    marginHorizontal: 8,
+    flex: 1,
+    fontSize: 16,
   },
-  chatButtonContainer: {
-    elevation: 4,
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 8,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.1)',
+  },
+  sendButton: {
+    backgroundColor: theme.colors.primary,
+    width: 40,
+    height: 40,
     borderRadius: 20,
-    overflow: "hidden",
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 8,
   },
-  chatButtonWrapper: {
-    overflow: "hidden",
-    borderRadius: 20,
+  messageLeft: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    alignSelf: 'flex-start',
+    marginBottom: 8,
+    maxWidth: '80%',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.18,
+    shadowRadius: 1.0,
+    elevation: 1,
   },
-  chatButtonSurface: {
-    elevation: 4,
-    borderRadius: 20,
+  messageRight: {
+    backgroundColor: theme.colors.primary + '40',
+    borderRadius: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    alignSelf: 'flex-end',
+    marginBottom: 8,
+    maxWidth: '80%',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.18,
+    shadowRadius: 1.0,
+    elevation: 1,
   },
-  chatButton: {
-    backgroundColor: theme.colors.chatButton,
-    borderRadius: 20,
-    paddingHorizontal: 16,
+  messageText: {
+    fontSize: 16,
+    color: '#000000',
   },
-  chatButtonContent: {
-    flexDirection: "row-reverse", // Places icon after text
-    height: 36,
+  avatarIconContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#F0F0F0',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  chatButtonLabel: {
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    padding: 20,
+  },
+  loadingIcon: {
+    marginBottom: 16,
+  },
+  statusText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#000000',
+    marginBottom: 8,
+  },
+  subStatusText: {
     fontSize: 14,
-    fontWeight: "600",
-    marginLeft: 4,
+    color: '#666666',
+    textAlign: 'center',
   },
-  chip: {
-    backgroundColor: theme.colors.primary + "20",
+  chatWindowContainer: {
+    backgroundColor: '#F0F0F0',
+    flexDirection: 'column'
   },
-  chipText: {
-    color: theme.colors.text,
+  messagesContainer: {
+    height: '85%',
   },
-  segmentedButtonsContainer: {
-    backgroundColor: theme.colors.primaryContainer, // Background for the toggle buttons
-    borderRadius: 8,
-    margin: 16,
+  chatListContainer: {
+    padding: 16,
+    paddingBottom: 8,
   },
-  segmentedButton: {
-    backgroundColor: "transparent", // Keeps individual buttons transparent, showing the container's color
+  chatListStyle: {
+    flexGrow: 1,
   },
-  segmentedButtonSelected: {
-    backgroundColor: theme.colors.primary, // Selected button background
+  inputSection: {
+    height: '15%',
+    marginTop: -20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 8,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.05)',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: -2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 5,
   },
-  segmentedButtonText: {
-    color: theme.colors.text, // Unselected button text color
+  chatInput: {
+    flex: 1,
+    backgroundColor: '#F8F8F8',
+    borderRadius: 10,
+    paddingHorizontal: 16,
+    marginRight: 8,
+    maxHeight: 65,
+    fontSize: 16,
   },
-  segmentedButtonTextSelected: {
-    color: theme.colors.onPrimaryContainer, // Selected button text color
+  sendButtonContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: theme.colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 1.41,
   },
-  segmentedButtonBackground: {
-    backgroundColor: theme.colors.primaryContainer, // Custom background for segmented buttons
+  messageLeft: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    alignSelf: 'flex-start',
+    marginBottom: 4,
+    maxWidth: '80%',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 1,
+    elevation: 1,
+  },
+  messageRight: {
+    backgroundColor: theme.colors.primary + '40',
+    borderRadius: 18,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    alignSelf: 'flex-end',
+    marginBottom: 4,
+    maxWidth: '80%',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 1,
+    elevation: 1,
+  },
+  messageText: {
+    fontSize: 16,
+    color: '#000000',
+    lineHeight: 20,
+  },
+  messageRowLeft: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    marginBottom: 12,
+    paddingRight: '15%',
+  },
+  
+  messageRowRight: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    marginBottom: 12,
+    paddingLeft: '15%',
+  },
+
+  messageContentLeft: {
+    flex: 1,
+    marginLeft: 8,
+  },
+
+  messageContentRight: {
+    flex: 1,
+    marginRight: 8,
+    alignItems: 'flex-end',
+  },
+
+  messageAvatarLeft: {
+    width: 28,
+    height: 28,
+    marginLeft: 8,
+  },
+
+  messageAvatarRight: {
+    width: 28,
+    height: 28,
+    marginRight: 8,
+  },
+
+  messageAvatar: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#E0E0E0',
+  },
+
+  messageLeft: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    borderTopLeftRadius: 4,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    alignSelf: 'flex-start',
+    maxWidth: '100%',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 1,
+    elevation: 1,
+  },
+
+  messageRight: {
+    backgroundColor: theme.colors.primary + '40',
+    borderRadius: 18,
+    borderTopRightRadius: 4,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    alignSelf: 'flex-end',
+    maxWidth: '100%',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 1,
+    elevation: 1,
+  },
+
+  messageText: {
+    fontSize: 15,
+    color: '#000000',
+    lineHeight: 20,
+  },
+
+  messageTimeContainer: {
+    marginTop: 4,
+    marginHorizontal: 4,
+  },
+
+  messageTime: {
+    fontSize: 11,
+    color: '#666666',
   },
 });
+
