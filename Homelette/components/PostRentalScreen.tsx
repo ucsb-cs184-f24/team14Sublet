@@ -28,6 +28,8 @@ export default function PostRentalScreen() {
   const [date, setDate] = useState(new Date());
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
+  const [startDateObj, setStartDateObj] = useState(new Date());
+  const [endDateObj, setEndDateObj] = useState(new Date());
   const [menuVisible, setMenuVisible] = useState(false);
 
   const handleSubmit = async () => {
@@ -99,10 +101,11 @@ export default function PostRentalScreen() {
       Alert.alert(
         "Success",
         "Your property is submitted",
-        [{ text: "OK", onPress: () => {
-          clearForms();
-          console.log("OK Pressed");
-        }
+        [{
+          text: "OK", onPress: () => {
+            clearForms();
+            console.log("OK Pressed");
+          }
         }]
       );
 
@@ -143,14 +146,20 @@ export default function PostRentalScreen() {
   };
 
   const onChangeDatePicker = (key, event, selectedDate) => {
-    const currentDate = selectedDate || date;
-    setDate(currentDate);
-    if (Platform.OS === 'android') {
+    if (event.type === 'dismissed') {
       toggleDatePicker(key);
+      return;
+    }
+
+    if (selectedDate) {
       if (key === 'start') {
-        setStartDate(formatDate(currentDate));
+        setShowStartPicker(Platform.OS === 'ios');
+        setStartDateObj(selectedDate);
+        setStartDate(formatDate(selectedDate));
       } else {
-        setEndDate(formatDate(currentDate));
+        setShowEndPicker(Platform.OS === 'ios');
+        setEndDateObj(selectedDate);
+        setEndDate(formatDate(selectedDate));
       }
     }
   };
@@ -164,14 +173,14 @@ export default function PostRentalScreen() {
     return `${year}-${month}-${day}`;
   };
 
-  const confirmIOSDate = (key) => {
-    if (key === 'start') {
-      setStartDate(formatDate(date));
-    } else {
-      setEndDate(formatDate(date));
-    }
-    toggleDatePicker(key);
-  };
+  // const confirmIOSDate = (key) => {
+  //   if (key === 'start') {
+  //     setStartDate(formatDate(date));
+  //   } else {
+  //     setEndDate(formatDate(date));
+  //   }
+  //   toggleDatePicker(key);
+  // };
 
   const handleImageUpload = async () => {
     try {
@@ -449,53 +458,19 @@ export default function PostRentalScreen() {
                 mode="outlined"
                 outlineColor="#FFD700"
                 activeOutlineColor="#FFD700"
-                right={<TextInput.Icon icon="calendar" />}
+                right={<TextInput.Icon icon="calendar" onPress={() => toggleDatePicker('start')} />}
                 onPressIn={() => toggleDatePicker('start')}
                 editable={false}
               />
+
               {showStartPicker && (
-                <View style={styles.datePickerContainer}>
-                  <View style={styles.datePickerHeader}>
-                    <Text style={styles.datePickerTitle}>Select Start Date</Text>
-                    <Button
-                      style={styles.closeButton}
-                      mode="text"
-                      textColor="#000000"
-                      onPress={() => toggleDatePicker('start')}
-                    >
-                      Close
-                    </Button>
-                  </View>
-                  <DateTimePicker
-                    mode="date"
-                    display="spinner"
-                    value={date}
-                    onChange={(event, selectedDate) => onChangeDatePicker('start', event, selectedDate)}
-                    style={styles.datePicker}
-                    minimumDate={new Date('2024-9-1')}
-                  />
-                  {Platform.OS === 'ios' && (
-                    <View style={styles.datePickerButtons}>
-                      <Button
-                        style={[styles.datePickerButton, styles.cancelButton]}
-                        mode="outlined"
-                        textColor="#666666"
-                        onPress={() => toggleDatePicker('start')}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        style={[styles.datePickerButton, styles.confirmButton]}
-                        mode="contained"
-                        buttonColor="#FFD700"
-                        textColor="#000000"
-                        onPress={() => confirmIOSDate('start')}
-                      >
-                        Confirm
-                      </Button>
-                    </View>
-                  )}
-                </View>
+                <DateTimePicker
+                  value={startDateObj}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  onChange={(event, date) => onChangeDatePicker('start', event, date)}
+                  minimumDate={new Date('2024-9-1')}
+                />
               )}
             </View>
 
@@ -507,53 +482,19 @@ export default function PostRentalScreen() {
                 mode="outlined"
                 outlineColor="#FFD700"
                 activeOutlineColor="#FFD700"
-                right={<TextInput.Icon icon="calendar" />}
+                right={<TextInput.Icon icon="calendar" onPress={() => toggleDatePicker('end')} />}
                 onPressIn={() => toggleDatePicker('end')}
                 editable={false}
               />
+
               {showEndPicker && (
-                <View style={styles.datePickerContainer}>
-                  <View style={styles.datePickerHeader}>
-                    <Text style={styles.datePickerTitle}>Select End Date</Text>
-                    <Button
-                      style={styles.closeButton}
-                      mode="text"
-                      textColor="#FFD700"
-                      onPress={() => toggleDatePicker('end')}
-                    >
-                      Close
-                    </Button>
-                  </View>
-                  <DateTimePicker
-                    mode="date"
-                    display="spinner"
-                    value={date}
-                    onChange={(event, selectedDate) => onChangeDatePicker('end', event, selectedDate)}
-                    style={styles.datePicker}
-                    minimumDate={new Date('2024-9-1')}
-                  />
-                  {Platform.OS === 'ios' && (
-                    <View style={styles.datePickerButtons}>
-                      <Button
-                        style={[styles.datePickerButton, styles.cancelButton]}
-                        mode="outlined"
-                        textColor="#666666"
-                        onPress={() => toggleDatePicker('end')}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        style={[styles.datePickerButton, styles.confirmButton]}
-                        mode="contained"
-                        buttonColor="#FFD700"
-                        textColor="#000000"
-                        onPress={() => confirmIOSDate('end')}
-                      >
-                        Confirm
-                      </Button>
-                    </View>
-                  )}
-                </View>
+                <DateTimePicker
+                  value={endDateObj}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  onChange={(event, date) => onChangeDatePicker('end', event, date)}
+                  minimumDate={new Date('2024-9-1')}
+                />
               )}
             </View>
           </View>
