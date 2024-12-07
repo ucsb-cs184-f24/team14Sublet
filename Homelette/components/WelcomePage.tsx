@@ -26,44 +26,8 @@ export function WelcomePage() {
   const [isLogin, setIsLogin] = useState(true);
   const [error, setError] = useState("");
   const [currentStep, setCurrentStep] = useState(1);
-  const [phone, setPhone] = useState("");
 
   const eduEmailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[eE][dD][uU]$/;
-
-  const validateEmail = (email: string) => {
-    return eduEmailRegex.test(email);
-  };
-
-  const validatePassword = (password: string) => {
-    return password.length >= 6;
-  };
-
-  const validateStep1 = () => {
-    if (!email.trim() || !password.trim()) {
-      setError("Email and password are required");
-      return false;
-    }
-    if (!validateEmail(email)) {
-      setError("Please use a valid .edu email address");
-      return false;
-    }
-    if (!validatePassword(password)) {
-      setError("Password must be at least 6 characters long");
-      return false;
-    }
-    if (!isLogin && (!firstName.trim() || !lastName.trim())) {
-      setError("First name and last name are required");
-      return false;
-    }
-    setError("");
-    return true;
-  };
-
-  const handleNext = () => {
-    if (validateStep1()) {
-      setCurrentStep(2);
-    }
-  };
 
   const pickImage = async () => {
     if (Platform.OS !== "web") {
@@ -168,27 +132,31 @@ export function WelcomePage() {
         <ThemedText style={styles.title}>Homelette</ThemedText>
         {currentStep === 1 && (
           <>
-            {!isLogin && (
+            <TextInput
+              style={styles.input}
+              placeholder="Email"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+            />
+            {isLogin ? (
+              <TouchableOpacity style={styles.button} onPress={handleAuth}>
+                <ThemedText style={styles.buttonText}>Login</ThemedText>
+              </TouchableOpacity>
+            ) : (
               <>
                 <TextInput
                   style={styles.input}
-                  placeholder="Email (.edu required)*"
-                  value={email}
-                  onChangeText={setEmail}
-                  autoCapitalize="none"
-                  keyboardType="email-address"
-                  autoCorrect={false}
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Password (min. 6 characters)*"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="First Name*"
+                  placeholder="First Name"
                   value={firstName}
                   onChangeText={setFirstName}
                   autoCapitalize="words"
@@ -196,7 +164,7 @@ export function WelcomePage() {
                 />
                 <TextInput
                   style={styles.input}
-                  placeholder="Last Name*"
+                  placeholder="Last Name"
                   value={lastName}
                   onChangeText={setLastName}
                   autoCapitalize="words"
@@ -204,33 +172,10 @@ export function WelcomePage() {
                 />
                 <TouchableOpacity
                   style={styles.button}
-                  onPress={handleNext}
+                  onPress={() => setCurrentStep(2)}
                 >
                   <ThemedText style={styles.buttonText}>Next</ThemedText>
                 </TouchableOpacity>
-              </>
-            )}
-            {isLogin && (
-              <>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Email (.edu)"
-                  value={email}
-                  onChangeText={setEmail}
-                  autoCapitalize="none"
-                  keyboardType="email-address"
-                  autoCorrect={false}
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Password"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry
-                />
-              <TouchableOpacity style={styles.button} onPress={handleAuth}>
-                <ThemedText style={styles.buttonText}>Login</ThemedText>
-              </TouchableOpacity>
               </>
             )}
           </>
@@ -238,41 +183,12 @@ export function WelcomePage() {
 
         {currentStep === 2 && (
           <>
-            <View style={styles.stepHeader}>
-              <TouchableOpacity
-                style={styles.backButton}
-                onPress={() => setCurrentStep(1)}
-              >
-                <Ionicons name="chevron-back" size={24} color="#000000" />
-                <ThemedText style={styles.backButtonText}>Back</ThemedText>
-              </TouchableOpacity>
-              <ThemedText style={styles.stepTitle}>Additional Information</ThemedText>
-            </View>
-
-            <View style={styles.profileImageContainer}>
-              <TouchableOpacity style={styles.profileImageButton} onPress={pickImage}>
-                {profileImage ? (
-                  <Image
-                    source={{ uri: profileImage }}
-                    style={styles.profileImage}
-                  />
-                ) : (
-                  <View style={styles.profileImagePlaceholder}>
-                    <Ionicons name="person" size={40} color="#000000" />
-                  </View>
-                )}
-              </TouchableOpacity>
-            </View>
-
-            <TextInput
-              style={styles.input}
-              placeholder="Phone Number (optional)"
-              value={phone}
-              onChangeText={setPhone}
-              keyboardType="phone-pad"
-              autoCorrect={false}
-            />
-
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => setCurrentStep(1)}
+            >
+              <ThemedText style={styles.backButtonText}>Back</ThemedText>
+            </TouchableOpacity>
             <TextInput
               style={styles.input}
               placeholder="Major (Optional)"
@@ -297,7 +213,24 @@ export function WelcomePage() {
               multiline
               numberOfLines={4}
             />
-
+            <View style={styles.profileContainer}>
+              <TouchableOpacity onPress={takePhoto} style={styles.iconButton}>
+                <Ionicons name="camera" size={30} color="#4285F4" />
+              </TouchableOpacity>
+              <View style={styles.imagePicker}>
+                {profileImage ? (
+                  <Image
+                    source={{ uri: profileImage }}
+                    style={styles.profileImage}
+                  />
+                ) : (
+                  <Text style={styles.imagePickerText}>Profile Picture</Text>
+                )}
+              </View>
+              <TouchableOpacity onPress={pickImage} style={styles.iconButton}>
+                <Ionicons name="images" size={30} color="#4285F4" />
+              </TouchableOpacity>
+            </View>
             <TouchableOpacity style={styles.button} onPress={handleAuth}>
               <ThemedText style={styles.buttonText}>Sign Up</ThemedText>
             </TouchableOpacity>
@@ -371,86 +304,21 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   buttonText: {
-    color: '#000000', 
+    color: '#1B4571',
     fontSize: 18,
     fontWeight: "800",
   },
   backButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: "#ccc",
+    padding: 10,
+    borderRadius: 5,
+    width: "100%",
+    alignItems: "center",
+    marginBottom: 10,
   },
   backButtonText: {
+    color: "black",
     fontSize: 16,
-    marginLeft: 4,
-    color: '#000000',
-    fontWeight: '600',
-  },
-  stepHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-    marginBottom: 20,
-    paddingHorizontal: 10,
-  },
-  stepTitle: {
-    flex: 1,
-    fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginRight: 10,
-    color: '#000000',
-  },
-  stepDescription: {
-    fontSize: 14,
-    color: '#000000',
-    textAlign: 'center',
-    marginBottom: 20,
-    paddingHorizontal: 20,
-  },
-  profileImageContainer: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  profileImageButton: {
-    width: 80,
-    height: 80,
-    borderRadius: 60,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  profileImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 60,
-  },
-  profileImagePlaceholder: {
-    width: 80,
-    height: 80,
-    borderRadius: 60,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#F3B33D',
-    borderStyle: 'dashed',
-  },
-  profileImageText: {
-    fontSize: 14,
-    color: '#000000',
-    marginTop: 8,
   },
   switchText: {
     marginTop: 20,
@@ -458,10 +326,41 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   errorText: {
-    color: 'red',
-    marginTop: 10,
-    marginBottom: 10,
+    color: '#FF6B6B',
+    marginBottom: 12,
     textAlign: "center",
+    fontSize: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    padding: 5,
+    borderRadius: 4,
+  },
+  profileContainer: {
+    marginTop: 15,
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  iconButton: {
+    padding: 20,
+  },
+  imagePicker: {
+    width: 100,
+    height: 100,
+    alignItems: "center",
+    justifyContent: "center",
+    borderColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 8,
+    marginBottom: 15,
+    overflow: "hidden",
+  },
+  imagePickerText: {
+    color: "#777",
+  },
+  profileImage: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
   },
   textArea: {
     height: 80,
