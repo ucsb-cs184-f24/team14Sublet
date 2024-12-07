@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { StyleSheet, View, Dimensions } from "react-native";
 import { getListings, auth, sendNewMessage } from "@/config/firebase";
 import MapView, { Marker } from "react-native-maps";
@@ -22,43 +22,6 @@ import {
   TextInput,
 } from "react-native-paper";
 import { FlashList } from "@shopify/flash-list";
-
-// Mock data for properties
-const leases = [
-  {
-    id: "1",
-    address: "123 Main St",
-    rent: 1200,
-    startDate: "2023-09-04",
-    endDate: "2024-08-31",
-    image: require("../assets/images/mock_property_images/123-Main-St.jpg"),
-    bedCount: 3,
-    bathCount: 2,
-    area: 900,
-  },
-  {
-    id: "2",
-    address: "456 Elm St",
-    rent: 1500,
-    startDate: "2023-10-01",
-    endDate: "2024-09-30",
-    image: require("../assets/images/mock_property_images/456-Elm-St.jpg"),
-    bedCount: 4,
-    bathCount: 3,
-    area: 1400,
-  },
-  {
-    id: "3",
-    address: "789 Oak Ave",
-    rent: 1100,
-    startDate: "2023-11-01",
-    endDate: "2024-10-31",
-    image: require("../assets/images/mock_property_images/789-Oak-Ave.jpg"),
-    bedCount: 2,
-    bathCount: 1,
-    area: 900,
-  },
-];
 
 // Custom theme for React Native Paper
 const theme = {
@@ -101,6 +64,7 @@ interface FilterOptions {
   startDate?: Date;
 }
 
+// PropertyCard Component
 const PropertyCard = ({
   item,
   isFavorite,
@@ -208,8 +172,8 @@ const PropertyCard = ({
                 textColor="#000000"
                 onPress={() => {
                   handleSendMessage(
-                    auth.currentUser?.uid,
-                    item.authorId,
+                    auth.currentUser?.uid || "",
+                    listingAuthorId,
                     message,
                     item.address,
                   );
@@ -218,7 +182,11 @@ const PropertyCard = ({
               >
                 Send
               </Button>
-              <Button buttonColor="#ffffbb" textColor="#000000" onPress={() => handleClosePopup()}>
+              <Button
+                buttonColor="#ffffbb"
+                textColor="#000000"
+                onPress={handleClosePopup}
+              >
                 Cancel
               </Button>
             </View>
@@ -229,10 +197,11 @@ const PropertyCard = ({
   );
 };
 
+// FilterModal Component
 interface FilterModalProps {
   visible: boolean;
   hideModal: () => void;
-  onApplyFilters: () => void;
+  onApplyFilters: (filters: FilterOptions) => void;
 }
 
 const FilterModal = ({
@@ -243,6 +212,51 @@ const FilterModal = ({
   // State for min and max price inputs
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
+
+  // State for bedrooms
+  const [bedrooms, setBedrooms] = useState<string>("any");
+
+  // You can add more states for bathrooms, startDate, etc., if needed
+
+  const handleApply = () => {
+    const filters: FilterOptions = {};
+
+    if (minPrice) {
+      const parsedMin = parseInt(minPrice, 10);
+      if (!isNaN(parsedMin)) {
+        filters.minPrice = parsedMin;
+      }
+    }
+
+    if (maxPrice) {
+      const parsedMax = parseInt(maxPrice, 10);
+      if (!isNaN(parsedMax)) {
+        filters.maxPrice = parsedMax;
+      }
+    }
+
+    if (bedrooms !== "any") {
+      const parsedBedrooms = parseInt(bedrooms, 10);
+      if (!isNaN(parsedBedrooms)) {
+        filters.bedrooms = parsedBedrooms;
+      }
+    }
+
+    // Similarly, add other filters like bathrooms, startDate, etc.
+
+    onApplyFilters(filters);
+    hideModal();
+  };
+
+  const handleReset = () => {
+    setMinPrice("");
+    setMaxPrice("");
+    setBedrooms("any");
+    // Reset other filters if added
+
+    onApplyFilters({}); // Pass empty filters to reset
+    hideModal();
+  };
 
   return (
     <Portal>
@@ -258,16 +272,16 @@ const FilterModal = ({
         <View style={styles.priceInputs}>
           <Searchbar
             placeholder="Min $"
-            value={minPrice} // Added value prop
-            onChangeText={setMinPrice} // Added onChangeText handler
+            value={minPrice}
+            onChangeText={setMinPrice}
             style={styles.priceInput}
             keyboardType="numeric"
           />
           <Text>-</Text>
           <Searchbar
             placeholder="Max $"
-            value={maxPrice} // Added value prop
-            onChangeText={setMaxPrice} // Added onChangeText handler
+            value={maxPrice}
+            onChangeText={setMaxPrice}
             style={styles.priceInput}
             keyboardType="numeric"
           />
@@ -275,8 +289,8 @@ const FilterModal = ({
 
         <Text style={styles.filterLabel}>Bedrooms</Text>
         <SegmentedButtons
-          value="any"
-          onValueChange={(value) => console.log(value)}
+          value={bedrooms}
+          onValueChange={(value) => setBedrooms(value)}
           buttons={[
             {
               value: "any",
@@ -301,9 +315,13 @@ const FilterModal = ({
           ]}
         />
 
+        {/* Add more filter options here (e.g., Bathrooms, Start Date) if needed */}
+
         <View style={styles.modalActions}>
-          <Button onPress={hideModal} buttonColor="#FFD70020" textColor="#000000">Reset</Button>
-          <Button mode="contained" textColor="#000000" onPress={onApplyFilters}>
+          <Button onPress={handleReset} buttonColor="#FFD70020" textColor="#000000">
+            Reset
+          </Button>
+          <Button mode="contained" textColor="#000000" onPress={handleApply}>
             Apply Filters
           </Button>
         </View>
@@ -312,6 +330,7 @@ const FilterModal = ({
   );
 };
 
+// RentPage Component
 export function RentPage() {
   const [data, setData] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
@@ -319,6 +338,15 @@ export function RentPage() {
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [filterVisible, setFilterVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // New state for filter options
+  const [filterOptions, setFilterOptions] = useState<FilterOptions>({
+    minPrice: undefined,
+    maxPrice: undefined,
+    bedrooms: undefined,
+    bathrooms: undefined,
+    startDate: undefined,
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -363,6 +391,66 @@ export function RentPage() {
     });
   };
 
+  // Function to handle applying filters
+  const handleApplyFilters = (filters: FilterOptions) => {
+    setFilterOptions(filters);
+  };
+
+  // Compute filtered data based on filterOptions and searchQuery
+  const filteredData = useMemo(() => {
+    return data.filter((item) => {
+      // Apply search query
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        if (!item.address.toLowerCase().includes(query)) {
+          return false;
+        }
+      }
+
+      // Apply minPrice
+      if (
+        filterOptions.minPrice !== undefined &&
+        item.rent < filterOptions.minPrice
+      ) {
+        return false;
+      }
+
+      // Apply maxPrice
+      if (
+        filterOptions.maxPrice !== undefined &&
+        item.rent > filterOptions.maxPrice
+      ) {
+        return false;
+      }
+
+      // Apply bedrooms
+      if (
+        filterOptions.bedrooms !== undefined &&
+        item.bedCount < filterOptions.bedrooms
+      ) {
+        return false;
+      }
+
+      // Apply bathrooms (if needed)
+      if (
+        filterOptions.bathrooms !== undefined &&
+        item.bathCount < filterOptions.bathrooms
+      ) {
+        return false;
+      }
+
+      // Apply startDate (if needed)
+      if (filterOptions.startDate) {
+        const itemStartDate = new Date(item.startDate);
+        if (itemStartDate < filterOptions.startDate) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [data, filterOptions, searchQuery]);
+
   const renderContent = () => {
     if (viewMode === "map") {
       return (
@@ -375,7 +463,7 @@ export function RentPage() {
             longitudeDelta: 0.0421,
           }}
         >
-          {data.map((item) => (
+          {filteredData.map((item) => (
             <Marker
               key={item.id}
               coordinate={{
@@ -392,11 +480,12 @@ export function RentPage() {
 
     return (
       <FlashList
-        data={data}
+        data={filteredData}
         renderItem={({ item }) => (
           <PropertyCard
             item={item}
             isFavorite={favorites.has(item.id)}
+            listingAuthorId={item.authorId}
             onToggleFavorite={toggleFavorite}
           />
         )}
@@ -448,12 +537,12 @@ export function RentPage() {
               label: "List",
               style: [
                 styles.segmentedButton,
-                viewMode === "list" && styles.segmentedButtonSelected, // Apply selected style
+                viewMode === "list" && styles.segmentedButtonSelected,
               ],
               labelStyle:
                 viewMode === "list"
                   ? styles.segmentedButtonTextSelected
-                  : styles.segmentedButtonText, // Conditionally apply text color
+                  : styles.segmentedButtonText,
             },
             {
               value: "map",
@@ -461,12 +550,12 @@ export function RentPage() {
               label: "Map",
               style: [
                 styles.segmentedButton,
-                viewMode === "map" && styles.segmentedButtonSelected, // Apply selected style
+                viewMode === "map" && styles.segmentedButtonSelected,
               ],
               labelStyle:
                 viewMode === "map"
                   ? styles.segmentedButtonTextSelected
-                  : styles.segmentedButtonText, // Conditionally apply text color
+                  : styles.segmentedButtonText,
             },
           ]}
           style={styles.segmentedButtonsContainer}
@@ -477,10 +566,7 @@ export function RentPage() {
         <FilterModal
           visible={filterVisible}
           hideModal={() => setFilterVisible(false)}
-          onApplyFilters={() => {
-            setFilterVisible(false);
-            // Apply filters logic here
-          }}
+          onApplyFilters={handleApplyFilters}
         />
 
         <FAB
@@ -494,6 +580,7 @@ export function RentPage() {
   );
 }
 
+// Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -520,7 +607,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderRadius: 12,
     backgroundColor: theme.colors.primaryContainer,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   imageContainer: {
     position: "relative",
@@ -642,7 +729,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     marginLeft: 4,
-    color: '#000000',
+    color: "#000000",
   },
   chip: {
     backgroundColor: theme.colors.primary + "20",
