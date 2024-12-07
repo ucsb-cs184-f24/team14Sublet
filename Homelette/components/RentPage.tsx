@@ -399,18 +399,6 @@ export function RentPage() {
     }
   };
 
-  const fetchUserFavorites = async () => {
-    if (!user) return;
-    try {
-      const userDoc = await getDoc(doc(firestore, "users", user.uid));
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
-        setFavorites(new Set(userData.interested_listing_ids || []));
-      }
-    } catch (error) {
-      console.error("Error fetching user favorites:", error);
-    }
-  };
 
   const toggleFavorite = async (id: string) => {
     if (!user) {
