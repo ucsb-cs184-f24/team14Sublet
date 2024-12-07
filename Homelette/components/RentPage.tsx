@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { StyleSheet, View, Dimensions, RefreshControl, Alert, Image } from "react-native";
 import { getListings, auth, sendNewMessage, firestore } from "@/config/firebase";
-import { doc, updateDoc, arrayUnion, arrayRemove, getDoc } from "firebase/firestore";
+import { doc, updateDoc, arrayUnion, arrayRemove, getDoc, collection, getDocs } from "firebase/firestore";
 import MapView, { Marker, Callout } from "react-native-maps";
 import {
   Card,
@@ -25,21 +25,83 @@ import {
 import { FlashList } from "@shopify/flash-list";
 import axios from "axios";
 import { useAuth } from "@/hooks/useAuth";
+import LoadingEgg from "@/components/LoadingEgg";
+
+// Mock data for properties
+
+/* // - don't need this mock data
+const leases = [
+  {
+    id: "1",
+    address: "123 Main St",
+    rent: 1200,
+    startDate: "2023-09-04",
+    endDate: "2024-08-31",
+    image: require("../assets/images/mock_property_images/123-Main-St.jpg"),
+    bedCount: 3,
+    bathCount: 2,
+    area: 900,
+  },
+  {
+    id: "2",
+    address: "456 Elm St",
+    rent: 1500,
+    startDate: "2023-10-01",
+    endDate: "2024-09-30",
+    image: require("../assets/images/mock_property_images/456-Elm-St.jpg"),
+    bedCount: 4,
+    bathCount: 3,
+    area: 1400,
+  },
+  {
+    id: "3",
+    address: "789 Oak Ave",
+    rent: 1100,
+    startDate: "2023-11-01",
+    endDate: "2024-10-31",
+    image: require("../assets/images/mock_property_images/789-Oak-Ave.jpg"),
+    bedCount: 2,
+    bathCount: 1,
+    area: 900,
+  },
+];
+*/
+
+// helper function to get longitude / latitude:
+
+const getCoordinatesFromAddress = async (address: string): Promise<{ latitude: number, longitude: number } | null> => {
+  const apiKey = "AIzaSyCVsuSPlVbAHwQNkMS6ui8Pni2NJQ_UMb8"; // probably need to secure this later
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}`;
+
+  try {
+    const response = await axios.get(url);
+    if (response.data.status === "OK") {
+      const { lat, lng } = response.data.results[0].geometry.location;
+      return { latitude: lat, longitude: lng };
+    } else {
+      console.error("Geocoding failed: ", response.data.status);
+      return null;
+    }
+  } catch (error) {
+    console.error("Error fetching geocoding data:", error);
+    return null;
+  }
+};
 
 // Custom theme for React Native Paper
 const theme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    primary: "#FFD700",
-    secondary: "#2E3192",
-    surface: "#FFFFFC",
-    background: "#F5F5F5",
-    error: "#FF6B6B",
-    text: "#333333",
-    primaryContainer: "#FFD70020",
-    onPrimaryContainer: "#0D1321",
-    chatButton: "#FFD700",
+    primary: "#FFD700", // Main yellow for buttons and primary elements
+    secondary: "#2E3192", // Accent blue for interactive elements
+    surface: "#FFFFFC", // White for cards and surfaces
+    background: "#F5F5F5", // Light gray for app background
+    error: "#FF6B6B", // Red for error messages
+    text: "#333333", // Dark gray for general text
+    primaryContainer: "#FFD70020", // Light yellow background for buttons and containers
+    onPrimaryContainer: "#0D1321", // Rich black for text/icons on primary containers
+    chatButton: "#FFD700", // Yellow for the chat button
   },
 };
 
@@ -67,32 +129,15 @@ interface FilterOptions {
   startDate?: Date;
 }
 
-// Helper function for geocoding
-const getCoordinatesFromAddress = async (address: string): Promise<{ latitude: number, longitude: number } | null> => {
-  const apiKey = "AIzaSyCVsuSPlVbAHwQNkMS6ui8Pni2NJQ_UMb8";
-  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}`;
-
-  try {
-    const response = await axios.get(url);
-    if (response.data.status === "OK") {
-      const { lat, lng } = response.data.results[0].geometry.location;
-      return { latitude: lat, longitude: lng };
-    }
-    return null;
-  } catch (error) {
-    console.error("Error fetching geocoding data:", error);
-    return null;
-  }
-};
-
-// PropertyCard Component
 const PropertyCard = ({
   item,
   isFavorite,
+  listingAuthorId,
   onToggleFavorite,
 }: {
   item: Property;
   isFavorite: boolean;
+  listingAuthorId: string;
   onToggleFavorite: (id: string) => void;
 }) => {
   const [isVisible, setVisible] = useState(false);
@@ -191,7 +236,7 @@ const PropertyCard = ({
             <Text style={styles.modalTitle}>Message the Subletter</Text>
             <TextInput
               style={styles.messageInput}
-              placeholder="Your message here"
+              placeholder={`Your message here`}
               value={message}
               onChangeText={setMessage}
             />
@@ -201,7 +246,7 @@ const PropertyCard = ({
                 textColor="#000000"
                 onPress={() => {
                   handleSendMessage(
-                    auth.currentUser?.uid || "",
+                    auth.currentUser?.uid,
                     item.authorId,
                     message,
                     item.address,
@@ -211,11 +256,7 @@ const PropertyCard = ({
               >
                 Send
               </Button>
-              <Button
-                buttonColor="#ffffbb"
-                textColor="#000000"
-                onPress={handleClosePopup}
-              >
+              <Button buttonColor="#ffffbb" textColor="#000000" onPress={() => handleClosePopup()}>
                 Cancel
               </Button>
             </View>
@@ -226,44 +267,20 @@ const PropertyCard = ({
   );
 };
 
-// FilterModal Component
+interface FilterModalProps {
+  visible: boolean;
+  hideModal: () => void;
+  onApplyFilters: () => void;
+}
+
 const FilterModal = ({
   visible,
   hideModal,
   onApplyFilters,
-}: {
-  visible: boolean;
-  hideModal: () => void;
-  onApplyFilters: (filters: FilterOptions) => void;
-}) => {
+}: FilterModalProps) => {
+  // State for min and max price inputs
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
-  const [bedrooms, setBedrooms] = useState<string>("any");
-
-  const handleApply = () => {
-    const filters: FilterOptions = {};
-
-    if (minPrice) {
-      filters.minPrice = parseInt(minPrice, 10);
-    }
-    if (maxPrice) {
-      filters.maxPrice = parseInt(maxPrice, 10);
-    }
-    if (bedrooms !== "any") {
-      filters.bedrooms = parseInt(bedrooms, 10);
-    }
-
-    onApplyFilters(filters);
-    hideModal();
-  };
-
-  const handleReset = () => {
-    setMinPrice("");
-    setMaxPrice("");
-    setBedrooms("any");
-    onApplyFilters({});
-    hideModal();
-  };
 
   return (
     <Portal>
@@ -279,84 +296,52 @@ const FilterModal = ({
         <View style={styles.priceInputs}>
           <Searchbar
             placeholder="Min $"
-            value={minPrice}
-            onChangeText={setMinPrice}
+            value={minPrice} // Added value prop
+            onChangeText={setMinPrice} // Added onChangeText handler
             style={styles.priceInput}
             keyboardType="numeric"
-            icon="currency-usd"
           />
           <Text>-</Text>
           <Searchbar
             placeholder="Max $"
-            value={maxPrice}
-            onChangeText={setMaxPrice}
+            value={maxPrice} // Added value prop
+            onChangeText={setMaxPrice} // Added onChangeText handler
             style={styles.priceInput}
             keyboardType="numeric"
-            icon="currency-usd"
           />
         </View>
 
         <Text style={styles.filterLabel}>Bedrooms</Text>
         <SegmentedButtons
-          value={bedrooms}
-          onValueChange={setBedrooms}
+          value="any"
+          onValueChange={(value) => console.log(value)}
           buttons={[
             {
               value: "any",
               label: "Any",
-              style: [
-                styles.segmentedButton,
-                bedrooms === "any" && styles.segmentedButtonSelected,
-              ],
-              labelStyle:
-                bedrooms === "any"
-                  ? styles.segmentedButtonTextSelected
-                  : styles.segmentedButtonText,
+              style: styles.segmentedButtonBackground,
             },
             {
               value: "1",
               label: "1+",
-              style: [
-                styles.segmentedButton,
-                bedrooms === "1" && styles.segmentedButtonSelected,
-              ],
-              labelStyle:
-                bedrooms === "1"
-                  ? styles.segmentedButtonTextSelected
-                  : styles.segmentedButtonText,
+              style: styles.segmentedButtonBackground,
             },
             {
               value: "2",
               label: "2+",
-              style: [
-                styles.segmentedButton,
-                bedrooms === "2" && styles.segmentedButtonSelected,
-              ],
-              labelStyle:
-                bedrooms === "2"
-                  ? styles.segmentedButtonTextSelected
-                  : styles.segmentedButtonText,
+              style: styles.segmentedButtonBackground,
             },
             {
               value: "3",
               label: "3+",
-              style: [
-                styles.segmentedButton,
-                bedrooms === "3" && styles.segmentedButtonSelected,
-              ],
-              labelStyle:
-                bedrooms === "3"
-                  ? styles.segmentedButtonTextSelected
-                  : styles.segmentedButtonText,
+              style: styles.segmentedButtonBackground,
             },
           ]}
         />
 
         <View style={styles.modalActions}>
-          <Button onPress={handleReset} buttonColor="#FFD70020" textColor="#000000">
-            Reset
-          </Button>
-          <Button mode="contained" textColor="#000000" onPress={handleApply}>
+          <Button onPress={hideModal} buttonColor="#FFD70020" textColor="#000000">Reset</Button>
+          <Button mode="contained" textColor="#000000" onPress={onApplyFilters}>
             Apply Filters
           </Button>
         </View>
@@ -365,7 +350,6 @@ const FilterModal = ({
   );
 };
 
-// Main RentPage Component
 export function RentPage() {
   const { user } = useAuth();
   const [data, setData] = useState<Property[]>([]);
@@ -375,7 +359,6 @@ export function RentPage() {
   const [filterVisible, setFilterVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [refreshing, setRefreshing] = useState(false);
-  const [filterOptions, setFilterOptions] = useState<FilterOptions>({});
 
   const fetchUserFavorites = async () => {
     if (!user) return;
@@ -393,25 +376,21 @@ export function RentPage() {
   const fetchData = async () => {
     try {
       const result = await getListings();
-      const formattedData = await Promise.all(
-        result.map(async (item: any) => {
-          const coordinates = await getCoordinatesFromAddress(item.property);
-          return {
-            id: item.id,
-            address: item.property,
-            rent: item.rent,
-            startDate: item.startDate,
-            endDate: item.endDate,
-            image: item.image,
-            bedCount: item.bedCount,
-            bathCount: item.bathCount,
-            area: item.area,
-            latitude: coordinates?.latitude,
-            longitude: coordinates?.longitude,
-            authorId: item.authorId,
-          };
-        })
-      );
+      const formattedData = result.map((item: any) => ({
+        id: item.id,
+        address: item.property,
+        rent: item.rent,
+        startDate: item.startDate,
+        endDate: item.endDate,
+        image: item.image,
+        bedCount: item.bedCount,
+        bathCount: item.bathCount,
+        area: item.area,
+        latitude: item.latitude,
+        longitude: item.longitude,
+        authorId: item.authorId,
+      }));
+
       setData(formattedData);
       await fetchUserFavorites();
     } catch (error) {
@@ -421,9 +400,6 @@ export function RentPage() {
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, [user]);
 
   const toggleFavorite = async (id: string) => {
     if (!user) {
@@ -436,6 +412,7 @@ export function RentPage() {
       const listingRef = doc(firestore, "listings", id);
 
       if (favorites.has(id)) {
+        // Remove from favorites
         await updateDoc(userRef, {
           interested_listing_ids: arrayRemove(id)
         });
@@ -448,6 +425,7 @@ export function RentPage() {
           return newFavorites;
         });
       } else {
+        // Add to favorites
         await updateDoc(userRef, {
           interested_listing_ids: arrayUnion(id)
         });
@@ -466,6 +444,42 @@ export function RentPage() {
     }
   };
 
+  useEffect(() => {
+    const fetchData = async () => { // this is getting the data for me
+      try {
+        const result = await getListings();
+
+        // Map the data to match the Property type
+        const formattedData: Property[] = await Promise.all(
+          result.map(async (item: any): Promise<Property> => {
+            const coordinates = await getCoordinatesFromAddress(item.property);
+
+            return {
+              id: item.id,
+              address: item.property,
+              rent: item.rent,
+              startDate: item.startDate,
+              endDate: item.endDate,
+              image: item.image,
+              bedCount: item.bedCount,
+              bathCount: item.bathCount,
+              area: item.area,
+              latitude: coordinates?.latitude,
+              longitude: coordinates?.longitude,
+              authorId: item.authorId,
+            };
+          })
+        );
+        setData(formattedData);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [user]);
+
   const onRefresh = async () => {
     setRefreshing(true);
     try {
@@ -476,39 +490,6 @@ export function RentPage() {
       setRefreshing(false);
     }
   };
-
-  // Filter the data based on search query and filter options
-  const filteredData = useMemo(() => {
-    return data.filter((item) => {
-      // Apply search query
-      if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        if (!item.address.toLowerCase().includes(query)) {
-          return false;
-        }
-      }
-
-      // Apply price filters
-      if (filterOptions.minPrice && item.rent < filterOptions.minPrice) {
-        return false;
-      }
-      if (filterOptions.maxPrice && item.rent > filterOptions.maxPrice) {
-        return false;
-      }
-
-      // Apply bedroom filter
-      if (filterOptions.bedrooms && item.bedCount < filterOptions.bedrooms) {
-        return false;
-      }
-
-      // Apply bathroom filter
-      if (filterOptions.bathrooms && item.bathCount < filterOptions.bathrooms) {
-        return false;
-      }
-
-      return true;
-    });
-  }, [data, filterOptions, searchQuery]);
 
   const renderContent = () => {
     if (viewMode === "map") {
@@ -522,14 +503,15 @@ export function RentPage() {
             longitudeDelta: 0.0421,
           }}
         >
-          {filteredData.map((item) => (
+          {data.map((item) => (
             <Marker
               key={item.id}
               coordinate={{
-                latitude: item.latitude || 34.4133,
-                longitude: item.longitude || -119.8610,
+                latitude: item.latitude,
+                longitude: item.longitude,
               }}
             >
+              {/* Callout inside Marker - this is to change the text when clicking on marker*/}
               <Callout>
                 <View style={{ width: 150, alignItems: "center", padding: 5 }}>
                   <View style={{ width: 100, height: 100 }}>
@@ -553,12 +535,12 @@ export function RentPage() {
 
     return (
       <FlashList
-        data={filteredData}
+        data={data}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[theme.colors.primary]}
+            colors={[theme.colors.primary]} // Yellow color
             tintColor={theme.colors.primary}
           />
         }
@@ -579,13 +561,9 @@ export function RentPage() {
   if (loading) {
     return (
       <PaperProvider theme={theme}>
-        <Card style={styles.card} elevation={2}>
-          <Card.Content>
-            <View>
-              <Title style={styles.rent}>Loading...</Title>
-            </View>
-          </Card.Content>
-        </Card>
+        <View style={[styles.container, styles.loadingContainer]}>
+          <LoadingEgg size={80} />
+        </View>
       </PaperProvider>
     );
   }
@@ -617,12 +595,12 @@ export function RentPage() {
               label: "List",
               style: [
                 styles.segmentedButton,
-                viewMode === "list" && styles.segmentedButtonSelected,
+                viewMode === "list" && styles.segmentedButtonSelected, // Apply selected style
               ],
               labelStyle:
                 viewMode === "list"
                   ? styles.segmentedButtonTextSelected
-                  : styles.segmentedButtonText,
+                  : styles.segmentedButtonText, // Conditionally apply text color
             },
             {
               value: "map",
@@ -630,12 +608,12 @@ export function RentPage() {
               label: "Map",
               style: [
                 styles.segmentedButton,
-                viewMode === "map" && styles.segmentedButtonSelected,
+                viewMode === "map" && styles.segmentedButtonSelected, // Apply selected style
               ],
               labelStyle:
                 viewMode === "map"
                   ? styles.segmentedButtonTextSelected
-                  : styles.segmentedButtonText,
+                  : styles.segmentedButtonText, // Conditionally apply text color
             },
           ]}
           style={styles.segmentedButtonsContainer}
@@ -646,7 +624,10 @@ export function RentPage() {
         <FilterModal
           visible={filterVisible}
           hideModal={() => setFilterVisible(false)}
-          onApplyFilters={setFilterOptions}
+          onApplyFilters={() => {
+            setFilterVisible(false);
+            // Apply filters logic here
+          }}
         />
 
         <FAB
@@ -801,7 +782,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   chatButtonContent: {
-    flexDirection: "row-reverse",
+    flexDirection: "row-reverse", // Places icon after text
     height: 36,
   },
   chatButtonLabel: {
@@ -817,23 +798,27 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
   },
   segmentedButtonsContainer: {
-    backgroundColor: theme.colors.primaryContainer,
+    backgroundColor: theme.colors.primaryContainer, // Background for the toggle buttons
     borderRadius: 8,
     margin: 16,
   },
   segmentedButton: {
-    backgroundColor: "transparent",
+    backgroundColor: "transparent", // Keeps individual buttons transparent, showing the container's color
   },
   segmentedButtonSelected: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.primary, // Selected button background
   },
   segmentedButtonText: {
-    color: theme.colors.text,
+    color: theme.colors.text, // Unselected button text color
   },
   segmentedButtonTextSelected: {
-    color: theme.colors.onPrimaryContainer,
+    color: theme.colors.onPrimaryContainer, // Selected button text color
   },
   segmentedButtonBackground: {
-    backgroundColor: theme.colors.primaryContainer,
+    backgroundColor: theme.colors.primaryContainer, // Custom background for segmented buttons
+  },
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
