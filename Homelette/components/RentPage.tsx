@@ -67,7 +67,7 @@ const leases = [
 // helper function to get longitude / latitude:
 
 const getCoordinatesFromAddress = async (address: string): Promise<{latitude: number, longitude: number} | null> => {
-  const apiKey = "AIzaSyCVsuSPlVbAHwQNkMS6ui8Pni2NJQ_UMb8"; // Replace with your Google API key
+  const apiKey = "AIzaSyCVsuSPlVbAHwQNkMS6ui8Pni2NJQ_UMb8"; // probably need to secure this later
   const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}`;
   
   try {
@@ -413,7 +413,7 @@ export function RentPage() {
               longitude: item.longitude,
             }}
           >
-            {/* Callout inside Marker */}
+            {/* Callout inside Marker - this is to change the text when clicking on marker*/}
             <Callout>
               <View style={{ width: 150, alignItems: "center", padding: 5 }}>
                 <View style={{ width: 100, height: 100 }}>
