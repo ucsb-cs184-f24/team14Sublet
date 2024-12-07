@@ -258,6 +258,33 @@ const FilterModal = ({
     hideModal();
   };
 
+  const bedroomButtons = [
+    {
+      value: "any",
+      label: "Any",
+      style: bedrooms === "any" ? styles.segmentedButtonSelected : styles.segmentedButton,
+      labelStyle: bedrooms === "any" ? styles.segmentedButtonTextSelected : styles.segmentedButtonText,
+    },
+    {
+      value: "1",
+      label: "1+",
+      style: bedrooms === "1" ? styles.segmentedButtonSelected : styles.segmentedButton,
+      labelStyle: bedrooms === "1" ? styles.segmentedButtonTextSelected : styles.segmentedButtonText,
+    },
+    {
+      value: "2",
+      label: "2+",
+      style: bedrooms === "2" ? styles.segmentedButtonSelected : styles.segmentedButton,
+      labelStyle: bedrooms === "2" ? styles.segmentedButtonTextSelected : styles.segmentedButtonText,
+    },
+    {
+      value: "3",
+      label: "3+",
+      style: bedrooms === "3" ? styles.segmentedButtonSelected : styles.segmentedButton,
+      labelStyle: bedrooms === "3" ? styles.segmentedButtonTextSelected : styles.segmentedButtonText,
+    },
+  ];
+
   return (
     <Portal>
       <Modal
@@ -291,28 +318,7 @@ const FilterModal = ({
         <SegmentedButtons
           value={bedrooms}
           onValueChange={(value) => setBedrooms(value)}
-          buttons={[
-            {
-              value: "any",
-              label: "Any",
-              style: styles.segmentedButtonBackground,
-            },
-            {
-              value: "1",
-              label: "1+",
-              style: styles.segmentedButtonBackground,
-            },
-            {
-              value: "2",
-              label: "2+",
-              style: styles.segmentedButtonBackground,
-            },
-            {
-              value: "3",
-              label: "3+",
-              style: styles.segmentedButtonBackground,
-            },
-          ]}
+          buttons={bedroomButtons}
         />
 
         {/* Add more filter options here (e.g., Bathrooms, Start Date) if needed */}
@@ -743,16 +749,16 @@ const styles = StyleSheet.create({
     margin: 16,
   },
   segmentedButton: {
-    backgroundColor: "transparent", // Keeps individual buttons transparent, showing the container's color
+    backgroundColor: theme.colors.primaryContainer,
   },
   segmentedButtonSelected: {
-    backgroundColor: theme.colors.primary, // Selected button background
+    backgroundColor: theme.colors.primary,
   },
   segmentedButtonText: {
-    color: theme.colors.text, // Unselected button text color
+    color: theme.colors.text,
   },
   segmentedButtonTextSelected: {
-    color: theme.colors.onPrimaryContainer, // Selected button text color
+    color: theme.colors.text,
   },
   segmentedButtonBackground: {
     backgroundColor: theme.colors.primaryContainer, // Custom background for segmented buttons
