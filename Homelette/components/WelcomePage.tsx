@@ -29,6 +29,41 @@ export function WelcomePage() {
 
   const eduEmailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[eE][dD][uU]$/;
 
+  const validateEmail = (email: string) => {
+    return eduEmailRegex.test(email);
+  };
+
+  const validatePassword = (password: string) => {
+    return password.length >= 6;
+  };
+
+  const validateStep1 = () => {
+    if (!email.trim() || !password.trim()) {
+      setError("Email and password are required");
+      return false;
+    }
+    if (!validateEmail(email)) {
+      setError("Please use a valid .edu email address");
+      return false;
+    }
+    if (!validatePassword(password)) {
+      setError("Password must be at least 6 characters long");
+      return false;
+    }
+    if (!isLogin && (!firstName.trim() || !lastName.trim())) {
+      setError("First name and last name are required");
+      return false;
+    }
+    setError("");
+    return true;
+  };
+
+  const handleNext = () => {
+    if (validateStep1()) {
+      setCurrentStep(2);
+    }
+  };
+
   const pickImage = async () => {
     if (Platform.OS !== "web") {
       const { status } =
@@ -134,29 +169,25 @@ export function WelcomePage() {
           <>
             <TextInput
               style={styles.input}
-              placeholder="Email"
+              placeholder="Email (.edu required)*"
               value={email}
               onChangeText={setEmail}
-              keyboardType="email-address"
               autoCapitalize="none"
+              keyboardType="email-address"
               autoCorrect={false}
             />
             <TextInput
               style={styles.input}
-              placeholder="Password"
+              placeholder="Password (min. 6 characters)*"
               value={password}
               onChangeText={setPassword}
               secureTextEntry
             />
-            {isLogin ? (
-              <TouchableOpacity style={styles.button} onPress={handleAuth}>
-                <ThemedText style={styles.buttonText}>Login</ThemedText>
-              </TouchableOpacity>
-            ) : (
+            {!isLogin && (
               <>
                 <TextInput
                   style={styles.input}
-                  placeholder="First Name"
+                  placeholder="First Name*"
                   value={firstName}
                   onChangeText={setFirstName}
                   autoCapitalize="words"
@@ -164,7 +195,7 @@ export function WelcomePage() {
                 />
                 <TextInput
                   style={styles.input}
-                  placeholder="Last Name"
+                  placeholder="Last Name*"
                   value={lastName}
                   onChangeText={setLastName}
                   autoCapitalize="words"
@@ -172,11 +203,16 @@ export function WelcomePage() {
                 />
                 <TouchableOpacity
                   style={styles.button}
-                  onPress={() => setCurrentStep(2)}
+                  onPress={handleNext}
                 >
                   <ThemedText style={styles.buttonText}>Next</ThemedText>
                 </TouchableOpacity>
               </>
+            )}
+            {isLogin && (
+              <TouchableOpacity style={styles.button} onPress={handleAuth}>
+                <ThemedText style={styles.buttonText}>Login</ThemedText>
+              </TouchableOpacity>
             )}
           </>
         )}
@@ -288,7 +324,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   button: {
-    backgroundColor: '#F3B33D',
+    backgroundColor: '#FFFFFF',
     padding: 12,
     borderRadius: 8,
     width: "50%",
@@ -304,7 +340,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   buttonText: {
-    color: '#1B4571',
+    color: '#000000', 
     fontSize: 18,
     fontWeight: "800",
   },
@@ -326,13 +362,10 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   errorText: {
-    color: '#FF6B6B',
-    marginBottom: 12,
+    color: 'red',
+    marginTop: 10,
+    marginBottom: 10,
     textAlign: "center",
-    fontSize: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    padding: 5,
-    borderRadius: 4,
   },
   profileContainer: {
     marginTop: 15,
