@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, View, Dimensions } from "react-native";
-import { getListings, auth, sendNewMessage } from "@/config/firebase";
+import { StyleSheet, View, Dimensions, RefreshControl, Alert } from "react-native";
+import { getListings, auth, sendNewMessage, firestore } from "@/config/firebase";
+import { doc, updateDoc, arrayUnion, arrayRemove, getDoc, collection, getDocs } from "firebase/firestore";
 import MapView, { Marker } from "react-native-maps";
 import {
   Card,
@@ -22,6 +23,7 @@ import {
   TextInput,
 } from "react-native-paper";
 import { FlashList } from "@shopify/flash-list";
+import { useAuth } from "@/hooks/useAuth";
 
 // Mock data for properties
 const leases = [
@@ -114,6 +116,16 @@ const PropertyCard = ({
 }) => {
   const [isVisible, setVisible] = useState(false);
   const [message, setMessage] = useState("");
+  const [localFavorite, setLocalFavorite] = useState(isFavorite);
+
+  useEffect(() => {
+    setLocalFavorite(isFavorite);
+  }, [isFavorite]);
+
+  const handleFavoritePress = () => {
+    setLocalFavorite(!localFavorite); 
+    onToggleFavorite(item.id); 
+  };
 
   const handleSendMessage = (
     senderId: string,
@@ -143,11 +155,11 @@ const PropertyCard = ({
             style={styles.cardImage}
           />
           <IconButton
-            icon={isFavorite ? "heart" : "heart-outline"}
-            iconColor={isFavorite ? theme.colors.error : theme.colors.primary}
+            icon={localFavorite ? "heart" : "heart-outline"}
+            iconColor={localFavorite ? theme.colors.error : theme.colors.primary}
             size={24}
             style={styles.favoriteButton}
-            onPress={() => onToggleFavorite(item.id)}
+            onPress={handleFavoritePress}
           />
         </View>
         <Card.Content style={styles.cardContent}>
@@ -313,54 +325,111 @@ const FilterModal = ({
 };
 
 export function RentPage() {
+  const { user } = useAuth();
   const [data, setData] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [filterVisible, setFilterVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchUserFavorites = async () => {
+    if (!user) return;
+    try {
+      const userDoc = await getDoc(doc(firestore, "users", user.uid));
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        setFavorites(new Set(userData.interested_listing_ids || []));
+      }
+    } catch (error) {
+      console.error("Error fetching user favorites:", error);
+    }
+  };
+
+  const fetchData = async () => {
+    try {
+      const result = await getListings();
+      const formattedData = result.map((item: any) => ({
+        id: item.id,
+        address: item.property,
+        rent: item.rent,
+        startDate: item.startDate,
+        endDate: item.endDate,
+        image: item.image,
+        bedCount: item.bedCount,
+        bathCount: item.bathCount,
+        area: item.area,
+        latitude: item.latitude,
+        longitude: item.longitude,
+        authorId: item.authorId,
+      }));
+
+      setData(formattedData);
+      await fetchUserFavorites();
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleFavorite = async (id: string) => {
+    if (!user) {
+      Alert.alert("Error", "Please sign in to save listings");
+      return;
+    }
+
+    try {
+      const userRef = doc(firestore, "users", user.uid);
+      const listingRef = doc(firestore, "listings", id);
+
+      if (favorites.has(id)) {
+        // Remove from favorites
+        await updateDoc(userRef, {
+          interested_listing_ids: arrayRemove(id)
+        });
+        await updateDoc(listingRef, {
+          interested_user_ids: arrayRemove(user.uid)
+        });
+        setFavorites(prev => {
+          const newFavorites = new Set(prev);
+          newFavorites.delete(id);
+          return newFavorites;
+        });
+      } else {
+        // Add to favorites
+        await updateDoc(userRef, {
+          interested_listing_ids: arrayUnion(id)
+        });
+        await updateDoc(listingRef, {
+          interested_user_ids: arrayUnion(user.uid)
+        });
+        setFavorites(prev => {
+          const newFavorites = new Set(prev);
+          newFavorites.add(id);
+          return newFavorites;
+        });
+      }
+    } catch (error) {
+      console.error("Error updating favorites:", error);
+      Alert.alert("Error", "Failed to update favorites. Please try again.");
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const result = await getListings();
-
-        // Map the data to match the Property type
-        const formattedData = result.map((item: any) => ({
-          id: item.id,
-          address: item.property, // Rename property to address
-          rent: item.rent,
-          startDate: item.startDate,
-          endDate: item.endDate,
-          image: item.image,
-          bedCount: item.bedCount,
-          bathCount: item.bathCount,
-          area: item.area,
-          latitude: item.latitude,
-          longitude: item.longitude,
-          authorId: item.authorId,
-        }));
-
-        setData(formattedData);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchData();
-  }, []);
+  }, [user]);
 
-  const toggleFavorite = (id: string) => {
-    setFavorites((prev) => {
-      const newFavorites = new Set(prev);
-      if (newFavorites.has(id)) {
-        newFavorites.delete(id);
-      } else {
-        newFavorites.add(id);
-      }
-      return newFavorites;
-    });
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await fetchData();
+    } catch (error) {
+      console.error("Error refreshing data:", error);
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   const renderContent = () => {
@@ -393,6 +462,14 @@ export function RentPage() {
     return (
       <FlashList
         data={data}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[theme.colors.primary]} // Yellow color
+            tintColor={theme.colors.primary}
+          />
+        }
         renderItem={({ item }) => (
           <PropertyCard
             item={item}
