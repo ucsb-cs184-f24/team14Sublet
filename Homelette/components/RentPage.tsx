@@ -288,13 +288,13 @@ const WigglingEgg = () => {
       Animated.sequence([
         Animated.timing(rotation, {
           toValue: 1,
-          duration: 500,
+          duration: 250, // shorter duration for a snappier motion
           useNativeDriver: true,
           easing: Easing.inOut(Easing.ease),
         }),
         Animated.timing(rotation, {
           toValue: -1,
-          duration: 500,
+          duration: 250, // shorter duration here too
           useNativeDriver: true,
           easing: Easing.inOut(Easing.ease),
         }),
@@ -302,14 +302,19 @@ const WigglingEgg = () => {
     ).start();
   }, [rotation]);
 
+  // Increase the rotation angle here
   const rotate = rotation.interpolate({
     inputRange: [-1, 1],
-    outputRange: ["-5deg", "5deg"],
+    outputRange: ["-15deg", "15deg"], // more dramatic rotation
   });
 
   return (
     <Animated.View style={{ transform: [{ rotate }] }}>
-      <IconButton icon="egg" size={72} iconColor="#FFD700" />
+      <IconButton
+        icon="egg"
+        size={172}
+        iconColor="#FFD700"
+      />
     </Animated.View>
   );
 };
