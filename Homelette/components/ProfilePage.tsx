@@ -1,39 +1,47 @@
 import React from "react";
 import { useState, useEffect } from "react";
-import { View, StyleSheet, ScrollView, Image, Modal } from "react-native";
-import { Card, Title, Paragraph, Button, TextInput, Surface, Chip } from "react-native-paper";
+import { View, ScrollView, Alert, Text, Image, Modal, TouchableOpacity, StyleSheet } from "react-native";
+import { Card, Title, Paragraph, Button, TextInput, Surface, Chip, IconButton, Portal, Dialog } from "react-native-paper";
 import { ThemedText } from "./ThemedText";
 import { firestore } from "../config/firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, collection, query, where, getDocs, deleteDoc, updateDoc } from "firebase/firestore";
 import { useAuth } from "@/hooks/useAuth";
 import { updateUserProfile } from "../config/firebase";
 import { signOut } from "firebase/auth";
 import { auth } from "@/config/firebase";
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useNavigation } from "@react-navigation/native";
 
 // Mock data for favorited listings
 const mockFavoritedListings = [
   {
-    id: "1",
-    address: "123 Main St",
-    rent: 1200,
-    startDate: "2023-09-04",
-    endDate: "2024-08-31",
-    image: "https://via.placeholder.com/150",
-    bedCount: 3,
-    bathCount: 2,
-    area: 900,
+    id: '1',
+    type: 'Studio Apartment',
+    address: {
+      street_address: '2650 Durant Avenue',
+      city: 'Berkeley',
+      state: 'CA',
+      zip_code: '94704'
+    },
+    bedrooms: 0,
+    bathrooms: 1,
+    area: 450,
+    image_url: null
   },
   {
-    id: "2",
-    address: "456 Elm St",
-    rent: 1500,
-    startDate: "2023-10-01",
-    endDate: "2024-09-30",
-    image: "https://via.placeholder.com/150",
-    bedCount: 4,
-    bathCount: 3,
-    area: 1400,
-  },
+    id: '2',
+    type: '2 Bedroom Apartment',
+    address: {
+      street_address: '2728 Dwight Way',
+      city: 'Berkeley',
+      state: 'CA',
+      zip_code: '94704'
+    },
+    bedrooms: 2,
+    bathrooms: 1,
+    area: 750,
+    image_url: null
+  }
 ];
 
 // Color theme matching RentPage.tsx
@@ -51,25 +59,36 @@ const theme = {
 // Favorited Listing Card Component
 const FavoritedListingCard = ({ item, onRemoveFavorite }) => {
   return (
-    <Surface elevation={2} style={styles.favoritedListingCard}>
-      <View style={styles.favoritedListingContent}>
-        <Image source={{ uri: item.image }} style={styles.favoritedListingImage} />
-        <View style={styles.favoritedListingDetails}>
-          <Title style={styles.favoritedListingTitle}>${item.rent}/mo</Title>
-          <Paragraph style={styles.favoritedListingAddress}>{item.address}</Paragraph>
-          <View style={styles.favoritedListingChips}>
-            <Chip icon="bed" style={styles.favoritedListingChip} textStyle={styles.chipText}>
+    <Surface elevation={2} style={styles.listingCard}>
+      <View style={styles.listingContent}>
+        <Image source={{ uri: item.image }} style={styles.listingImage} />
+        <View style={styles.listingDetails}>
+          <Title style={styles.listingTitle}>${item.rent}/mo</Title>
+          <Paragraph style={styles.listingAddress}>{item.address}</Paragraph>
+          <View style={styles.listingChips}>
+            <Chip 
+              icon={() => <MaterialCommunityIcons name="bed" size={16} color={theme.colors.text} />}
+              style={styles.listingChip} 
+              textStyle={[styles.chipText, { color: theme.colors.text }]}
+              theme={{ colors: { surface: theme.colors.surface } }}
+            >
               {item.bedCount} beds
             </Chip>
-            <Chip icon="shower" style={styles.favoritedListingChip} textStyle={styles.chipText}>
+            <Chip 
+              icon={() => <MaterialCommunityIcons name="shower" size={16} color={theme.colors.text} />}
+              style={styles.listingChip} 
+              textStyle={[styles.chipText, { color: theme.colors.text }]}
+              theme={{ colors: { surface: theme.colors.surface } }}
+            >
               {item.bathCount} baths
             </Chip>
           </View>
           <Button
             mode="contained"
             onPress={() => onRemoveFavorite(item.id)}
-            style={styles.removeFavoriteButton}
+            style={styles.removeButton}
             buttonColor={theme.colors.primary}
+            textColor={theme.colors.text}
           >
             Remove
           </Button>
@@ -247,11 +266,423 @@ const EditProfileModal = ({ visible, onClose, onSave, editForm, setEditForm }: E
   </Modal>
 );
 
+// Edit Listing Modal Component
+const EditListingModal = ({ visible, onDismiss, property, onSave }) => {
+  const [editForm, setEditForm] = useState({
+    type: '',
+    bedrooms: '',
+    bathrooms: '',
+    area: '',
+    street_address: '',
+    apt_number: '',
+    city: '',
+    state: '',
+    zip_code: ''
+  });
+
+  // Update form when property changes
+  useEffect(() => {
+    if (property) {
+      setEditForm({
+        type: property.type?.toString() || '',
+        bedrooms: property.bedrooms?.toString() || '',
+        bathrooms: property.bathrooms?.toString() || '',
+        area: property.area?.toString() || '',
+        street_address: property.address?.street_address || '',
+        apt_number: property.apt_number?.toString() || '',
+        city: property.address?.city || '',
+        state: property.address?.state || '',
+        zip_code: property.address?.zip_code || ''
+      });
+    }
+  }, [property]);
+
+  const handleSave = async () => {
+    try {
+      const propertyRef = doc(firestore, "properties", property.id);
+      await updateDoc(propertyRef, {
+        type: editForm.type,
+        bedrooms: Number(editForm.bedrooms),
+        bathrooms: Number(editForm.bathrooms),
+        area: Number(editForm.area),
+        apt_number: editForm.apt_number,
+        address: {
+          street_address: editForm.street_address,
+          city: editForm.city,
+          state: editForm.state,
+          zip_code: editForm.zip_code
+        }
+      });
+      onSave();
+      onDismiss();
+    } catch (error) {
+      console.error("Error updating property:", error);
+      Alert.alert("Error", "Failed to update property. Please try again.");
+    }
+  };
+
+  const inputTheme = {
+    colors: {
+      primary: '#FFD700',
+      background: 'transparent',
+      placeholder: '#666666',
+      text: '#000000',
+    },
+  };
+
+  return (
+    <Modal visible={visible} onDismiss={onDismiss} contentContainerStyle={styles.modalContainer}>
+      <View style={styles.modalStatusBarSpace} />
+      <Card style={styles.modalCard}>
+        <Card.Title 
+          title="Edit Property" 
+          titleStyle={styles.modalTitle}
+          style={styles.modalTitleContainer}
+        />
+        <Card.Content style={styles.modalContent}>
+          <ScrollView showsVerticalScrollIndicator={false}>
+            <View style={styles.formSection}>
+              <Text style={styles.sectionTitle}>Property Details</Text>
+              <TextInput
+                label="Property Type"
+                value={editForm.type}
+                onChangeText={(text) => setEditForm(prev => ({ ...prev, type: text }))}
+                style={styles.input}
+                theme={inputTheme}
+                mode="outlined"
+              />
+              <View style={styles.rowInputs}>
+                <TextInput
+                  label="Bedrooms"
+                  value={editForm.bedrooms}
+                  onChangeText={(text) => setEditForm(prev => ({ ...prev, bedrooms: text }))}
+                  style={[styles.input, styles.halfInput]}
+                  keyboardType="numeric"
+                  theme={inputTheme}
+                  mode="outlined"
+                />
+                <TextInput
+                  label="Bathrooms"
+                  value={editForm.bathrooms}
+                  onChangeText={(text) => setEditForm(prev => ({ ...prev, bathrooms: text }))}
+                  style={[styles.input, styles.halfInput]}
+                  keyboardType="numeric"
+                  theme={inputTheme}
+                  mode="outlined"
+                />
+              </View>
+              <TextInput
+                label="Area (sq ft)"
+                value={editForm.area}
+                onChangeText={(text) => setEditForm(prev => ({ ...prev, area: text }))}
+                style={styles.input}
+                keyboardType="numeric"
+                theme={inputTheme}
+                mode="outlined"
+              />
+            </View>
+
+            <View style={styles.formSection}>
+              <Text style={styles.sectionTitle}>Address Information</Text>
+              <TextInput
+                label="Street Address"
+                value={editForm.street_address}
+                onChangeText={(text) => setEditForm(prev => ({ ...prev, street_address: text }))}
+                style={styles.input}
+                theme={inputTheme}
+                mode="outlined"
+              />
+              <TextInput
+                label="Apartment Number"
+                value={editForm.apt_number}
+                onChangeText={(text) => setEditForm(prev => ({ ...prev, apt_number: text }))}
+                style={styles.input}
+                theme={inputTheme}
+                mode="outlined"
+              />
+              <View style={styles.rowInputs}>
+                <TextInput
+                  label="City"
+                  value={editForm.city}
+                  onChangeText={(text) => setEditForm(prev => ({ ...prev, city: text }))}
+                  style={[styles.input, styles.halfInput]}
+                  theme={inputTheme}
+                  mode="outlined"
+                />
+                <TextInput
+                  label="State"
+                  value={editForm.state}
+                  onChangeText={(text) => setEditForm(prev => ({ ...prev, state: text }))}
+                  style={[styles.input, styles.halfInput]}
+                  theme={inputTheme}
+                  mode="outlined"
+                />
+              </View>
+              <TextInput
+                label="ZIP Code"
+                value={editForm.zip_code}
+                onChangeText={(text) => setEditForm(prev => ({ ...prev, zip_code: text }))}
+                style={styles.input}
+                keyboardType="numeric"
+                theme={inputTheme}
+                mode="outlined"
+              />
+            </View>
+          </ScrollView>
+        </Card.Content>
+        <Card.Actions style={styles.modalActions}>
+          <Button 
+            onPress={onDismiss}
+            mode="outlined"
+            textColor="#000000"
+            style={styles.modalButton}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onPress={handleSave}
+            mode="contained"
+            style={[styles.modalButton, styles.saveButton]}
+            textColor="#000000"
+          >
+            Save Changes
+          </Button>
+        </Card.Actions>
+      </Card>
+    </Modal>
+  );
+};
+
+// Property Card Component
+const PropertyCard = ({ property, onEdit, onDelete }) => {
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  return (
+    <Card style={styles.propertyCard}>
+      <View style={styles.propertyImageWrapper}>
+        {property.image_url ? (
+          <Image 
+            source={{ uri: property.image_url }} 
+            style={styles.propertyImage}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={styles.propertyImagePlaceholder}>
+            <MaterialCommunityIcons name="home" size={40} color="#666" />
+          </View>
+        )}
+      </View>
+
+      <View style={styles.propertyContent}>
+        <View style={styles.propertyHeader}>
+          <View>
+            <ThemedText style={styles.propertyTypeText}>{property.type}</ThemedText>
+            <View style={styles.propertyLocationRow}>
+              <MaterialCommunityIcons name="map-marker" size={14} color={theme.colors.text} />
+              <ThemedText numberOfLines={1} style={styles.propertyAddressText}>
+                {property.address.street_address}
+                {property.apt_number ? ` #${property.apt_number}` : ''}
+              </ThemedText>
+            </View>
+            <ThemedText style={styles.propertySubAddressText}>
+              {property.address.city}, {property.address.state} {property.address.zip_code}
+            </ThemedText>
+          </View>
+          <View style={styles.propertyActions}>
+            <IconButton
+              icon="pencil"
+              size={20}
+              iconColor={theme.colors.text}
+              onPress={() => onEdit(property)}
+            />
+            <IconButton
+              icon="delete"
+              size={20}
+              iconColor={theme.colors.error}
+              onPress={() => setShowDeleteConfirm(true)}
+            />
+          </View>
+        </View>
+
+        <View style={styles.propertyDetailsGrid}>
+          <View style={styles.propertyDetailItem}>
+            <MaterialCommunityIcons name="bed" size={18} color={theme.colors.text} />
+            <ThemedText style={styles.propertyDetailValue}>{property.bedrooms}</ThemedText>
+            <ThemedText style={styles.propertyDetailLabel}>Beds</ThemedText>
+          </View>
+          <View style={styles.propertyDetailSeparator} />
+          <View style={styles.propertyDetailItem}>
+            <MaterialCommunityIcons name="shower" size={18} color={theme.colors.text} />
+            <ThemedText style={styles.propertyDetailValue}>{property.bathrooms}</ThemedText>
+            <ThemedText style={styles.propertyDetailLabel}>Baths</ThemedText>
+          </View>
+          <View style={styles.propertyDetailSeparator} />
+          <View style={styles.propertyDetailItem}>
+            <MaterialCommunityIcons name="ruler" size={18} color={theme.colors.text} />
+            <ThemedText style={styles.propertyDetailValue}>
+              {Number(property.area).toLocaleString()}
+            </ThemedText>
+            <ThemedText style={styles.propertyDetailLabel}>Sq Ft</ThemedText>
+          </View>
+        </View>
+
+        <View style={styles.propertyMetrics}>
+          <View style={styles.propertyMetricBadge}>
+            <MaterialCommunityIcons name="heart" size={16} color={theme.colors.text} />
+            <ThemedText style={styles.propertyMetricText}>
+              {property.favorites?.length || 0} favorites
+            </ThemedText>
+          </View>
+          <View style={styles.propertyMetricBadge}>
+            <MaterialCommunityIcons name="chat" size={16} color={theme.colors.text} />
+            <ThemedText style={styles.propertyMetricText}>
+              {property.chats?.length || 0} chats
+            </ThemedText>
+          </View>
+        </View>
+      </View>
+
+      <Portal>
+        <Dialog 
+          visible={showDeleteConfirm} 
+          onDismiss={() => setShowDeleteConfirm(false)}
+          style={{ backgroundColor: theme.colors.surface }}
+        >
+          <Dialog.Title style={{ color: theme.colors.text }}>Delete Property</Dialog.Title>
+          <Dialog.Content>
+            <Paragraph style={{ color: theme.colors.text }}>Are you sure you want to delete this property? This action cannot be undone.</Paragraph>
+          </Dialog.Content>
+          <Dialog.Actions style={{ justifyContent: 'space-around', paddingHorizontal: 16, paddingBottom: 8 }}>
+            <Button 
+              onPress={() => setShowDeleteConfirm(false)}
+              textColor={theme.colors.text}
+              style={{ minWidth: 100, borderColor: theme.colors.primary }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onPress={() => {
+                setShowDeleteConfirm(false);
+                onDelete(property.id);
+              }}
+              mode="contained"
+              buttonColor={theme.colors.primary}
+              textColor={theme.colors.text}
+              style={{ minWidth: 100 }}
+            >
+              Delete
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
+    </Card>
+  );
+};
+
+// Saved Property Card Component
+const SavedPropertyCard = ({ property, onRemove }) => {
+  const [showConfirmation, setShowConfirmation] = useState(false);
+
+  const handleRemove = () => {
+    setShowConfirmation(true);
+  };
+
+  return (
+    <Card style={styles.propertyCard}>
+      <Portal>
+        <Dialog 
+          visible={showConfirmation} 
+          onDismiss={() => setShowConfirmation(false)}
+          style={styles.dialog}
+        >
+          <Dialog.Title style={styles.dialogTitle}>Remove Listing</Dialog.Title>
+          <Dialog.Content>
+            <Paragraph style={styles.dialogContent}>Are you sure you want to remove this listing?</Paragraph>
+          </Dialog.Content>
+          <Dialog.Actions style={styles.dialogActions}>
+            <Button 
+              onPress={() => setShowConfirmation(false)}
+              textColor={theme.colors.text}
+              style={styles.dialogButton}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onPress={() => {
+                setShowConfirmation(false);
+                onRemove(property.id);
+              }}
+              mode="contained"
+              buttonColor={theme.colors.primary}
+              textColor={theme.colors.text}
+              style={styles.dialogButton}
+            >
+              Remove
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
+
+      <View style={styles.propertyImageWrapper}>
+        {property.image_url ? (
+          <Image 
+            source={{ uri: property.image_url }} 
+            style={styles.propertyImage}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={[styles.propertyImage, styles.propertyImagePlaceholder]}>
+            <MaterialCommunityIcons name="image-off" size={40} color="#666" />
+          </View>
+        )}
+        <TouchableOpacity 
+          style={styles.favoriteButton}
+          onPress={handleRemove}
+        >
+          <MaterialCommunityIcons name="heart" size={24} color={theme.colors.primary} />
+        </TouchableOpacity>
+      </View>
+
+      <Card.Content style={styles.propertyContent}>
+        <View style={styles.propertyHeader}>
+          <View>
+            <Title style={styles.propertyType}>{property.type}</Title>
+            <Paragraph style={styles.propertyAddress} numberOfLines={2}>
+              {property.address.street_address}, {property.address.city}, {property.address.state} {property.address.zip_code}
+            </Paragraph>
+          </View>
+        </View>
+
+        <View style={styles.propertyStats}>
+          <View style={styles.propertyStat}>
+            <MaterialCommunityIcons name="bed" size={20} color="#666" />
+            <Text style={styles.propertyStatText}>
+              {property.bedrooms === 0 ? 'Studio' : property.bedrooms}
+            </Text>
+          </View>
+          <View style={styles.propertyStatDivider} />
+          <View style={styles.propertyStat}>
+            <MaterialCommunityIcons name="shower" size={20} color="#666" />
+            <Text style={styles.propertyStatText}>{property.bathrooms}</Text>
+          </View>
+          <View style={styles.propertyStatDivider} />
+          <View style={styles.propertyStat}>
+            <MaterialCommunityIcons name="ruler-square" size={20} color="#666" />
+            <Text style={styles.propertyStatText}>{property.area} ft²</Text>
+          </View>
+        </View>
+      </Card.Content>
+    </Card>
+  );
+};
+
 export function ProfilePage() {
   const { user } = useAuth();
+  const navigation = useNavigation();
   const [userData, setUserData] = useState<any>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [favoritedListings, setFavoritedListings] = useState(mockFavoritedListings);
+  const [activeTab, setActiveTab] = useState('profile');
   const [editForm, setEditForm] = useState<EditFormData>({
     first: '',
     last: '',
@@ -260,6 +691,9 @@ export function ProfilePage() {
     major: '',
     graduation_year: '',
   });
+  const [userProperties, setUserProperties] = useState([]);
+  const [isLoadingProperties, setIsLoadingProperties] = useState(false);
+  const [editingProperty, setEditingProperty] = useState(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -270,6 +704,40 @@ export function ProfilePage() {
           const userData = userDocSnap.data();
           setUserData(userData);
           console.log(userData);
+          
+          // Fetch properties
+          const fetchUserProperties = async () => {
+            if (!user) return;
+            
+            setIsLoadingProperties(true);
+            try {
+              // Get user's listing IDs
+              const userDocRef = doc(firestore, "users", user.uid);
+              const userDoc = await getDoc(userDocRef);
+              const listingIds = userDoc.data()?.listing_ids || [];
+              
+              // Fetch each property
+              const properties = [];
+              for (const id of listingIds) {
+                const propertyRef = doc(firestore, "properties", id);
+                const propertyDoc = await getDoc(propertyRef);
+                if (propertyDoc.exists()) {
+                  properties.push({
+                    id: propertyDoc.id,
+                    ...propertyDoc.data()
+                  });
+                }
+              }
+              
+              setUserProperties(properties);
+            } catch (error) {
+              console.error("Error fetching properties:", error);
+              Alert.alert("Error", "Failed to fetch your properties. Please try again later.");
+            } finally {
+              setIsLoadingProperties(false);
+            }
+          };
+          fetchUserProperties();
         } else {
           console.log("No such document!");
         }
@@ -330,9 +798,75 @@ export function ProfilePage() {
     setFavoritedListings((prev) => prev.filter((listing) => listing.id !== listingId));
   };
 
+  const handleEditProperty = (property) => {
+    setEditingProperty(property);
+  };
+
+  const handleSaveProperty = async () => {
+    // Refresh the properties list after saving
+    const fetchUserProperties = async () => {
+      if (!user) return;
+      
+      setIsLoadingProperties(true);
+      try {
+        // Get user's listing IDs
+        const userDocRef = doc(firestore, "users", user.uid);
+        const userDoc = await getDoc(userDocRef);
+        const listingIds = userDoc.data()?.listing_ids || [];
+        
+        // Fetch each property
+        const properties = [];
+        for (const id of listingIds) {
+          const propertyRef = doc(firestore, "properties", id);
+          const propertyDoc = await getDoc(propertyRef);
+          if (propertyDoc.exists()) {
+            properties.push({
+              id: propertyDoc.id,
+              ...propertyDoc.data()
+            });
+          }
+        }
+        
+        setUserProperties(properties);
+      } catch (error) {
+        console.error("Error fetching properties:", error);
+        Alert.alert("Error", "Failed to fetch your properties. Please try again later.");
+      } finally {
+        setIsLoadingProperties(false);
+      }
+    };
+    fetchUserProperties();
+  };
+
+  const handleDeleteProperty = async (propertyId) => {
+    try {
+      // Delete property document
+      await deleteDoc(doc(firestore, "properties", propertyId));
+      
+      // Update user's listing_ids
+      const updatedListingIds = userData.listing_ids.filter(id => id !== propertyId);
+      await updateDoc(doc(firestore, "users", user.uid), {
+        listing_ids: updatedListingIds
+      });
+      
+      // Update local state
+      setUserProperties(prev => prev.filter(p => p.id !== propertyId));
+      setUserData(prev => ({
+        ...prev,
+        listing_ids: updatedListingIds
+      }));
+      
+      Alert.alert("Success", "Property deleted successfully");
+    } catch (error) {
+      console.error("Error deleting property:", error);
+      Alert.alert("Error", "Failed to delete property. Please try again later.");
+    }
+  };
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollViewContent}>
-      <View style={styles.container}>
+      {/* Profile Section */}
+      <View style={styles.profileSection}>
         <Card style={styles.profileCard}>
           <View style={styles.headerSection}>
             <Image
@@ -353,13 +887,13 @@ export function ProfilePage() {
             <View style={styles.statsContainer}>
               <View style={styles.statItem}>
                 <ThemedText type="title">
-                  {userData?.listing_ids?.length}
+                  {userData?.listing_ids?.length || 0}
                 </ThemedText>
                 <ThemedText>Listings</ThemedText>
               </View>
               <View style={styles.statItem}>
                 <ThemedText type="title">
-                  {userData?.interested_listing_ids?.length}
+                  {userData?.interested_listing_ids?.length || 0}
                 </ThemedText>
                 <ThemedText>Interested In</ThemedText>
               </View>
@@ -398,46 +932,134 @@ export function ProfilePage() {
           </Card.Content>
 
           <Card.Actions>
-            <Button mode="contained" onPress={handleEditPress}>
+            <Button 
+              mode="contained" 
+              onPress={handleEditPress}
+              buttonColor={theme.colors.primary}
+              textColor={theme.colors.text}
+              style={styles.actionButton}
+            >
               Edit Profile
             </Button>
-            <Button mode="outlined" onPress={handleSignOut}>
+            <Button 
+              mode="outlined" 
+              onPress={handleSignOut}
+              textColor={theme.colors.text}
+              style={[styles.actionButton, styles.signOutButton]}
+            >
               Sign Out
             </Button>
           </Card.Actions>
         </Card>
 
-        <EditProfileModal
-          visible={isEditing}
-          onClose={() => setIsEditing(false)}
-          onSave={handleSave}
-          editForm={editForm}
-          setEditForm={setEditForm}
-        />
-      </View>
-      {/* Favorited Listings Section */}
-      <Card style={styles.favoritedListingsCard}>
-        <Card.Content>
-          <View style={styles.sectionHeader}>
-            <ThemedText type="subtitle">Favorited Listings</ThemedText>
-            <Chip style={styles.favoritesCountChip} textStyle={styles.chipText}>
-              {favoritedListings.length}
-            </Chip>
+        {/* Navigation Buttons */}
+        <View style={styles.navigationButtons}>
+          <TouchableOpacity 
+            style={[styles.navButton, activeTab === 'favorites' && styles.activeNavButton]}
+            onPress={() => setActiveTab('favorites')}
+          >
+            <MaterialCommunityIcons name="heart" size={24} color={theme.colors.text} />
+            <ThemedText style={styles.navButtonText}>Saved</ThemedText>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.navButton, activeTab === 'myListings' && styles.activeNavButton]}
+            onPress={() => setActiveTab('myListings')}
+          >
+            <MaterialCommunityIcons name="home" size={24} color={theme.colors.text} />
+            <ThemedText style={styles.navButtonText}>My Listings</ThemedText>
+          </TouchableOpacity>
+        </View>
+
+        {/* Listings Section */}
+        {activeTab === 'favorites' && (
+          <View style={styles.listingsSection}>
+            <Card style={styles.listingsCard}>
+              <Card.Content>
+                <View style={styles.sectionHeader}>
+                  <ThemedText type="subtitle">Saved</ThemedText>
+                  <Chip style={styles.countChip} textStyle={{ color: theme.colors.text }}>
+                    {favoritedListings.length}
+                  </Chip>
+                </View>
+                {favoritedListings.length === 0 ? (
+                  <View style={styles.emptyContainer}>
+                    <ThemedText>No saved listings yet</ThemedText>
+                    <Button 
+                      mode="outlined" 
+                      onPress={() => navigation.navigate("index")} 
+                      style={styles.exploreButton}
+                      textColor={theme.colors.text}
+                    >
+                      Explore Listings
+                    </Button>
+                  </View>
+                ) : (
+                  favoritedListings.map((listing) => (
+                    <SavedPropertyCard key={listing.id} property={listing} onRemove={handleRemoveFavorite} />
+                  ))
+                )}
+              </Card.Content>
+            </Card>
           </View>
-          {favoritedListings.length === 0 ? (
-            <View style={styles.emptyFavoritesContainer}>
-              <ThemedText>No favorited listings yet</ThemedText>
-              <Button mode="outlined" onPress={() => { }} style={styles.exploreListingsButton}>
-                Explore Listings
-              </Button>
-            </View>
-          ) : (
-            favoritedListings.map((listing) => (
-              <FavoritedListingCard key={listing.id} item={listing} onRemoveFavorite={handleRemoveFavorite} />
-            ))
-          )}
-        </Card.Content>
-      </Card>
+        )}
+
+        {activeTab === 'myListings' && (
+          <View style={styles.listingsSection}>
+            <Card style={styles.listingsCard}>
+              <Card.Content>
+                <View style={styles.sectionHeader}>
+                  <ThemedText type="subtitle">My Listings</ThemedText>
+                  <Chip style={styles.countChip} textStyle={{ color: theme.colors.text }}>
+                    {userProperties.length}
+                  </Chip>
+                </View>
+                {isLoadingProperties ? (
+                  <View style={styles.emptyContainer}>
+                    <ThemedText>Loading...</ThemedText>
+                  </View>
+                ) : userProperties.length === 0 ? (
+                  <View style={styles.emptyContainer}>
+                    <ThemedText>You haven't posted any listings yet</ThemedText>
+                    <Button 
+                      mode="outlined" 
+                      onPress={() => navigation.navigate("PostLease")} 
+                      style={styles.exploreButton}
+                      textColor={theme.colors.text}
+                    >
+                      Post a Listing
+                    </Button>
+                  </View>
+                ) : (
+                  <View style={styles.propertiesContainer}>
+                    {userProperties.map((property) => (
+                      <PropertyCard
+                        key={property.id}
+                        property={property}
+                        onEdit={handleEditProperty}
+                        onDelete={handleDeleteProperty}
+                      />
+                    ))}
+                  </View>
+                )}
+              </Card.Content>
+            </Card>
+          </View>
+        )}
+      </View>
+
+      <EditProfileModal
+        visible={isEditing}
+        onClose={() => setIsEditing(false)}
+        onSave={handleSave}
+        editForm={editForm}
+        setEditForm={setEditForm}
+      />
+      <EditListingModal
+        visible={editingProperty !== null}
+        onDismiss={() => setEditingProperty(null)}
+        property={editingProperty}
+        onSave={handleSaveProperty}
+      />
     </ScrollView>
   );
 }
@@ -445,17 +1067,22 @@ export function ProfilePage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 12,
     backgroundColor: theme.colors.background,
   },
+  scrollViewContent: {
+    paddingBottom: 32,
+  },
+  profileSection: {
+    padding: 16,
+  },
   profileCard: {
-    borderRadius: 12,
+    marginBottom: 16,
     backgroundColor: theme.colors.surface,
   },
   headerSection: {
-    flexDirection: "row",
+    flexDirection: 'row',
     padding: 16,
-    alignItems: "center",
+    alignItems: 'center',
   },
   profileImage: {
     width: 80,
@@ -464,118 +1091,352 @@ const styles = StyleSheet.create({
   },
   headerInfo: {
     marginLeft: 16,
+    flex: 1,
   },
   statsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
+    flexDirection: 'row',
+    justifyContent: 'space-around',
     marginVertical: 16,
-    borderRadius: 8,
-    backgroundColor: "#f8f8f8",
-    padding: 16,
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
+    paddingHorizontal: 8,
   },
   statItem: {
-    alignItems: "center",
+    alignItems: 'center',
   },
   infoSection: {
-    marginVertical: 16,
+    marginVertical: 12,
   },
   detailItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginVertical: 4,
   },
-  modalContainer: {
+  actionButton: {
+    marginHorizontal: 8,
+  },
+  signOutButton: {
+    borderColor: theme.colors.text,
+  },
+  navigationButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+    paddingHorizontal: 8,
+  },
+  navButton: {
     flex: 1,
-    justifyContent: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.surface,
+    padding: 12,
+    marginHorizontal: 8,
+    borderRadius: 8,
+    elevation: 2,
+    minWidth: 120,
   },
-  modalCard: {
-    padding: 20,
-    backgroundColor: "white",
-    elevation: 5,
+  activeNavButton: {
+    backgroundColor: theme.colors.primaryContainer,
   },
-  modalTitle: {
-    color: "black",
-    fontSize: 20,
-    fontWeight: "bold",
+  navButtonText: {
+    marginLeft: 8,
+    fontWeight: '500',
   },
-  input: {
-    marginBottom: 15,
-    backgroundColor: "white",
-    height: 56,
+  listingsSection: {
+    marginTop: 8,
   },
-  about_meInput: {
-    height: 120,
-  },
-  favoritedListingsCard: {
-    marginTop: 16,
-    borderRadius: 12,
+  listingsCard: {
     backgroundColor: theme.colors.surface,
   },
   sectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 16,
   },
-  favoritesCountChip: {
+  countChip: {
     backgroundColor: theme.colors.primaryContainer,
   },
-  favoritedListingCard: {
+  emptyContainer: {
+    alignItems: 'center',
+    padding: 24,
+  },
+  exploreButton: {
+    marginTop: 12,
+  },
+  listingCard: {
     marginBottom: 16,
-    borderRadius: 12,
     backgroundColor: theme.colors.surface,
+    borderRadius: 8,
   },
-  favoritedListingContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
+  listingContent: {
+    flexDirection: 'row',
+    padding: 12,
   },
-  favoritedListingImage: {
+  listingImage: {
     width: 100,
     height: 100,
-    borderRadius: 12,
-    marginRight: 16,
+    borderRadius: 8,
   },
-  favoritedListingDetails: {
+  listingDetails: {
     flex: 1,
+    marginLeft: 12,
   },
-  favoritedListingTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: theme.colors.text,
+  listingTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
   },
-  favoritedListingAddress: {
-    marginVertical: 4,
-    color: theme.colors.text,
+  listingAddress: {
+    fontSize: 14,
+    color: '#666',
   },
-  favoritedListingChips: {
-    flexDirection: "row",
-    gap: 8,
-    marginVertical: 8,
+  listingChips: {
+    flexDirection: 'row',
+    marginTop: 8,
   },
-  favoritedListingChip: {
+  listingChip: {
+    marginRight: 8,
     backgroundColor: theme.colors.primaryContainer,
   },
   chipText: {
-    color: theme.colors.text,
+    fontSize: 12,
   },
-  removeFavoriteButton: {
+  removeButton: {
     marginTop: 8,
-    borderRadius: 8,
   },
-  emptyFavoritesContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 16,
-  },
-  exploreListingsButton: {
+  propertiesContainer: {
     marginTop: 16,
   },
-  scrollViewContent: {
-    paddingBottom: 32,
+  propertyCard: {
+    marginVertical: 8,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  propertyImageWrapper: {
+    height: 180,
+    backgroundColor: '#f5f5f5',
+  },
+  propertyImage: {
+    width: '100%',
+    height: '100%',
+  },
+  propertyImagePlaceholder: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+  },
+  propertyContent: {
+    padding: 16,
+  },
+  propertyHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  propertyTypeText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  propertyLocationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  propertyAddressText: {
+    fontSize: 15,
+    flex: 1,
+  },
+  propertySubAddressText: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 2,
+    marginLeft: 18,
+  },
+  propertyActions: {
+    flexDirection: 'row',
+  },
+  propertyDetailsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.1)',
+  },
+  propertyDetailItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  propertyDetailSeparator: {
+    width: 1,
+    height: 24,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+  },
+  propertyDetailValue: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginTop: 4,
+  },
+  propertyDetailLabel: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 2,
+  },
+  propertyMetrics: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.1)',
+  },
+  propertyMetricBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.primaryContainer,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    gap: 6,
+  },
+  propertyMetricText: {
+    fontSize: 13,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    padding: 20,
+    marginTop: 20,
+  },
+  modalStatusBarSpace: {
+    height: 40,
+  },
+  modalCard: {
+    width: '100%',
+    maxHeight: '90%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 15,
+  },
+  modalTitleContainer: {
+    backgroundColor: '#FFD700',
+    borderTopLeftRadius: 15,
+    borderTopRightRadius: 15,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#000000',
+  },
+  modalContent: {
+    padding: 15,
+  },
+  formSection: {
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 10,
+    color: '#000000',
+  },
+  input: {
+    marginBottom: 12,
+    backgroundColor: '#FFFFFF',
+  },
+  rowInputs: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  halfInput: {
+    flex: 1,
+  },
+  modalActions: {
+    padding: 15,
+    justifyContent: 'flex-end',
+    borderTopWidth: 1,
+    borderTopColor: '#EEEEEE',
+  },
+  modalButton: {
+    marginLeft: 10,
+    borderColor: '#FFD700',
+  },
+  saveButton: {
+    backgroundColor: '#FFD700',
+  },
+  propertyAddress: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 4,
+  },
+  propertyStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.1)',
+  },
+  propertyStat: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  propertyStatDivider: {
+    width: 1,
+    height: 24,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+  },
+  propertyStatText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginTop: 4,
+  },
+  favoriteButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 8,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  dialog: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: 12,
+    padding: 8,
+  },
+  dialogTitle: {
+    color: theme.colors.text,
+    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  dialogContent: {
+    color: theme.colors.text,
+    textAlign: 'center',
+  },
+  dialogActions: {
+    justifyContent: 'space-around',
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+  },
+  dialogButton: {
+    minWidth: 100,
   },
 });
