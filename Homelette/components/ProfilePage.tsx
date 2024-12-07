@@ -15,12 +15,15 @@ import { useNavigation } from "@react-navigation/native";
 // Color theme matching RentPage.tsx
 const theme = {
   colors: {
-    primary: "#FFD700",
-    secondary: "#2E3192",
-    surface: "#FFFFFC",
-    background: "#F5F5F5",
-    text: "#333333",
-    primaryContainer: "#FFD70020",
+    primary: "#FFD700", // Main yellow for buttons and primary elements
+    secondary: "#2E3192", // Accent blue for interactive elements
+    surface: "#FFFFFC", // White for cards and surfaces
+    background: "#F5F5F5", // Light gray for app background
+    error: "#FF6B6B", // Red for error messages
+    text: "#333333", // Dark gray for general text
+    primaryContainer: "#FFD70020", // Light yellow background for buttons and containers
+    onPrimaryContainer: "#0D1321", // Rich black for text/icons on primary containers
+    chatButton: "#FFD700", // Yellow for the chat button
   },
 };
 
@@ -607,7 +610,7 @@ const SavedPropertyCard = ({ property, onRemove }) => {
           style={styles.favoriteButton}
           onPress={handleRemove}
         >
-          <MaterialCommunityIcons name="heart" size={24} color={theme.colors.primary} />
+          <MaterialCommunityIcons name="heart" size={24} color={theme.colors.error} />
         </TouchableOpacity>
       </View>
 
@@ -1050,7 +1053,7 @@ export function ProfilePage() {
                     <ThemedText>You haven't posted any listings yet</ThemedText>
                     <Button 
                       mode="outlined" 
-                      onPress={() => navigation.navigate("PostLease")} 
+                      onPress={() => navigation.navigate("post")} 
                       style={styles.exploreButton}
                       textColor={theme.colors.text}
                     >

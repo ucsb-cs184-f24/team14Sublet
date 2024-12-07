@@ -116,6 +116,16 @@ const PropertyCard = ({
 }) => {
   const [isVisible, setVisible] = useState(false);
   const [message, setMessage] = useState("");
+  const [localFavorite, setLocalFavorite] = useState(isFavorite);
+
+  useEffect(() => {
+    setLocalFavorite(isFavorite);
+  }, [isFavorite]);
+
+  const handleFavoritePress = () => {
+    setLocalFavorite(!localFavorite); 
+    onToggleFavorite(item.id); 
+  };
 
   const handleSendMessage = (
     senderId: string,
@@ -145,11 +155,11 @@ const PropertyCard = ({
             style={styles.cardImage}
           />
           <IconButton
-            icon={isFavorite ? "heart" : "heart-outline"}
-            iconColor={isFavorite ? theme.colors.error : theme.colors.primary}
+            icon={localFavorite ? "heart" : "heart-outline"}
+            iconColor={localFavorite ? theme.colors.error : theme.colors.primary}
             size={24}
             style={styles.favoriteButton}
-            onPress={() => onToggleFavorite(item.id)}
+            onPress={handleFavoritePress}
           />
         </View>
         <Card.Content style={styles.cardContent}>
