@@ -1,6 +1,6 @@
 import React from "react";
 import { useState, useEffect } from "react";
-import { View, ScrollView, Alert, Text, Image, Modal, TouchableOpacity, StyleSheet } from "react-native";
+import { View, ScrollView, Alert, Text, Image, Modal, TouchableOpacity, StyleSheet, RefreshControl } from "react-native";
 import { Card, Title, Paragraph, Button, TextInput, Surface, Chip, IconButton, Portal, Dialog } from "react-native-paper";
 import { ThemedText } from "./ThemedText";
 import { firestore } from "../config/firebase";
@@ -694,56 +694,69 @@ export function ProfilePage() {
   const [userProperties, setUserProperties] = useState([]);
   const [isLoadingProperties, setIsLoadingProperties] = useState(false);
   const [editingProperty, setEditingProperty] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchUserData = async () => {
+    if (user) {
+      const userDocRef = doc(firestore, "users", user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+      if (userDocSnap.exists()) {
+        const userData = userDocSnap.data();
+        setUserData(userData);
+        console.log(userData);
+        
+        // Fetch properties
+        const fetchUserProperties = async () => {
+          if (!user) return;
+          
+          setIsLoadingProperties(true);
+          try {
+            // Get user's listing IDs
+            const userDocRef = doc(firestore, "users", user.uid);
+            const userDoc = await getDoc(userDocRef);
+            const listingIds = userDoc.data()?.listing_ids || [];
+            
+            // Fetch each property
+            const properties = [];
+            for (const id of listingIds) {
+              const propertyRef = doc(firestore, "properties", id);
+              const propertyDoc = await getDoc(propertyRef);
+              if (propertyDoc.exists()) {
+                properties.push({
+                  id: propertyDoc.id,
+                  ...propertyDoc.data()
+                });
+              }
+            }
+            
+            setUserProperties(properties);
+          } catch (error) {
+            console.error("Error fetching properties:", error);
+            Alert.alert("Error", "Failed to fetch your properties. Please try again later.");
+          } finally {
+            setIsLoadingProperties(false);
+          }
+        };
+        fetchUserProperties();
+      } else {
+        console.log("No such document!");
+      }
+    }
+  };
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await fetchUserData();
+    } catch (error) {
+      console.error("Error refreshing data:", error);
+      Alert.alert("Error", "Failed to refresh data. Please try again later.");
+    } finally {
+      setRefreshing(false);
+    }
+  }, [user]);
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      if (user) {
-        const userDocRef = doc(firestore, "users", user.uid);
-        const userDocSnap = await getDoc(userDocRef);
-        if (userDocSnap.exists()) {
-          const userData = userDocSnap.data();
-          setUserData(userData);
-          console.log(userData);
-          
-          // Fetch properties
-          const fetchUserProperties = async () => {
-            if (!user) return;
-            
-            setIsLoadingProperties(true);
-            try {
-              // Get user's listing IDs
-              const userDocRef = doc(firestore, "users", user.uid);
-              const userDoc = await getDoc(userDocRef);
-              const listingIds = userDoc.data()?.listing_ids || [];
-              
-              // Fetch each property
-              const properties = [];
-              for (const id of listingIds) {
-                const propertyRef = doc(firestore, "properties", id);
-                const propertyDoc = await getDoc(propertyRef);
-                if (propertyDoc.exists()) {
-                  properties.push({
-                    id: propertyDoc.id,
-                    ...propertyDoc.data()
-                  });
-                }
-              }
-              
-              setUserProperties(properties);
-            } catch (error) {
-              console.error("Error fetching properties:", error);
-              Alert.alert("Error", "Failed to fetch your properties. Please try again later.");
-            } finally {
-              setIsLoadingProperties(false);
-            }
-          };
-          fetchUserProperties();
-        } else {
-          console.log("No such document!");
-        }
-      }
-    };
-
     fetchUserData();
   }, [user]);
 
@@ -864,7 +877,18 @@ export function ProfilePage() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.scrollViewContent}>
+    <ScrollView 
+      style={styles.container}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={[theme.colors.primary]}
+          tintColor={theme.colors.primary}
+          progressBackgroundColor="#ffffff"
+        />
+      }
+    >
       {/* Profile Section */}
       <View style={styles.profileSection}>
         <Card style={styles.profileCard}>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, View, Dimensions } from "react-native";
-import { getListings, auth, sendNewMessage } from "@/config/firebase";
+import { StyleSheet, View, Dimensions, RefreshControl } from "react-native";
+import { getListings, auth, sendNewMessage, firestore } from "@/config/firebase";
+import { doc, updateDoc, arrayUnion, arrayRemove, getDoc, collection, getDocs } from "firebase/firestore";
 import MapView, { Marker } from "react-native-maps";
 import {
   Card,
@@ -319,6 +320,7 @@ export function RentPage() {
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [filterVisible, setFilterVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -363,6 +365,35 @@ export function RentPage() {
     });
   };
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      const result = await getListings();
+
+      // Map the data to match the Property type
+      const formattedData = result.map((item: any) => ({
+        id: item.id,
+        address: item.property, // Rename property to address
+        rent: item.rent,
+        startDate: item.startDate,
+        endDate: item.endDate,
+        image: item.image,
+        bedCount: item.bedCount,
+        bathCount: item.bathCount,
+        area: item.area,
+        latitude: item.latitude,
+        longitude: item.longitude,
+        authorId: item.authorId,
+      }));
+
+      setData(formattedData);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   const renderContent = () => {
     if (viewMode === "map") {
       return (
@@ -393,6 +424,14 @@ export function RentPage() {
     return (
       <FlashList
         data={data}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[theme.colors.primary]} // Yellow color
+            tintColor={theme.colors.primary}
+          />
+        }
         renderItem={({ item }) => (
           <PropertyCard
             item={item}
