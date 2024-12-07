@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, View, Dimensions } from "react-native";
+import { StyleSheet, View, Dimensions, Image } from "react-native";
 import { getListings, auth, sendNewMessage } from "@/config/firebase";
-import MapView, { Marker } from "react-native-maps";
+import MapView, { Marker, Callout } from "react-native-maps";
 import {
   Card,
   Title,
@@ -406,20 +406,35 @@ export function RentPage() {
           }}
         >
           {data.map((item) => (
-            <Marker
-              key={item.id}
-              coordinate={{
-                latitude: item.latitude,
-                longitude: item.longitude,
-              }}
-              title={item.address}
-              description={`$${item.rent}/month`}
-            />
-          ))}
-        </MapView>
-      );
-    }
-
+          <Marker
+            key={item.id}
+            coordinate={{
+              latitude: item.latitude,
+              longitude: item.longitude,
+            }}
+          >
+            {/* Callout inside Marker */}
+            <Callout>
+              <View style={{ width: 150, alignItems: "center", padding: 5 }}>
+                <View style={{ width: 100, height: 100 }}>
+                  <Image
+                    source={{
+                      uri: item.image
+                    }}
+                    style={{ width: '100%', height: '100%' }}
+                    resizeMode="cover"
+                  />
+                </View>
+                <Text style={{ fontWeight: 'bold', marginTop: 5 }}>{item.address}</Text>
+                <Text>${item.rent}/month</Text>
+              </View>
+            </Callout>
+          </Marker>
+        ))}
+      </MapView>
+    );
+  }
+    
     return (
       <FlashList
         data={data}
