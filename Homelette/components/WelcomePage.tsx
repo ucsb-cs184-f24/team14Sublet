@@ -168,24 +168,24 @@ export function WelcomePage() {
         <ThemedText style={styles.title}>Homelette</ThemedText>
         {currentStep === 1 && (
           <>
-            <TextInput
-              style={styles.input}
-              placeholder="Email (.edu required)*"
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              autoCorrect={false}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Password (min. 6 characters)*"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-            />
             {!isLogin && (
               <>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Email (.edu required)*"
+                  value={email}
+                  onChangeText={setEmail}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                  autoCorrect={false}
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Password (min. 6 characters)*"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry
+                />
                 <TextInput
                   style={styles.input}
                   placeholder="First Name*"
@@ -211,9 +211,27 @@ export function WelcomePage() {
               </>
             )}
             {isLogin && (
+              <>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Email (.edu)"
+                  value={email}
+                  onChangeText={setEmail}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                  autoCorrect={false}
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Password"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry
+                />
               <TouchableOpacity style={styles.button} onPress={handleAuth}>
                 <ThemedText style={styles.buttonText}>Login</ThemedText>
               </TouchableOpacity>
+              </>
             )}
           </>
         )}
