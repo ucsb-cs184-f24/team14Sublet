@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { StyleSheet, View, Dimensions } from "react-native";
+import React, { useState, useEffect, useRef } from "react";
+import { StyleSheet, View, Dimensions, Animated, Easing } from "react-native";
 import { getListings, auth, sendNewMessage } from "@/config/firebase";
 import MapView, { Marker } from "react-native-maps";
 import {
@@ -23,57 +23,19 @@ import {
 } from "react-native-paper";
 import { FlashList } from "@shopify/flash-list";
 
-// Mock data for properties
-const leases = [
-  {
-    id: "1",
-    address: "123 Main St",
-    rent: 1200,
-    startDate: "2023-09-04",
-    endDate: "2024-08-31",
-    image: require("../assets/images/mock_property_images/123-Main-St.jpg"),
-    bedCount: 3,
-    bathCount: 2,
-    area: 900,
-  },
-  {
-    id: "2",
-    address: "456 Elm St",
-    rent: 1500,
-    startDate: "2023-10-01",
-    endDate: "2024-09-30",
-    image: require("../assets/images/mock_property_images/456-Elm-St.jpg"),
-    bedCount: 4,
-    bathCount: 3,
-    area: 1400,
-  },
-  {
-    id: "3",
-    address: "789 Oak Ave",
-    rent: 1100,
-    startDate: "2023-11-01",
-    endDate: "2024-10-31",
-    image: require("../assets/images/mock_property_images/789-Oak-Ave.jpg"),
-    bedCount: 2,
-    bathCount: 1,
-    area: 900,
-  },
-];
-
-// Custom theme for React Native Paper
 const theme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    primary: "#FFD700", // Main yellow for buttons and primary elements
-    secondary: "#2E3192", // Accent blue for interactive elements
-    surface: "#FFFFFC", // White for cards and surfaces
-    background: "#F5F5F5", // Light gray for app background
-    error: "#FF6B6B", // Red for error messages
-    text: "#333333", // Dark gray for general text
-    primaryContainer: "#FFD70020", // Light yellow background for buttons and containers
-    onPrimaryContainer: "#0D1321", // Rich black for text/icons on primary containers
-    chatButton: "#FFD700", // Yellow for the chat button
+    primary: "#FFD700",
+    secondary: "#2E3192",
+    surface: "#FFFFFC",
+    background: "#F5F5F5",
+    error: "#FF6B6B",
+    text: "#333333",
+    primaryContainer: "#FFD70020",
+    onPrimaryContainer: "#0D1321",
+    chatButton: "#FFD700",
   },
 };
 
@@ -109,7 +71,7 @@ const PropertyCard = ({
 }: {
   item: Property;
   isFavorite: boolean;
-  listingAuthorId: string;
+  listingAuthorId?: string;
   onToggleFavorite: (id: string) => void;
 }) => {
   const [isVisible, setVisible] = useState(false);
@@ -208,7 +170,7 @@ const PropertyCard = ({
                 textColor="#000000"
                 onPress={() => {
                   handleSendMessage(
-                    auth.currentUser?.uid,
+                    auth.currentUser?.uid || "",
                     item.authorId,
                     message,
                     item.address,
@@ -218,7 +180,11 @@ const PropertyCard = ({
               >
                 Send
               </Button>
-              <Button buttonColor="#ffffbb" textColor="#000000" onPress={() => handleClosePopup()}>
+              <Button
+                buttonColor="#ffffbb"
+                textColor="#000000"
+                onPress={() => handleClosePopup()}
+              >
                 Cancel
               </Button>
             </View>
@@ -240,7 +206,6 @@ const FilterModal = ({
   hideModal,
   onApplyFilters,
 }: FilterModalProps) => {
-  // State for min and max price inputs
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
 
@@ -258,16 +223,16 @@ const FilterModal = ({
         <View style={styles.priceInputs}>
           <Searchbar
             placeholder="Min $"
-            value={minPrice} // Added value prop
-            onChangeText={setMinPrice} // Added onChangeText handler
+            value={minPrice}
+            onChangeText={setMinPrice}
             style={styles.priceInput}
             keyboardType="numeric"
           />
           <Text>-</Text>
           <Searchbar
             placeholder="Max $"
-            value={maxPrice} // Added value prop
-            onChangeText={setMaxPrice} // Added onChangeText handler
+            value={maxPrice}
+            onChangeText={setMaxPrice}
             style={styles.priceInput}
             keyboardType="numeric"
           />
@@ -302,13 +267,50 @@ const FilterModal = ({
         />
 
         <View style={styles.modalActions}>
-          <Button onPress={hideModal} buttonColor="#FFD70020" textColor="#000000">Reset</Button>
+          <Button onPress={hideModal} buttonColor="#FFD70020" textColor="#000000">
+            Reset
+          </Button>
           <Button mode="contained" textColor="#000000" onPress={onApplyFilters}>
             Apply Filters
           </Button>
         </View>
       </Modal>
     </Portal>
+  );
+};
+
+// Animated Egg Component
+const WigglingEgg = () => {
+  const rotation = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(rotation, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+          easing: Easing.inOut(Easing.ease),
+        }),
+        Animated.timing(rotation, {
+          toValue: -1,
+          duration: 500,
+          useNativeDriver: true,
+          easing: Easing.inOut(Easing.ease),
+        }),
+      ])
+    ).start();
+  }, [rotation]);
+
+  const rotate = rotation.interpolate({
+    inputRange: [-1, 1],
+    outputRange: ["-5deg", "5deg"],
+  });
+
+  return (
+    <Animated.View style={{ transform: [{ rotate }] }}>
+      <IconButton icon="egg" size={72} iconColor="#FFD700" />
+    </Animated.View>
   );
 };
 
@@ -325,10 +327,9 @@ export function RentPage() {
       try {
         const result = await getListings();
 
-        // Map the data to match the Property type
         const formattedData = result.map((item: any) => ({
           id: item.id,
-          address: item.property, // Rename property to address
+          address: item.property,
           rent: item.rent,
           startDate: item.startDate,
           endDate: item.endDate,
@@ -410,13 +411,9 @@ export function RentPage() {
   if (loading) {
     return (
       <PaperProvider theme={theme}>
-        <Card style={styles.card} elevation={2}>
-          <Card.Content>
-            <View>
-              <Title style={styles.rent}>Loading...</Title>
-            </View>
-          </Card.Content>
-        </Card>
+        <View style={styles.loadingContainer}>
+          <WigglingEgg />
+        </View>
       </PaperProvider>
     );
   }
@@ -448,12 +445,12 @@ export function RentPage() {
               label: "List",
               style: [
                 styles.segmentedButton,
-                viewMode === "list" && styles.segmentedButtonSelected, // Apply selected style
+                viewMode === "list" && styles.segmentedButtonSelected,
               ],
               labelStyle:
                 viewMode === "list"
                   ? styles.segmentedButtonTextSelected
-                  : styles.segmentedButtonText, // Conditionally apply text color
+                  : styles.segmentedButtonText,
             },
             {
               value: "map",
@@ -461,12 +458,12 @@ export function RentPage() {
               label: "Map",
               style: [
                 styles.segmentedButton,
-                viewMode === "map" && styles.segmentedButtonSelected, // Apply selected style
+                viewMode === "map" && styles.segmentedButtonSelected,
               ],
               labelStyle:
                 viewMode === "map"
                   ? styles.segmentedButtonTextSelected
-                  : styles.segmentedButtonText, // Conditionally apply text color
+                  : styles.segmentedButtonText,
             },
           ]}
           style={styles.segmentedButtonsContainer}
@@ -510,17 +507,19 @@ const styles = StyleSheet.create({
     marginRight: 8,
     backgroundColor: theme.colors.surface,
   },
-  viewToggle: {
-    margin: 16,
-  },
   listContainer: {
     padding: 16,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   card: {
     marginBottom: 16,
     borderRadius: 12,
     backgroundColor: theme.colors.primaryContainer,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   imageContainer: {
     position: "relative",
@@ -610,16 +609,8 @@ const styles = StyleSheet.create({
     bottom: 0,
     backgroundColor: theme.colors.primary,
   },
-  messageButton: {
-    backgroundColor: theme.colors.secondary + "20",
-  },
   messageInput: {
     marginBottom: 10,
-  },
-  chatButtonContainer: {
-    elevation: 4,
-    borderRadius: 20,
-    overflow: "hidden",
   },
   chatButtonWrapper: {
     overflow: "hidden",
@@ -635,39 +626,36 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   chatButtonContent: {
-    flexDirection: "row-reverse", // Places icon after text
+    flexDirection: "row-reverse",
     height: 36,
   },
   chatButtonLabel: {
     fontSize: 14,
     fontWeight: "600",
     marginLeft: 4,
-    color: '#000000',
+    color: "#000000",
   },
   chip: {
     backgroundColor: theme.colors.primary + "20",
   },
-  chipText: {
-    color: theme.colors.text,
-  },
   segmentedButtonsContainer: {
-    backgroundColor: theme.colors.primaryContainer, // Background for the toggle buttons
+    backgroundColor: theme.colors.primaryContainer,
     borderRadius: 8,
     margin: 16,
   },
   segmentedButton: {
-    backgroundColor: "transparent", // Keeps individual buttons transparent, showing the container's color
+    backgroundColor: "transparent",
   },
   segmentedButtonSelected: {
-    backgroundColor: theme.colors.primary, // Selected button background
+    backgroundColor: theme.colors.primary,
   },
   segmentedButtonText: {
-    color: theme.colors.text, // Unselected button text color
+    color: theme.colors.text,
   },
   segmentedButtonTextSelected: {
-    color: theme.colors.onPrimaryContainer, // Selected button text color
+    color: theme.colors.onPrimaryContainer,
   },
   segmentedButtonBackground: {
-    backgroundColor: theme.colors.primaryContainer, // Custom background for segmented buttons
+    backgroundColor: theme.colors.primaryContainer,
   },
 });
