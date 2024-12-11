@@ -139,3 +139,39 @@ graph TD
 	- Update a document: Use the updateDoc method.
 	- Deleting a document: use the deleteDoc method.
 	- Querying a document: Use the getDoc, getDocs, or Firestore query builder.
+
+ ## Decision Records
+ ### Phase 1: Technology Selection
+ We Chose React Native to achieve cross-platform compatibility, enabling simultaneous development for iOS and Android while saving development time and costs.
+
+ We Adopted Firebase for its serverless architecture advantages, including real-time database, user authentication, cloud storage, and notification services, reducing infrastructure management overhead.
+
+ ### Phase 2: MVP Design
+ We started by completing the most basic functionality of the design.
+ 1.	Property Posting:
+ 2.	Property Browsing:
+
+We also reserve interfaces for future features such as map display (Google Maps API) and online chat (Firebase Chat).
+
+### Phase 3: Final Feature Completion
+ After the core features are launched, we optimize the user experience and implement the final functionalities to enhance product competitiveness.
+ - Data Query: Use Firebase Firestore’s advanced query capabilities to optimize filtering and sorting.
+ - UI/UX: Apply modern design principles (e.g., Material Design) to improve layout, button interactions, and loading animations.
+
+## External Resources
+1.	Technical Documentation and Official Resources
+	- React Native Official Docs
+	- Expo Official Docs: Expo Docs
+ 	- Google Maps Platform
+
+2.	Code Editors and Plugins
+	- Cursor + ChatGPT: For code completion, issue debugging, and auto-documentation.
+ 	- Project Management: Github Kanban Board
+  	- Maestro: E2E testing tool
+
+3.	Other online Courses from [Youtube](https://www.youtube.com/watch?v=AHIGrwuX18k)
+
+## Difficulties and Solutions
+
+1.	How to implement photo uploading for properties? And provide both photo and local selection?
+	- After reading the official react manual, we used the expo-image-picker library to handle image selection and picture taking, first obtaining access to the media library and camera permissions, then launching the image selection function, and finally uploading the image into a Blob format for permanent storage in FIrebase, with user-friendly error handling and hints.
