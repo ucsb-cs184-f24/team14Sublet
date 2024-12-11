@@ -18,7 +18,6 @@
 - I want manuals or tutorials of how to use the app.
 - I want to be able to edit various details about my profile, such as my password, profile picture, and class info.
 
-
 ## Functionality Definition
 
 ### Home Browsing & Searching
@@ -28,6 +27,8 @@
     - Slide to select (Tinder style).
     - Listing detail page to show pictures and details.
 - Output: List or detail page of matched properties.
+
+
 
 ### Housing Posting
 - Inputs: housing information (rent, location, pictures, description, contact information).
@@ -52,12 +53,7 @@
 	- Provide “Forgot Password” function.
 - Output: Feedback on successful login or operation.
 
-### Notification Alert
-- Inputs: trigger conditions (new message, listing push).
-- Function Requirement:
-	- Push notifications using Firebase Cloud Messaging.
-	- Users can choose whether to receive notifications or not.
-- Output: Receive notifications on mobile.
+
 
 ## Technical Architecture
 
