@@ -22,6 +22,10 @@ Whether you are a renter looking for housing (Subtenant) or a landlord posting a
   - Edit personal information (password, profile picture, course information).
   - Access operation manuals or tutorials.
 
+## See Homelette in Action! 🎥  
+Watch Jane post a lease and Joe find the perfect sublet in this quick video demo!  
+
+[![Homelette Demo Video](https://img.youtube.com/vi/7dHaIEgrGpM/0.jpg)](https://youtu.be/7dHaIEgrGpM)
 
 ## Usage Guidelines
 ### Login Page
