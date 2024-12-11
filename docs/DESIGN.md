@@ -175,3 +175,20 @@ We also reserve interfaces for future features such as map display (Google Maps 
 
 1.	How to implement photo uploading for properties? And provide both photo and local selection?
 	- After reading the official react manual, we used the expo-image-picker library to handle image selection and picture taking, first obtaining access to the media library and camera permissions, then launching the image selection function, and finally uploading the image into a Blob format for permanent storage in FIrebase, with user-friendly error handling and hints.
+
+## Evaluation
+
+We conducted **End-to-End (E2E) testing** using **Maestro** to ensure the core features of our MVP (**v1.0.0**) functioned as expected. This process simulated real user interactions and validated essential workflows.
+
+### **Tested Features:**  
+- User registration and login.  
+- Browsing available properties.  
+- Posting property listings with details like title, description, price, and image.
+
+### **Results:**  
+- All tested features worked as intended, ensuring a stable and functional MVP.  
+- Future improvements to the testing script will include filtering, saving, chat functionality, and managing property listings.
+
+### **Watch the Test in Action!**  
+Check out our automated E2E testing process:  
+[![Homelette E2E Testing Demo](https://img.youtube.com/vi/it34yJEnC8E/0.jpg)](https://youtu.be/it34yJEnC8E)
